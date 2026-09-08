@@ -9,7 +9,7 @@ Ibarra Bravo Jocelyn Naomi;
 Lopez Fletes Benjamin;
 Rico Morones Denice Estefania;
 
-#Construcción provisional:
+#Construcción provisional: pendiente.
 
 #Estado del proyecto:
 Estado: Inicio/Planeación
