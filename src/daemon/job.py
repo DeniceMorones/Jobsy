@@ -1,5 +1,5 @@
 #trabajo y metadatos
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 @dataclass #genera el constructor y otros metodos automaticamente
@@ -8,7 +8,7 @@ class Job:
     command: list[str]
     status: str = "QUEUED" #de mientras ya que una tarea inicia formada en la cola no entra ejecutandose
     
-    received_at: datetime | None = None
+    received_at: datetime = field(default_factory = datetime.now) #cuando se creo el trabajo, se inicializa con la fecha actual
     started_at: datetime | None = None
     finished_at: datetime | None = None
     

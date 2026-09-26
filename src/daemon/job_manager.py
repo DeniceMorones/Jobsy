@@ -1,5 +1,6 @@
 #cerebro de Jobsy create_job(), get_job(), list_jobs(), update_status()
 
+from datetime import timezone, datetime
 import uuid
 
 from .job import Job
@@ -17,3 +18,25 @@ class JobManager:
         #y referenciando ese key se puede acceder al objeto Job (Job guardaris los metadatos: job_id, command, ...)
         
         return job
+    
+    def mark_job_started(self, job_id: str) -> None:
+        job = self.jobs[job_id]
+        
+        job.status = "RUNNING"
+        job.started_at = datetime.now(timezone.utc)
+    
+    def mark_job_finished(
+        self,
+        job_id: str,
+        exit_code: int
+        ) -> None:
+        
+        job = self.jobs[job_id]
+        
+        job.finished_at = datetime.now(timezone.utc)
+        job.exit_code = exit_code
+        
+        if exit_code == 0:
+            job.status = "SUCCEEDED"
+        else:
+            job.status = "FAILED"
