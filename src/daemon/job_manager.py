@@ -54,4 +54,32 @@ class JobManager:
             )
 
         return job
-            
+    
+    def list_jobs(self, status: str | None = None) -> list[Job]:
+
+        jobs = list(self.jobs.values())
+
+        if status is None:
+            return jobs
+
+        status = status.upper()
+
+        valid_statuses = {
+            "QUEUED",
+            "RUNNING",
+            "SUCCEEDED",
+            "FAILED",
+            "CANCELED"
+        }
+
+        if status not in valid_statuses:
+            raise ValueError(
+                f"Estado no valido: '{status}'."
+            )
+
+        return [
+            job
+            for job in jobs
+            if job.status == status
+        ]
+                
