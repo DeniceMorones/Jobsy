@@ -1,9 +1,12 @@
 #ejecutar procesos utilizar subprocees.Popen()
 
 import subprocess
+from sys import stderr
 import threading
 
 from .job import Job
+from src.daemon import job
+from src.daemon import job
 from .job_manager import JobManager
 
 class Executor:
@@ -34,6 +37,9 @@ class Executor:
             )
 
             stdout, stderr = process.communicate()
+            
+            job.stdout = stdout
+            job.stderr = stderr
 
             self.manager.mark_job_finished(
                 job.id,

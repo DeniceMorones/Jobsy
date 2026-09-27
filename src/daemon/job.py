@@ -12,5 +12,8 @@ class Job:
     started_at: datetime | None = None
     finished_at: datetime | None = None
     
+    stdout: str = ""
+    stderr: str = ""
+    
     exit_code: int | None = None
     

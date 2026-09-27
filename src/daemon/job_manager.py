@@ -4,12 +4,15 @@ from datetime import timezone, datetime
 import uuid
 
 from .job import Job
+from ..protocol.validation import validate_command
 
 class JobManager:
     def __init__(self):
         self.jobs: dict[str, Job] = {}
         
     def create_job(self, command: list[str]) -> Job: #va devolver un objeto Job
+        validate_command(command)#la validacion antes que todo
+       
         job_id = str(uuid.uuid4())
         
         job = Job(id = job_id, command = command)
