@@ -43,3 +43,15 @@ class JobManager:
             job.status = "SUCCEEDED"
         else:
             job.status = "FAILED"
+            
+    def get_job(self, job_id: str) -> Job:
+
+        job = self.jobs.get(job_id)
+
+        if job is None:
+            raise ValueError(
+                f"No existe un trabajo con el ID '{job_id}'."
+            )
+
+        return job
+            
