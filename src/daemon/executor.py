@@ -6,7 +6,6 @@ import threading
 
 from .job import Job
 from src.daemon import job
-from src.daemon import job
 from .job_manager import JobManager
 
 class Executor:
@@ -36,18 +35,28 @@ class Executor:
                 text=True
             )
 
+            #se asigna la referencia al proceso activo
+            job.process = process
+
             stdout, stderr = process.communicate()
             
             job.stdout = stdout
             job.stderr = stderr
 
-            self.manager.mark_job_finished(
-                job.id,
-                process.returncode#este codigo lo retorna el proceso
-            )
+            ## Si el trabajo ya fue marcado como CANCELED por cancel_job(), respetamos ese estado
+            if job.status != "CANCELED":
+                self.manager.mark_job_finished(
+                    job.id,
+                    process.returncode#este codigo lo retorna el proceso
+                )
 
+        #si es diferente de CANCELED, se marca como finalizado
         except Exception:
-            self.manager.mark_job_finished(
-                job.id,
-                1
-            )
+            if job.status != "CANCELED":
+                self.manager.mark_job_finished(
+                    job.id,
+                    1
+                )
+        finally:
+            job.process = None #se limpia la referencia al finalizar
+        

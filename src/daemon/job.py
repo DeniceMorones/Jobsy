@@ -1,4 +1,5 @@
 #trabajo y metadatos
+import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -16,4 +17,6 @@ class Job:
     stderr: str = ""
     
     exit_code: int | None = None
-    
+
+    #guarda la referencia al subproceso activo  (esto me ayuda para la cancelacion)(no se serializa)
+    process: subprocess.Popen | None = field(default=None, repr=False) 
