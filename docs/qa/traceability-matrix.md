@@ -1,10 +1,9 @@
 # Matriz de trazabilidad — MVP Avance 1
 
-Esta matriz relaciona las funcionalidades requeridas del MVP con sus
-casos de prueba, mecanismos de verificación y evidencias.
+Esta matriz relaciona las funcionalidades requeridas del MVP con sus casos de prueba, mecanismos de verificación y evidencias.
 
-| ID | Requisito / funcionalidad | Caso de prueba | Automatización | Evidencia | Estado | Requisito Formal |
-|---|---|---|---|---|---|
+| ID | Requisito / funcionalidad | Caso de prueba | Automatización | Evidencia | Estado | Requisito formal |
+|---|---|---|---|---|---|---|
 | MVP-01 | Enviar un trabajo | Pendiente | Pendiente | Pendiente | Pendiente | RF-XX |
 | MVP-02 | Obtener identificador único | Pendiente | Pendiente | Pendiente | Pendiente | RF-XX |
 | MVP-03 | Ejecutar como proceso separado | Pendiente | Pendiente | Pendiente | Pendiente | RF-XX |
