@@ -438,6 +438,149 @@ Se cumplió el orden temporal esperado y la duración fue aproximadamente de 10 
 
 ---
 
+
+## TC-015 — Consultar trabajo con ID válido
+
+**Tipo:** Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy permita recuperar correctamente un trabajo existente mediante su identificador.
+
+### Datos de prueba
+```python
+["echo", "Hola"]
+```
+
+ID utilizado:
+
+```text
+1a995a13-4442-4629-a915-49d64f0faf93
+```
+
+### Resultado esperado
+El sistema debe recuperar el trabajo correspondiente al ID proporcionado.
+
+Debe cumplirse:
+
+```text
+ID encontrado = ID buscado
+Comando = ['echo', 'Hola']
+Estado = QUEUED
+```
+
+### Resultado obtenido
+```text
+ID buscado: 1a995a13-4442-4629-a915-49d64f0faf93
+ID encontrado: 1a995a13-4442-4629-a915-49d64f0faf93
+Comando: ['echo', 'Hola']
+Estado: QUEUED
+```
+
+El trabajo fue recuperado correctamente y la información obtenida coincidió con los datos esperados.
+
+### Evidencia
+`EV-003-job-manager-output.txt`
+
+---
+
+## TC-016 — Consultar trabajo con ID inexistente
+
+**Tipo:** Negativa / Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy rechace de forma controlada la consulta de un identificador que no corresponde a ningún trabajo registrado.
+
+### Datos de prueba
+```text
+id-que-no-existe
+```
+
+### Resultado esperado
+El sistema debe rechazar la consulta del ID inexistente y mostrar un error controlado indicando que el trabajo no existe.
+
+### Resultado obtenido
+```text
+CORRECTO: se rechazó el ID inexistente
+Motivo: No existe un trabajo con el ID 'id-que-no-existe'.
+```
+
+El sistema rechazó correctamente el identificador inexistente y reportó el motivo esperado.
+
+### Evidencia
+`EV-003-job-manager-output.txt`
+
+---
+
+## TC-017 — Listar trabajos y filtrar por estado
+
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy permita listar los trabajos registrados, filtrarlos por un estado válido y rechazar un estado de filtro inválido.
+
+### Datos de prueba
+Trabajos creados:
+
+```python
+["echo", "Hola"]
+["sleep", "1"]
+```
+
+Filtro válido:
+
+```text
+QUEUED
+```
+
+Filtro inválido:
+
+```text
+ESTADO_INEXISTENTE
+```
+
+### Resultado esperado
+Sin filtro, el sistema debe devolver los dos trabajos registrados.
+
+Al filtrar por `QUEUED`, debe devolver los dos trabajos en ese estado.
+
+Al utilizar un estado inexistente, el sistema debe rechazar el filtro de forma controlada.
+
+### Resultado obtenido
+Listado sin filtro:
+
+```text
+Cantidad: 2
+1a995a13-4442-4629-a915-49d64f0faf93 ['echo', 'Hola'] QUEUED
+989a2eae-45d2-4d1a-8919-6549dba80cb5 ['sleep', '1'] QUEUED
+```
+
+Listado filtrando por `QUEUED`:
+
+```text
+Cantidad: 2
+1a995a13-4442-4629-a915-49d64f0faf93 ['echo', 'Hola'] QUEUED
+989a2eae-45d2-4d1a-8919-6549dba80cb5 ['sleep', '1'] QUEUED
+```
+
+Prueba con estado inválido:
+
+```text
+CORRECTO: se rechazó el estado inválido
+Motivo: Estado no valido: 'ESTADO_INEXISTENTE'.
+```
+
+El listado general, el filtro por estado `QUEUED` y el rechazo del estado inválido funcionaron correctamente.
+
+### Evidencia
+`EV-003-job-manager-output.txt`
+
+
 # Resumen de ejecución
 
 | Caso | Descripción | Estado | Evidencia |
@@ -456,9 +599,12 @@ Se cumplió el orden temporal esperado y la duración fue aproximadamente de 10 
 | TC-012 | Capturar stderr | PASS | EV-002 |
 | TC-013 | Registrar código de salida de error | PASS | EV-002 |
 | TC-014 | Registrar tiempos del ciclo de vida | PASS | EV-002 |
+| TC-015 | Consultar trabajo con ID válido | PASS | EV-003 |
+| TC-016 | Consultar trabajo con ID inexistente | PASS | EV-003 |
+| TC-017 | Listar trabajos y filtrar por estado | PASS | EV-003 |
 
 ## Resultado general
 
 Los 14 casos ejecutados sobre el alcance revisado del PR #101 obtuvieron resultado `PASS`.
 
-Estos resultados verifican parcialmente el MVP. Permanecen pendientes pruebas sobre consulta por ID, listado y filtrado de trabajos, ejecución de un programa inexistente, demostración explícita del proceso separado mediante PID, cancelación y continuidad del servicio ante comandos inválidos.
+Estos resultados verifican parcialmente el MVP. Permanecen pendientes pruebas sobre ejecución de un programa inexistente, demostración explícita del proceso separado mediante PID, cancelación y continuidad del servicio ante comandos inválidos.
