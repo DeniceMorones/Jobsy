@@ -14,6 +14,12 @@ Desarrollar una herramienta sencilla para administrar tareas en el sistema Linux
 * **Lopez Fletes Benjamin**: benjamin.lopez4157@alumnos.udg.mx
 * **Rico Morones Denice Estefania**: denice.rico4211@alumnos.udg.mx
 
+## 🎭 Asignación de roles:
+* **Arquitectura:** Benjamin Lopez Fletes
+* **Project Management & Backend:** Jocelyn Naomi Ibarra Bravo
+* **Backend Development:** Denice Estefania Rico Morones
+* **QA y Certificación:** Alexia Gomez Rubio
+
 ## 🛠️ Construcción provisional:
 Jobsy será desarrollado para linux como **una herramienta de línea de comandos (CLI)** para registrar, ejecutar, supervisar y controlaar trabajos.
 ### Consideraciones técnicas clave:
