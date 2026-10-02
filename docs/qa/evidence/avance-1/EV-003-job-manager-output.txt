@@ -1,0 +1,27 @@
+=== CREANDO TRABAJOS ===
+Job 1: 1a995a13-4442-4629-a915-49d64f0faf93 QUEUED
+Job 2: 989a2eae-45d2-4d1a-8919-6549dba80cb5 QUEUED
+
+=== GET_JOB CON ID VALIDO ===
+ID buscado: 1a995a13-4442-4629-a915-49d64f0faf93
+ID encontrado: 1a995a13-4442-4629-a915-49d64f0faf93
+Comando: ['echo', 'Hola']
+Estado: QUEUED
+
+=== GET_JOB CON ID INEXISTENTE ===
+CORRECTO: se rechazó el ID inexistente
+Motivo: No existe un trabajo con el ID 'id-que-no-existe'.
+
+=== LIST_JOBS SIN FILTRO ===
+Cantidad: 2
+1a995a13-4442-4629-a915-49d64f0faf93 ['echo', 'Hola'] QUEUED
+989a2eae-45d2-4d1a-8919-6549dba80cb5 ['sleep', '1'] QUEUED
+
+=== LIST_JOBS FILTRANDO QUEUED ===
+Cantidad: 2
+1a995a13-4442-4629-a915-49d64f0faf93 ['echo', 'Hola'] QUEUED
+989a2eae-45d2-4d1a-8919-6549dba80cb5 ['sleep', '1'] QUEUED
+
+=== LIST_JOBS CON ESTADO INVALIDO ===
+CORRECTO: se rechazó el estado inválido
+Motivo: Estado no valido: 'ESTADO_INEXISTENTE'.
