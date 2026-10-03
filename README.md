@@ -31,7 +31,7 @@ El proyecto está organizado de forma modular dentro del directorio src/
 
 * **src/daemon/job.py:** Modelo de datos, estados (QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELED) y metadatos.
 
-* **src/daemon/server.py:** Guardián del servicio encargado del apagado seguro; por lo pronto su conexión solo esta en job_manager.py y sienta las bases para el avance 2.
+* **src/daemon/server.py:** Guardián del servicio encargado del apagado seguro;
 
 * **src/protocol/validation.py:** Módulo para validación y sanitización de comandos.
 
