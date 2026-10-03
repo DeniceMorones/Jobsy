@@ -1,0 +1,109 @@
+========================================
+TC-029 - MOSTRAR AYUDA SIN ARGUMENTOS
+========================================
+Exit code: 2
+STDOUT:
+usage: jobsy [-h] {run,list,status,cancel} ...
+
+Jobsy: CLI para gestión de trabajos
+
+positional arguments:
+  {run,list,status,cancel}
+                        Comandos disponibles
+    run                 Ejecuta un trabajo
+    list                Lista los trabajos
+    status              Muestra el estado de un trabajo
+    cancel              Cancela un trabajo
+
+options:
+  -h, --help            show this help message and exit
+
+Ejemplo: jobsy run -- sleep 10
+
+PASS: La CLI termina con codigo 2 cuando no recibe argumentos.
+PASS: La CLI muestra informacion de ayuda.
+
+========================================
+TC-030 - EJECUTAR COMANDO VALIDO
+========================================
+Exit code: 0
+STDOUT: 'Trabajo creado y enviado a ejecución con ID: 3118ea9b-ef4b-46b2-a55c-466728f9b4c2\n'
+STDERR: ''
+PASS: El comando run valido termina con codigo 0.
+PASS: El comando run crea un trabajo.
+PASS: El trabajo conserva correctamente el comando solicitado.
+PASS: La CLI informa el ID del trabajo creado.
+
+========================================
+TC-031 - LISTAR TRABAJOS
+========================================
+Exit code: 0
+STDOUT:
+ID: 8dd4946c-c5e3-4cc0-b32d-3180e792c600 | Estado: QUEUED | Comando: echo Trabajo 1
+ID: 2d4a29fa-8f5f-41d5-ab17-3f4c2e4a2d66 | Estado: QUEUED | Comando: sleep 1
+
+PASS: El comando list termina con codigo 0.
+PASS: La CLI lista los trabajos registrados.
+PASS: La CLI muestra el estado de los trabajos.
+
+========================================
+TC-032 - CONSULTAR ESTADO DE TRABAJO
+========================================
+Exit code: 0
+STDOUT:
+ID: 63a5a435-23d4-4604-8231-24be0c771302
+Estado: QUEUED
+Comando: echo Consultar estado
+Recibido: 2026-10-03 01:06:24 UTC
+Inicio: -
+Fin: -
+Código de salida: -
+
+PASS: El comando status valido termina con codigo 0.
+PASS: La CLI muestra el ID correcto.
+PASS: La CLI muestra el estado correcto.
+PASS: La CLI muestra el comando asociado.
+
+========================================
+TC-033 - CANCELAR TRABAJO DESDE CLI
+========================================
+Exit code: 0
+STDOUT:
+Cancelando trabajo con ID: f7e84e07-c902-4a22-90e9-ffa061a5e697
+Estado actual: CANCELED
+
+Estado final: CANCELED
+PASS: El comando cancel valido termina con codigo 0.
+PASS: La CLI cancela correctamente el trabajo.
+PASS: La CLI informa el estado CANCELED.
+
+========================================
+TC-034 - CONSULTAR ID INEXISTENTE
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: "Error de validación: No existe un trabajo con el ID 'id-que-no-existe'.\n"
+PASS: La consulta de un ID inexistente termina con codigo 1.
+PASS: La CLI informa el error mediante STDERR.
+
+========================================
+TC-035 - FILTRO DE ESTADO INVALIDO
+========================================
+Exit code: 2
+STDOUT: ''
+STDERR: "usage: jobsy list [-h] [--status {QUEUED,RUNNING,SUCCEEDED,FAILED,CANCELED}]\njobsy list: error: argument --status: invalid choice: 'ESTADO_INVALIDO' (choose from QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELED)\n"
+PASS: Un estado invalido en la CLI termina con codigo 2.
+PASS: argparse informa que el estado proporcionado es invalido.
+
+========================================
+TC-036 - SUBCOMANDO INVALIDO
+========================================
+Exit code: 2
+STDOUT: ''
+STDERR: "usage: jobsy [-h] {run,list,status,cancel} ...\njobsy: error: argument subcommand: invalid choice: 'comando-inexistente' (choose from run, list, status, cancel)\n"
+PASS: Un subcomando invalido termina con codigo 2.
+PASS: La CLI informa que el subcomando es invalido.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.
