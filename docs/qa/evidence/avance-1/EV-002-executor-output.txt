@@ -1,0 +1,17 @@
+Jobsy sigue disponible!
+Job(id='ab33bbbe-b03e-47d0-81b2-1476b5348c97', command=['sleep', '10'], status='RUNNING', received_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 104571, tzinfo=datetime.timezone.utc), started_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 104833, tzinfo=datetime.timezone.utc), finished_at=None, stdout='', stderr='', exit_code=None)
+Job(id='297b82f7-8599-40ba-be76-b470ebd45f40', command=['echo', 'Hola desde Jobsy'], status='SUCCEEDED', received_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 104584, tzinfo=datetime.timezone.utc), started_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 105220, tzinfo=datetime.timezone.utc), finished_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 107079, tzinfo=datetime.timezone.utc), stdout='Hola desde Jobsy\n', stderr='', exit_code=0)
+
+Despues de esperar:
+Job(id='ab33bbbe-b03e-47d0-81b2-1476b5348c97', command=['sleep', '10'], status='SUCCEEDED', received_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 104571, tzinfo=datetime.timezone.utc), started_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 104833, tzinfo=datetime.timezone.utc), finished_at=datetime.datetime(2026, 10, 2, 5, 15, 3, 106709, tzinfo=datetime.timezone.utc), stdout='', stderr='', exit_code=0)
+Job(id='297b82f7-8599-40ba-be76-b470ebd45f40', command=['echo', 'Hola desde Jobsy'], status='SUCCEEDED', received_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 104584, tzinfo=datetime.timezone.utc), started_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 105220, tzinfo=datetime.timezone.utc), finished_at=datetime.datetime(2026, 10, 2, 5, 14, 53, 107079, tzinfo=datetime.timezone.utc), stdout='Hola desde Jobsy\n', stderr='', exit_code=0)
+
+Salida del job 2:
+Hola desde Jobsy
+
+Errores del job 2:
+
+Job(id='82f6add0-14d4-43c0-9bdc-106dcae628b8', command=['ls', '/carpeta-que-no-existe'], status='FAILED', received_at=datetime.datetime(2026, 10, 2, 5, 15, 4, 105744, tzinfo=datetime.timezone.utc), started_at=datetime.datetime(2026, 10, 2, 5, 15, 4, 105949, tzinfo=datetime.timezone.utc), finished_at=datetime.datetime(2026, 10, 2, 5, 15, 4, 107713, tzinfo=datetime.timezone.utc), stdout='', stderr="ls: cannot access '/carpeta-que-no-existe': No such file or directory\n", exit_code=2)
+STDOUT: 
+STDERR: ls: cannot access '/carpeta-que-no-existe': No such file or directory
+
