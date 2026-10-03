@@ -1,0 +1,82 @@
+========================================
+TC-023 - INICIALIZAR SERVICIO
+========================================
+Host: 127.0.0.1
+Puerto: 9999
+is_running: True
+Aceptando trabajos: True
+PASS: El servicio inicia con is_running=True.
+PASS: JobManager acepta trabajos al iniciar el servicio.
+
+========================================
+TC-024 - SHUTDOWN CON TRABAJO QUEUED
+========================================
+Estado antes: QUEUED
+[Daemon] Deteniendo recepción de trabajos y finalizando procesos activos...
+[Daemon] Servicio detenido.
+Estado despues: CANCELED
+Servidor activo: False
+Aceptando trabajos: False
+Exit code: 0
+PASS: El shutdown cancela trabajos QUEUED.
+PASS: El servidor queda marcado como detenido.
+PASS: JobManager deja de aceptar trabajos.
+PASS: El servicio termina con codigo de salida 0.
+
+========================================
+TC-025 - SHUTDOWN CON TRABAJO RUNNING
+========================================
+Proceso iniciado: True
+Estado antes del shutdown: RUNNING
+PID: 3013
+[Daemon] Deteniendo recepción de trabajos y finalizando procesos activos...
+[Daemon] Servicio detenido.
+Estado despues: SUCCEEDED
+Duracion del shutdown: 1.002
+Exit code: 0
+PASS: El trabajo alcanza RUNNING antes del shutdown.
+PASS: El shutdown permite que un trabajo corto termine limpiamente.
+PASS: El proceso Linux termina durante el shutdown.
+PASS: El servicio deja de aceptar nuevos trabajos durante el shutdown.
+PASS: El apagado controlado termina con codigo 0.
+
+========================================
+TC-026 - RECHAZAR TRABAJOS DESPUES DEL SHUTDOWN
+========================================
+[Daemon] Deteniendo recepción de trabajos y finalizando procesos activos...
+[Daemon] Servicio detenido.
+Error controlado: El JobManager no esta aceptando nuevos trabajos.
+PASS: Se rechazan nuevos trabajos despues de iniciar el shutdown.
+
+========================================
+TC-027 - PROCESAR SENAL DE APAGADO
+========================================
+
+[Daemon] Señal de apagado recibida...
+[Daemon] Deteniendo recepción de trabajos y finalizando procesos activos...
+[Daemon] Servicio detenido.
+Servidor activo: False
+Aceptando trabajos: False
+Exit code: 0
+PASS: La señal de apagado detiene el servidor.
+PASS: La señal activa el shutdown de JobManager.
+PASS: La señal produce una terminacion controlada con codigo 0.
+
+========================================
+TC-028 - FORZAR CANCELACION POR TIMEOUT
+========================================
+Proceso iniciado: True
+Estado antes del shutdown: RUNNING
+PID: 3015
+Estado despues: CANCELED
+Duracion del shutdown: 0.602
+Aceptando trabajos: False
+PASS: El trabajo alcanza RUNNING antes del shutdown.
+PASS: El trabajo que excede el timeout termina en CANCELED.
+PASS: El proceso Linux es terminado despues de exceder el timeout.
+PASS: El trabajo cancelado registra finished_at.
+PASS: JobManager permanece sin aceptar nuevos trabajos.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.
