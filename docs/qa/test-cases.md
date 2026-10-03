@@ -1,6 +1,6 @@
 # Casos de prueba — MVP Avance 1
 
-Este documento registra los primeros casos de prueba ejecutados sobre el núcleo funcional de Jobsy correspondiente al PR #101.
+Este documento registra los casos de prueba ejecutados sobre el núcleo funcional de Jobsy correspondiente a los PR #101 y #102 del Avance 1.
 
 
 ## Estados
@@ -16,6 +16,12 @@ Cada caso puede encontrarse en uno de los siguientes estados:
 
 - `EV-001-validation-output.txt`: salida de `test_validation.py`.
 - `EV-002-executor-output.txt`: salida de `test_executor.py`.
+- `EV-003-job-manager-output.txt`: salida de `test_job_manager.py`.
+- `EV-004-cancellation-output.txt`: pruebas de cancelación del RF-10.
+- `EV-005-service-shutdown-output.txt`: pruebas de inicio y apagado controlado del RF-15.
+- `EV-006-cli-output.txt`: pruebas de ayuda, comandos y códigos de salida del RF-17.
+
+> Las evidencias del avance #1 del MVP se almacenan en `docs/qa/evidence/avance-1/`.
 
 ---
 
@@ -580,31 +586,556 @@ El listado general, el filtro por estado `QUEUED` y el rechazo del estado invál
 ### Evidencia
 `EV-003-job-manager-output.txt`
 
+---
+
+# Casos de prueba — PR #102
+
+## RF-10 — Cancelación de trabajos — Issue #37
+
+## TC-018 — Cancelar trabajo en estado QUEUED
+
+**Requisito relacionado:** RF-10 — Issue #37  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que un trabajo en estado `QUEUED` pueda cancelarse antes de iniciar su ejecución.
+
+### Datos de prueba
+```python
+["echo", "Trabajo en cola"]
+```
+
+### Resultado esperado
+El trabajo debe cambiar de `QUEUED` a `CANCELED` y registrar `finished_at`.
+
+### Resultado obtenido
+```text
+Estado antes: QUEUED
+Estado después: CANCELED
+finished_at: registrado
+PASS: El trabajo QUEUED cambia a CANCELED.
+PASS: El trabajo cancelado registra finished_at.
+```
+
+### Evidencia
+`EV-004-cancellation-output.txt`
+
+---
+
+## TC-019 — Cancelar trabajo en estado RUNNING
+
+**Requisito relacionado:** RF-10 — Issue #37  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy cancele un trabajo en ejecución y termine el proceso Linux asociado sin sobrescribir el estado `CANCELED`.
+
+### Datos de prueba
+```python
+["sleep", "10"]
+```
+
+### Resultado esperado
+El trabajo debe alcanzar `RUNNING`, tener un PID asociado, cambiar a `CANCELED`, terminar su proceso Linux, registrar `finished_at` y limpiar la referencia al proceso.
+
+### Resultado obtenido
+```text
+Proceso iniciado: True
+Estado antes de cancelar: RUNNING
+PID: 2791
+Estado después: CANCELED
+PASS: El trabajo alcanza RUNNING y tiene un proceso Linux asociado.
+PASS: El trabajo RUNNING cambia a CANCELED.
+PASS: El trabajo cancelado registra finished_at.
+PASS: El proceso Linux asociado termina después de la cancelación.
+PASS: Executor limpia la referencia al proceso.
+PASS: Executor conserva el estado CANCELED al terminar el proceso.
+```
+
+### Evidencia
+`EV-004-cancellation-output.txt`
+
+---
+
+## TC-020 — Cancelar trabajo con ID inexistente
+
+**Requisito relacionado:** RF-10 — Issue #37  
+**Tipo:** Negativa / Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy rechace de forma controlada la cancelación de un ID inexistente.
+
+### Datos de prueba
+```text
+id-que-no-existe
+```
+
+### Resultado esperado
+La operación debe ser rechazada mediante un error controlado.
+
+### Resultado obtenido
+```text
+Error controlado: No existe un trabajo con el ID 'id-que-no-existe'.
+PASS: Se rechaza la cancelación de un ID inexistente.
+```
+
+### Evidencia
+`EV-004-cancellation-output.txt`
+
+---
+
+## TC-021 — Intentar cancelar un trabajo finalizado
+
+**Requisito relacionado:** RF-10 — Issue #37  
+**Tipo:** Negativa / Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que no sea posible cancelar un trabajo que ya terminó correctamente.
+
+### Datos de prueba
+```python
+["echo", "Trabajo finalizado"]
+```
+
+### Resultado esperado
+El trabajo debe finalizar en `SUCCEEDED` y el intento posterior de cancelación debe ser rechazado.
+
+### Resultado obtenido
+```text
+Estado antes de cancelar: SUCCEEDED
+Error controlado: No se puede cancelar un trabajo con estado 'SUCCEEDED'.
+PASS: El trabajo finaliza correctamente antes de intentar cancelarlo.
+PASS: Se rechaza la cancelación de un trabajo finalizado.
+```
+
+### Evidencia
+`EV-004-cancellation-output.txt`
+
+---
+
+## TC-022 — Intentar cancelar el mismo trabajo dos veces
+
+**Requisito relacionado:** RF-10 — Issue #37  
+**Tipo:** Negativa / Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que una segunda solicitud de cancelación sobre un trabajo ya `CANCELED` sea rechazada.
+
+### Resultado esperado
+La primera cancelación debe dejar el trabajo en `CANCELED` y la segunda debe generar un error controlado.
+
+### Resultado obtenido
+```text
+Error controlado: No se puede cancelar un trabajo con estado 'CANCELED'.
+PASS: La primera cancelación deja el trabajo en CANCELED.
+PASS: La segunda cancelación es rechazada.
+```
+
+### Evidencia
+`EV-004-cancellation-output.txt`
+
+---
+
+## RF-15 — Inicio y apagado controlado del servicio — Issue #38
+
+## TC-023 — Inicializar servicio
+
+**Requisito relacionado:** RF-15 — Issue #38  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el estado inicial de `DaemonServer` y `JobManager`.
+
+### Resultado esperado
+El servidor debe iniciar con `is_running=True` y el administrador debe aceptar trabajos.
+
+### Resultado obtenido
+```text
+Host: 127.0.0.1
+Puerto: 9999
+is_running: True
+Aceptando trabajos: True
+PASS: El servicio inicia con is_running=True.
+PASS: JobManager acepta trabajos al iniciar el servicio.
+```
+
+### Evidencia
+`EV-005-service-shutdown-output.txt`
+
+---
+
+## TC-024 — Apagado con trabajo en QUEUED
+
+**Requisito relacionado:** RF-15 — Issue #38  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el apagado controlado cancele trabajos pendientes y detenga la aceptación de nuevos trabajos.
+
+### Resultado esperado
+El trabajo debe quedar `CANCELED`, el servidor debe marcarse detenido, `is_accepting_jobs` debe ser `False` y el cierre debe terminar con código `0`.
+
+### Resultado obtenido
+```text
+Estado antes: QUEUED
+Estado después: CANCELED
+Servidor activo: False
+Aceptando trabajos: False
+Exit code: 0
+```
+
+Todas las comprobaciones asociadas obtuvieron `PASS`.
+
+### Evidencia
+`EV-005-service-shutdown-output.txt`
+
+---
+
+## TC-025 — Apagado con trabajo RUNNING de corta duración
+
+**Requisito relacionado:** RF-15 — Issue #38  
+**Tipo:** Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que un trabajo corto en ejecución pueda finalizar normalmente durante la ventana de apagado.
+
+### Datos de prueba
+```python
+["sleep", "1"]
+```
+
+### Resultado esperado
+El trabajo debe terminar en `SUCCEEDED`, el proceso Linux debe finalizar y el servicio debe dejar de aceptar trabajos.
+
+### Resultado obtenido
+```text
+Proceso iniciado: True
+Estado antes del shutdown: RUNNING
+Estado después: SUCCEEDED
+Duración del shutdown: aproximadamente 1 segundo
+Exit code: 0
+```
+
+Todas las comprobaciones asociadas obtuvieron `PASS`.
+
+### Evidencia
+`EV-005-service-shutdown-output.txt`
+
+---
+
+## TC-026 — Rechazar nuevos trabajos después del shutdown
+
+**Requisito relacionado:** RF-15 — Issue #38  
+**Tipo:** Negativa / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el sistema no acepte nuevos trabajos una vez iniciado/completado el apagado controlado.
+
+### Resultado esperado
+`JobManager.create_job()` debe rechazar nuevos trabajos mediante un error controlado.
+
+### Resultado obtenido
+```text
+Error controlado: El JobManager no esta aceptando nuevos trabajos.
+PASS: Se rechazan nuevos trabajos después de iniciar el shutdown.
+```
+
+### Evidencia
+`EV-005-service-shutdown-output.txt`
+
+---
+
+## TC-027 — Procesar señal de apagado
+
+**Requisito relacionado:** RF-15 — Issue #38  
+**Tipo:** Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que una señal de terminación active el apagado controlado.
+
+### Datos de prueba
+```text
+SIGTERM
+```
+
+### Resultado esperado
+La señal debe detener el servidor, deshabilitar la recepción de nuevos trabajos y finalizar con código `0`.
+
+### Resultado obtenido
+```text
+[Daemon] Señal de apagado recibida...
+Servidor activo: False
+Aceptando trabajos: False
+Exit code: 0
+```
+
+Todas las comprobaciones asociadas obtuvieron `PASS`.
+
+### Evidencia
+`EV-005-service-shutdown-output.txt`
+
+---
+
+## TC-028 — Forzar cancelación por timeout de shutdown
+
+**Requisito relacionado:** RF-15 — Issue #38; RNF-25 — Issue #28; RNF-30 — Issue #29  
+**Tipo:** Integración / Robustez  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que un trabajo que continúa `RUNNING` después del timeout sea cancelado y que su proceso hijo no quede ejecutándose.
+
+### Datos de prueba
+```python
+["sleep", "10"]
+```
+
+Timeout de prueba:
+
+```text
+0.5 segundos
+```
+
+### Resultado esperado
+Al exceder el timeout, el trabajo debe finalizar en `CANCELED`, su proceso Linux debe terminar, `finished_at` debe registrarse y el administrador debe seguir rechazando nuevos trabajos.
+
+### Resultado obtenido
+La ejecución cumplió todas las comprobaciones esperadas y finalizó en `PASS`.
+
+### Evidencia
+`EV-005-service-shutdown-output.txt`
+
+---
+
+## RF-17 — Ayuda y códigos de salida del cliente — Issue #39
+
+## TC-029 — Mostrar ayuda sin argumentos
+
+**Requisito relacionado:** RF-17 — Issue #39  
+**Tipo:** Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la CLI muestre ayuda cuando se ejecuta sin subcomandos y termine con código de uso inválido.
+
+### Resultado esperado
+Debe mostrar la ayuda de `jobsy` y finalizar con código `2`.
+
+### Resultado obtenido
+```text
+Exit code: 2
+usage: jobsy [-h] {run,list,status,cancel} ...
+PASS: La CLI termina con codigo 2 cuando no recibe argumentos.
+PASS: La CLI muestra informacion de ayuda.
+```
+
+### Evidencia
+`EV-006-cli-output.txt`
+
+---
+
+## TC-030 — Ejecutar comando válido desde la CLI
+
+**Requisito relacionado:** RF-01 — Issue #30; RF-17 — Issue #39  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que `jobsy run` cree un trabajo válido y termine con código `0`.
+
+### Datos de prueba
+```text
+jobsy run echo "Hola desde CLI"
+```
+
+### Resultado esperado
+La CLI debe crear un trabajo, conservar el comando solicitado, informar su ID y terminar con código `0`.
+
+### Resultado obtenido
+Todas las comprobaciones asociadas obtuvieron `PASS`.
+
+### Evidencia
+`EV-006-cli-output.txt`
+
+---
+
+## TC-031 — Listar trabajos desde la CLI
+
+**Requisito relacionado:** RF-09 — Issue #36; RF-17 — Issue #39  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que `jobsy list` muestre los trabajos registrados y su estado.
+
+### Resultado esperado
+La CLI debe listar ambos trabajos y terminar con código `0`.
+
+### Resultado obtenido
+Los dos IDs creados y sus estados fueron mostrados correctamente; el comando terminó con código `0`.
+
+### Evidencia
+`EV-006-cli-output.txt`
+
+---
+
+## TC-032 — Consultar estado desde la CLI
+
+**Requisito relacionado:** RF-08 — Issue #35; RF-17 — Issue #39  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que `jobsy status <ID>` muestre los metadatos del trabajo solicitado.
+
+### Resultado esperado
+Debe mostrar ID, estado, comando y marcas de tiempo disponibles, terminando con código `0`.
+
+### Resultado obtenido
+La CLI mostró el ID correcto, estado `QUEUED`, comando asociado y metadatos esperados.
+
+### Evidencia
+`EV-006-cli-output.txt`
+
+---
+
+## TC-033 — Cancelar trabajo desde la CLI
+
+**Requisito relacionado:** RF-10 — Issue #37; RF-17 — Issue #39  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar la integración del comando `cancel` de la CLI con `JobManager.cancel_job()`.
+
+### Resultado esperado
+El trabajo debe quedar en `CANCELED`, la CLI debe informarlo y terminar con código `0`.
+
+### Resultado obtenido
+```text
+Exit code: 0
+Estado actual: CANCELED
+Estado final: CANCELED
+```
+
+Todas las comprobaciones asociadas obtuvieron `PASS`.
+
+### Evidencia
+`EV-006-cli-output.txt`
+
+---
+
+## TC-034 — Consultar ID inexistente desde la CLI
+
+**Requisito relacionado:** RF-08 — Issue #35; RF-17 — Issue #39  
+**Tipo:** Negativa / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la CLI maneje de forma controlada la consulta de un ID inexistente.
+
+### Resultado esperado
+Debe escribir el error en `stderr` y terminar con código `1`.
+
+### Resultado obtenido
+```text
+Exit code: 1
+STDERR: Error de validación: No existe un trabajo con el ID 'id-que-no-existe'.
+```
+
+### Evidencia
+`EV-006-cli-output.txt`
+
+---
+
+## TC-035 — Rechazar filtro de estado inválido en la CLI
+
+**Requisito relacionado:** RF-09 — Issue #36; RF-17 — Issue #39  
+**Tipo:** Negativa / Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que `argparse` rechace un valor no permitido para `--status`.
+
+### Datos de prueba
+```text
+ESTADO_INVALIDO
+```
+
+### Resultado esperado
+La CLI debe terminar con código `2` y reportar `invalid choice` en `stderr`.
+
+### Resultado obtenido
+La CLI terminó con código `2` y `argparse` informó correctamente el valor inválido.
+
+### Evidencia
+`EV-006-cli-output.txt`
+
+---
+
+## TC-036 — Rechazar subcomando inexistente
+
+**Requisito relacionado:** RF-17 — Issue #39  
+**Tipo:** Negativa / Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la CLI rechace un subcomando inexistente.
+
+### Datos de prueba
+```text
+comando-inexistente
+```
+
+### Resultado esperado
+La CLI debe terminar con código `2` y reportar `invalid choice` en `stderr`.
+
+### Resultado obtenido
+La CLI terminó con código `2` e informó correctamente que el subcomando era inválido.
+
+### Evidencia
+`EV-006-cli-output.txt`
 
 # Resumen de ejecución
 
-| Caso | Descripción | Estado | Evidencia |
-|---|---|---|---|
-| TC-001 | Validar comando correcto | PASS | EV-001 |
-| TC-002 | Rechazar comando vacío | PASS | EV-001 |
-| TC-003 | Rechazar comando con formato incorrecto | PASS | EV-001 |
-| TC-004 | Rechazar nombre de programa vacío | PASS | EV-001 |
-| TC-005 | Rechazar argumentos no textuales | PASS | EV-001 |
-| TC-006 | Generar IDs únicos | PASS | EV-002 |
-| TC-007 | Ejecutar trabajo sin bloquear otros trabajos | PASS | EV-002 |
-| TC-008 | Ejecutar trabajo exitosamente | PASS | EV-002 |
-| TC-009 | Capturar stdout | PASS | EV-002 |
-| TC-010 | Registrar código de salida exitoso | PASS | EV-002 |
-| TC-011 | Ejecutar trabajo que termina con error | PASS | EV-002 |
-| TC-012 | Capturar stderr | PASS | EV-002 |
-| TC-013 | Registrar código de salida de error | PASS | EV-002 |
-| TC-014 | Registrar tiempos del ciclo de vida | PASS | EV-002 |
-| TC-015 | Consultar trabajo con ID válido | PASS | EV-003 |
-| TC-016 | Consultar trabajo con ID inexistente | PASS | EV-003 |
-| TC-017 | Listar trabajos y filtrar por estado | PASS | EV-003 |
+| Rango | Alcance | Casos ejecutados | Estado | Evidencias |
+|---|---|---:|---|---|
+| TC-001 a TC-017 | PR #101 | 17 | PASS | EV-001, EV-002, EV-003 |
+| TC-018 a TC-022 | PR #102 — RF-10 | 5 | PASS | EV-004 |
+| TC-023 a TC-028 | PR #102 — RF-15 | 6 | PASS | EV-005 |
+| TC-029 a TC-036 | PR #102 — RF-17 | 8 | PASS | EV-006 |
 
 ## Resultado general
 
-Los 14 casos ejecutados sobre el alcance revisado del PR #101 obtuvieron resultado `PASS`.
+Se ejecutaron **36 casos de prueba** documentados de forma continua: TC-001 a TC-017 corresponden al alcance revisado del PR #101 y TC-018 a TC-036 corresponden al PR #102. Todos los casos documentados obtuvieron resultado `PASS`.
 
-Estos resultados verifican parcialmente el MVP. Permanecen pendientes pruebas sobre ejecución de un programa inexistente, demostración explícita del proceso separado mediante PID, cancelación y continuidad del servicio ante comandos inválidos.
+La verificación explícita de que cada trabajo se ejecuta en un proceso Linux distinto mediante comparación de PID no forma parte de esta versión de la suite. Las pruebas de RF-10 sí comprobaron la existencia y terminación del PID asociado al trabajo cancelado en ejecución.
