@@ -1,0 +1,72 @@
+========================================
+TC-037 - INICIAR DAEMON Y CREAR SOCKET UNIX
+========================================
+PID del daemon: 1236
+Socket creado: True
+Ruta: /tmp/jobsy.sock
+PASS: El daemon permanece en ejecucion.
+PASS: El daemon crea el socket UNIX.
+
+========================================
+TC-038 - ENVIAR TRABAJO MEDIANTE CLI E IPC
+========================================
+Exit code: 0
+STDOUT: 'Trabajo creado y enviado a ejecución con ID: 9694b9a1-1f9d-4e97-a392-e56fc7ce8097'
+STDERR: ''
+Job ID: 9694b9a1-1f9d-4e97-a392-e56fc7ce8097
+PASS: La CLI termina con codigo 0 al enviar un trabajo.
+PASS: El daemon devuelve un identificador de trabajo.
+
+========================================
+TC-039 - CONSULTAR TRABAJO MEDIANTE IPC
+========================================
+ID: 9694b9a1-1f9d-4e97-a392-e56fc7ce8097
+Estado: SUCCEEDED
+Comando: echo Hola desde IPC
+Recibido: 2026-10-05 05:34:27 UTC
+Inicio: 2026-10-05 05:34:27 UTC
+Fin: 2026-10-05 05:34:27 UTC
+Código de salida: 0
+PASS: El trabajo puede consultarse desde otra invocacion de la CLI.
+PASS: La consulta conserva el codigo de salida del trabajo.
+PASS: La consulta conserva el comando asociado.
+
+========================================
+TC-040 - LISTAR TRABAJOS PERSISTENTES EN LA SESION
+========================================
+Exit code: 0
+STDOUT:
+ID: 9694b9a1-1f9d-4e97-a392-e56fc7ce8097 | Estado: SUCCEEDED | Comando: echo Hola desde IPC
+PASS: El comando list termina con codigo 0.
+PASS: El listado conserva el trabajo creado por una invocacion anterior.
+
+========================================
+TC-041 - CANCELAR TRABAJO MEDIANTE IPC
+========================================
+Job ID: c2e2a868-8b22-49b3-86f8-894093ddf2b7
+Exit code cancel: 0
+STDOUT cancel: 'Cancelando trabajo con ID: c2e2a868-8b22-49b3-86f8-894093ddf2b7\nEstado actual: CANCELED'
+STDERR cancel: ''
+ID: c2e2a868-8b22-49b3-86f8-894093ddf2b7
+Estado: CANCELED
+Comando: sleep 10
+Recibido: 2026-10-05 05:34:28 UTC
+Inicio: 2026-10-05 05:34:28 UTC
+Fin: 2026-10-05 05:34:28 UTC
+Código de salida: -
+PASS: Se obtiene el ID del trabajo de larga duracion.
+PASS: La orden cancel mediante IPC termina con codigo 0.
+PASS: El estado consultado posteriormente es CANCELED.
+
+========================================
+TC-042 - CONSULTAR ID INEXISTENTE MEDIANTE IPC
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: "Error de validación: No existe un trabajo con el ID 'id-que-no-existe'."
+PASS: La consulta de un ID inexistente termina con codigo 1.
+PASS: La CLI informa de forma controlada que el trabajo no existe.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.
