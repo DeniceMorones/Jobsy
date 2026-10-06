@@ -20,6 +20,9 @@ Cada caso puede encontrarse en uno de los siguientes estados:
 - `EV-004-cancellation-output.txt`: pruebas de cancelación del RF-10.
 - `EV-005-service-shutdown-output.txt`: pruebas de inicio y apagado controlado del RF-15.
 - `EV-006-cli-output.txt`: pruebas de ayuda, comandos y códigos de salida del RF-17.
+- `EV-007-ipc-flow-output.txt`: salida de `test_ipc_flow.py`.
+- `EV-008-ipc-robustness-output.txt`: salida de `test_ipc_robustness.py`.
+- `EV-009-ipc-multiple-jobs-output.txt`: salida de `test_ipc_multiple_jobs.py`.
 
 > Las evidencias del avance #1 del MVP se almacenan en `docs/qa/evidence/avance-1/`.
 
@@ -1125,17 +1128,602 @@ La CLI terminó con código `2` e informó correctamente que el subcomando era i
 ### Evidencia
 `EV-006-cli-output.txt`
 
+---
+
+## TC-037 — Iniciar daemon y crear socket UNIX
+
+**Tipo:** Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el daemon de Jobsy pueda iniciar correctamente, mantenerse en ejecución y crear el socket UNIX utilizado para la comunicación con la CLI.
+
+### Datos de prueba
+```text
+Socket: /tmp/jobsy.sock
+```
+
+### Resultado esperado
+El daemon debe permanecer activo después de iniciar y crear el socket `/tmp/jobsy.sock`.
+
+### Resultado obtenido
+```text
+Socket creado: True
+Ruta: /tmp/jobsy.sock
+PASS: El daemon permanece en ejecucion.
+PASS: El daemon crea el socket UNIX.
+```
+
+### Evidencia
+`EV-007-ipc-flow-output.txt`
+
+---
+
+## TC-038 — Enviar trabajo mediante CLI e IPC
+
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la CLI pueda enviar un trabajo al daemon mediante el mecanismo IPC y recibir el identificador asignado.
+
+### Datos de prueba
+```text
+echo Hola desde IPC
+```
+
+### Resultado esperado
+La CLI debe terminar con código `0` y recibir un identificador válido para el trabajo creado.
+
+### Resultado obtenido
+```text
+Exit code: 0
+Trabajo creado y enviado a ejecución con ID: <UUID>
+PASS: La CLI termina con codigo 0 al enviar un trabajo.
+PASS: El daemon devuelve un identificador de trabajo.
+```
+
+### Evidencia
+`EV-007-ipc-flow-output.txt`
+
+---
+
+## TC-039 — Consultar trabajo mediante IPC
+
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que un trabajo creado mediante una ejecución de la CLI pueda consultarse posteriormente mediante otra solicitud al daemon.
+
+### Datos de prueba
+```text
+echo Hola desde IPC
+```
+
+### Resultado esperado
+La consulta debe devolver el mismo trabajo con estado `SUCCEEDED`, comando correcto y código de salida `0`.
+
+### Resultado obtenido
+```text
+Estado: SUCCEEDED
+Comando: echo Hola desde IPC
+Código de salida: 0
+
+PASS: El trabajo puede consultarse desde otra invocacion de la CLI.
+PASS: La consulta conserva el codigo de salida del trabajo.
+PASS: La consulta conserva el comando asociado.
+```
+
+### Evidencia
+`EV-007-ipc-flow-output.txt`
+
+---
+
+## TC-040 — Listar trabajos persistentes durante la sesión
+
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que los trabajos creados mediante la CLI permanezcan registrados en el daemon durante la misma sesión del servicio.
+
+### Resultado esperado
+Una nueva ejecución de `list` debe mostrar el trabajo creado previamente mediante otra invocación de la CLI.
+
+### Resultado obtenido
+```text
+Exit code: 0
+ID: <UUID> | Estado: SUCCEEDED | Comando: echo Hola desde IPC
+
+PASS: El comando list termina con codigo 0.
+PASS: El listado conserva el trabajo creado por una invocacion anterior.
+```
+
+### Evidencia
+`EV-007-ipc-flow-output.txt`
+
+---
+
+## TC-041 — Cancelar trabajo mediante IPC
+
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que un trabajo en ejecución pueda cancelarse mediante una solicitud enviada desde la CLI al daemon.
+
+### Datos de prueba
+```text
+sleep 10
+```
+
+### Resultado esperado
+La operación `cancel` debe terminar con código `0` y una consulta posterior debe mostrar el trabajo en estado `CANCELED`.
+
+### Resultado obtenido
+```text
+Exit code cancel: 0
+Estado actual: CANCELED
+
+Estado: CANCELED
+Comando: sleep 10
+
+PASS: La orden cancel mediante IPC termina con codigo 0.
+PASS: El estado consultado posteriormente es CANCELED.
+```
+
+### Evidencia
+`EV-007-ipc-flow-output.txt`
+
+---
+
+## TC-042 — Consultar ID inexistente mediante IPC
+
+**Tipo:** Negativa / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la consulta mediante IPC de un identificador inexistente sea rechazada de forma controlada.
+
+### Datos de prueba
+```text
+id-que-no-existe
+```
+
+### Resultado esperado
+La CLI debe finalizar con código `1` e informar que el trabajo solicitado no existe.
+
+### Resultado obtenido
+```text
+Exit code: 1
+Error de validación: No existe un trabajo con el ID 'id-que-no-existe'.
+
+PASS: La consulta de un ID inexistente termina con codigo 1.
+PASS: La CLI informa de forma controlada que el trabajo no existe.
+```
+
+### Evidencia
+`EV-007-ipc-flow-output.txt`
+
+---
+
+## TC-043 — Ejecutar CLI sin daemon activo
+
+**Tipo:** Negativa / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la CLI detecte de forma controlada cuando el servicio Jobsy no se encuentra en ejecución.
+
+### Datos de prueba
+```text
+list
+Daemon detenido
+```
+
+### Resultado esperado
+La CLI debe terminar con código `1` e indicar que el servicio Jobsy no está en ejecución.
+
+### Resultado obtenido
+```text
+Exit code: 1
+Error: El servicio Jobsy no está en ejecución.
+
+PASS: La CLI termina con codigo 1 cuando el daemon no esta activo.
+PASS: La CLI informa que el servicio Jobsy no esta en ejecucion.
+```
+
+### Evidencia
+`EV-008-ipc-robustness-output.txt`
+
+---
+
+## TC-044 — Cancelar ID inexistente mediante IPC
+
+**Tipo:** Negativa / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy rechace de forma controlada una solicitud de cancelación para un trabajo inexistente.
+
+### Datos de prueba
+```text
+id-que-no-existe
+```
+
+### Resultado esperado
+La CLI debe terminar con código `1` e informar que el trabajo no existe.
+
+### Resultado obtenido
+```text
+Exit code: 1
+Error de validación: No existe un trabajo con el ID 'id-que-no-existe'.
+
+PASS: Cancelar un ID inexistente termina con codigo 1.
+PASS: La CLI informa que el trabajo no existe.
+```
+
+### Evidencia
+`EV-008-ipc-robustness-output.txt`
+
+---
+
+## TC-045 — Filtrar trabajos por estado mediante IPC
+
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el listado de trabajos pueda filtrarse correctamente por estado a través de la comunicación entre la CLI y el daemon.
+
+### Datos de prueba
+```text
+Trabajo exitoso:
+echo Filtro IPC
+
+Trabajo fallido:
+ls /directorio_inexistente_qa_123
+
+Filtros:
+SUCCEEDED
+FAILED
+```
+
+### Resultado esperado
+El filtro `SUCCEEDED` debe mostrar únicamente trabajos exitosos y el filtro `FAILED` únicamente trabajos fallidos.
+
+### Resultado obtenido
+```text
+Filtro SUCCEEDED:
+Estado: SUCCEEDED
+
+PASS: El filtro SUCCEEDED termina con codigo 0.
+PASS: El listado filtrado contiene trabajos SUCCEEDED.
+PASS: El filtro SUCCEEDED no muestra trabajos FAILED.
+
+Filtro FAILED:
+Estado: FAILED
+
+PASS: El filtro FAILED termina con codigo 0.
+PASS: El listado filtrado contiene trabajos FAILED.
+PASS: El filtro FAILED no muestra trabajos SUCCEEDED.
+```
+
+### Evidencia
+`EV-008-ipc-robustness-output.txt`
+
+---
+
+## TC-046 — Enviar acción IPC inválida
+
+**Tipo:** Negativa / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el daemon rechace de forma controlada una acción IPC que no se encuentre soportada.
+
+### Datos de prueba
+```json
+{
+  "action": "accion_invalida"
+}
+```
+
+### Resultado esperado
+El daemon debe responder con estado de error e indicar que la acción no es válida.
+
+### Resultado obtenido
+```text
+Respuesta: {'status': 'error', 'message': 'Acción no válida'}
+
+PASS: El daemon responde con status error.
+PASS: El daemon informa que la accion no es valida.
+```
+
+### Evidencia
+`EV-008-ipc-robustness-output.txt`
+
+---
+
+## TC-047 — Enviar JSON inválido
+
+**Tipo:** Negativa / Robustez  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el daemon maneje de forma controlada una petición con formato JSON incorrecto.
+
+### Datos de prueba
+```text
+{esto no es json valido
+```
+
+### Resultado esperado
+El daemon debe responder con un error controlado sin finalizar el servicio.
+
+### Resultado obtenido
+```text
+Respuesta: {
+  'status': 'error',
+  'message': 'Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'
+}
+
+PASS: El daemon responde de forma controlada ante JSON invalido.
+PASS: La respuesta contiene un mensaje de error.
+```
+
+### Evidencia
+`EV-008-ipc-robustness-output.txt`
+
+---
+
+## TC-048 — Mantener daemon operativo después de solicitudes inválidas
+
+**Tipo:** Robustez / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que una acción IPC inválida o una petición JSON incorrecta no provoquen la terminación del daemon.
+
+### Resultado esperado
+Después de procesar solicitudes inválidas, el daemon debe continuar activo y aceptar nuevas solicitudes válidas.
+
+### Resultado obtenido
+```text
+Exit code: 0
+
+PASS: El daemon sigue respondiendo despues de solicitudes invalidas.
+PASS: El proceso del daemon sigue activo.
+```
+
+### Evidencia
+`EV-008-ipc-robustness-output.txt`
+
+---
+
+## TC-049 — Eliminar socket durante el apagado del daemon
+
+**Tipo:** Integración / Robustez  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el socket UNIX utilizado por Jobsy sea eliminado durante el apagado controlado del daemon.
+
+### Datos de prueba
+```text
+/tmp/jobsy.sock
+SIGTERM
+```
+
+### Resultado esperado
+El socket debe existir mientras el daemon está en ejecución y dejar de existir después del apagado.
+
+### Resultado obtenido
+```text
+Socket antes del shutdown: True
+Socket despues del shutdown: False
+
+PASS: El socket existia antes de apagar el daemon.
+PASS: El socket fue eliminado durante el apagado del daemon.
+```
+
+### Evidencia
+`EV-008-ipc-robustness-output.txt`
+
+---
+
+## TC-050 — Ejecutar múltiples trabajos mediante IPC
+
+**Tipo:** Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el daemon pueda aceptar múltiples trabajos consecutivos enviados mediante distintas solicitudes de la CLI.
+
+### Datos de prueba
+```text
+echo Trabajo 1
+echo Trabajo 2
+echo Trabajo 3
+true
+false
+```
+
+### Resultado esperado
+Las cinco solicitudes deben ser aceptadas correctamente y cada trabajo debe recibir un identificador.
+
+### Resultado obtenido
+```text
+echo Trabajo 1 -> Exit code CLI: 0
+echo Trabajo 2 -> Exit code CLI: 0
+echo Trabajo 3 -> Exit code CLI: 0
+true -> Exit code CLI: 0
+false -> Exit code CLI: 0
+
+PASS: Todos los trabajos enviados recibieron un ID.
+```
+
+Los cinco trabajos fueron aceptados por el daemon.
+
+### Evidencia
+`EV-009-ipc-multiple-jobs-output.txt`
+
+---
+
+## TC-051 — Verificar IDs únicos en múltiples trabajos
+
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que múltiples trabajos enviados durante una misma sesión reciban identificadores diferentes.
+
+### Datos de prueba
+Cinco trabajos consecutivos enviados al daemon.
+
+### Resultado esperado
+Cada uno de los trabajos debe recibir un UUID diferente.
+
+### Resultado obtenido
+```text
+0e79403c-c9d9-429b-a15b-a3c4173e8cc2
+eecbc635-3832-42f6-82a3-8013b5eb0f9c
+88455cb6-3e8c-4a2e-9d00-2265f62c67fa
+8a4c9dd3-497c-4407-8933-d6476992261f
+fea817f4-d6fb-407c-bc48-2ca01ad625d9
+
+PASS: Todos los trabajos tienen identificadores unicos.
+```
+
+### Evidencia
+`EV-009-ipc-multiple-jobs-output.txt`
+
+---
+
+## TC-052 — Conservar múltiples trabajos durante la sesión
+
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que múltiples trabajos enviados al daemon permanezcan disponibles para consulta y listado durante la misma sesión.
+
+### Datos de prueba
+```text
+echo Trabajo 1
+echo Trabajo 2
+echo Trabajo 3
+true
+false
+```
+
+### Resultado esperado
+Todos los trabajos deben poder consultarse individualmente y aparecer posteriormente en el listado general.
+
+Los comandos exitosos deben finalizar en `SUCCEEDED` y el comando `false` debe finalizar en `FAILED`.
+
+### Resultado obtenido
+```text
+echo Trabajo 1 -> SUCCEEDED / exit code 0
+echo Trabajo 2 -> SUCCEEDED / exit code 0
+echo Trabajo 3 -> SUCCEEDED / exit code 0
+true           -> SUCCEEDED / exit code 0
+false          -> FAILED / exit code 1
+
+PASS: El listado final termina con codigo 0.
+PASS: Todos los trabajos enviados permanecen en el listado del daemon.
+PASS: Todos los trabajos pudieron consultarse individualmente.
+PASS: El daemon continua activo despues de multiples solicitudes.
+```
+
+### Evidencia
+`EV-009-ipc-multiple-jobs-output.txt`
+
+---
+
 # Resumen de ejecución
 
-| Rango | Alcance | Casos ejecutados | Estado | Evidencias |
-|---|---|---:|---|---|
-| TC-001 a TC-017 | PR #101 | 17 | PASS | EV-001, EV-002, EV-003 |
-| TC-018 a TC-022 | PR #102 — RF-10 | 5 | PASS | EV-004 |
-| TC-023 a TC-028 | PR #102 — RF-15 | 6 | PASS | EV-005 |
-| TC-029 a TC-036 | PR #102 — RF-17 | 8 | PASS | EV-006 |
+| Caso | Descripción | Estado | Evidencia |
+|---|---|---|---|
+| TC-001 | Validar comando correcto | PASS | EV-001 |
+| TC-002 | Rechazar comando vacío | PASS | EV-001 |
+| TC-003 | Rechazar comando con formato incorrecto | PASS | EV-001 |
+| TC-004 | Rechazar nombre de programa vacío | PASS | EV-001 |
+| TC-005 | Rechazar argumentos no textuales | PASS | EV-001 |
+| TC-006 | Generar IDs únicos | PASS | EV-002 |
+| TC-007 | Ejecutar trabajo sin bloquear otros trabajos | PASS | EV-002 |
+| TC-008 | Ejecutar trabajo exitosamente | PASS | EV-002 |
+| TC-009 | Capturar stdout | PASS | EV-002 |
+| TC-010 | Registrar código de salida exitoso | PASS | EV-002 |
+| TC-011 | Ejecutar trabajo que termina con error | PASS | EV-002 |
+| TC-012 | Capturar stderr | PASS | EV-002 |
+| TC-013 | Registrar código de salida de error | PASS | EV-002 |
+| TC-014 | Registrar tiempos del ciclo de vida | PASS | EV-002 |
+| TC-015 | Consultar trabajo con ID válido | PASS | EV-003 |
+| TC-016 | Consultar trabajo con ID inexistente | PASS | EV-003 |
+| TC-017 | Listar trabajos y filtrar por estado | PASS | EV-003 |
+| TC-018 | Cancelar trabajo en estado QUEUED | PASS | EV-004 |
+| TC-019 | Cancelar trabajo en estado RUNNING | PASS | EV-004 |
+| TC-020 | Cancelar trabajo con ID inexistente | PASS | EV-004 |
+| TC-021 | Rechazar cancelación de trabajo finalizado | PASS | EV-004 |
+| TC-022 | Rechazar segunda cancelación del mismo trabajo | PASS | EV-004 |
+| TC-023 | Inicializar servicio | PASS | EV-005 |
+| TC-024 | Apagar servicio con trabajo QUEUED | PASS | EV-005 |
+| TC-025 | Apagar servicio con trabajo RUNNING | PASS | EV-005 |
+| TC-026 | Rechazar nuevos trabajos después del shutdown | PASS | EV-005 |
+| TC-027 | Apagar servicio mediante señal | PASS | EV-005 |
+| TC-028 | Forzar cancelación al agotarse el tiempo de shutdown | PASS | EV-005 |
+| TC-029 | Mostrar ayuda al ejecutar CLI sin argumentos | PASS | EV-006 |
+| TC-030 | Ejecutar comando válido desde la CLI | PASS | EV-006 |
+| TC-031 | Listar trabajos desde la CLI | PASS | EV-006 |
+| TC-032 | Consultar estado desde la CLI | PASS | EV-006 |
+| TC-033 | Cancelar trabajo desde la CLI | PASS | EV-006 |
+| TC-034 | Consultar ID inexistente desde la CLI | PASS | EV-006 |
+| TC-035 | Rechazar filtro de estado inválido en la CLI | PASS | EV-006 |
+| TC-036 | Rechazar subcomando inválido | PASS | EV-006 |
+| TC-037 | Iniciar daemon y crear socket UNIX | PASS | EV-007 |
+| TC-038 | Enviar trabajo mediante CLI e IPC | PASS | EV-007 |
+| TC-039 | Consultar trabajo mediante IPC | PASS | EV-007 |
+| TC-040 | Listar trabajos persistentes durante la sesión | PASS | EV-007 |
+| TC-041 | Cancelar trabajo mediante IPC | PASS | EV-007 |
+| TC-042 | Consultar ID inexistente mediante IPC | PASS | EV-007 |
+| TC-043 | Ejecutar CLI sin daemon activo | PASS | EV-008 |
+| TC-044 | Cancelar ID inexistente mediante IPC | PASS | EV-008 |
+| TC-045 | Filtrar trabajos por estado mediante IPC | PASS | EV-008 |
+| TC-046 | Enviar acción IPC inválida | PASS | EV-008 |
+| TC-047 | Enviar JSON inválido | PASS | EV-008 |
+| TC-048 | Mantener daemon operativo después de solicitudes inválidas | PASS | EV-008 |
+| TC-049 | Eliminar socket durante el apagado del daemon | PASS | EV-008 |
+| TC-050 | Ejecutar múltiples trabajos mediante IPC | PASS | EV-009 |
+| TC-051 | Verificar IDs únicos en múltiples trabajos | PASS | EV-009 |
+| TC-052 | Conservar múltiples trabajos durante la sesión | PASS | EV-009 |
+
 
 ## Resultado general
 
-Se ejecutaron **36 casos de prueba** documentados de forma continua: TC-001 a TC-017 corresponden al alcance revisado del PR #101 y TC-018 a TC-036 corresponden al PR #102. Todos los casos documentados obtuvieron resultado `PASS`.
+Se han ejecutado un total de **52 casos de prueba** sobre los alcances revisados de los PR #101, #102 y #104. Los 52 casos obtuvieron resultado `PASS`.
 
-La verificación explícita de que cada trabajo se ejecuta en un proceso Linux distinto mediante comparación de PID no forma parte de esta versión de la suite. Las pruebas de RF-10 sí comprobaron la existencia y terminación del PID asociado al trabajo cancelado en ejecución.
+Para el PR #104 se añadieron 16 casos de prueba, del `TC-037` al `TC-052`, enfocados en validar la comunicación entre la CLI y el daemon mediante socket UNIX, la conservación de trabajos durante una misma sesión, operaciones de consulta, listado y cancelación mediante IPC, manejo de solicitudes inválidas, comportamiento de la CLI cuando el servicio no está disponible, limpieza del socket durante el apagado y ejecución de múltiples solicitudes consecutivas.
+
+Las pruebas confirmaron que el daemon permanece operativo ante errores de protocolo controlados, que múltiples ejecuciones independientes de la CLI pueden interactuar con el mismo estado mantenido por el servicio y que los trabajos conservan sus identificadores, estados y códigos de salida durante la sesión.
+
+No se identificaron defectos bloqueantes dentro del alcance funcional validado del PR #104.
+
+La demostración explícita de separación entre el proceso del daemon y los procesos de los trabajos mediante comparación directa de PID continúa fuera de los casos ejecutados actualmente.
