@@ -1,0 +1,77 @@
+========================================
+TC-043 - EJECUTAR CLI SIN DAEMON ACTIVO
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: 'Error: El servicio Jobsy no está en ejecución.'
+PASS: La CLI termina con codigo 1 cuando el daemon no esta activo.
+PASS: La CLI informa que el servicio Jobsy no esta en ejecucion.
+
+========================================
+PREPARACION - INICIAR DAEMON
+========================================
+PID del daemon: 1320
+Socket existe: True
+PASS: El daemon permanece activo.
+PASS: El socket UNIX fue creado.
+
+========================================
+TC-044 - CANCELAR ID INEXISTENTE MEDIANTE IPC
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: "Error de validación: No existe un trabajo con el ID 'id-que-no-existe'."
+PASS: Cancelar un ID inexistente termina con codigo 1.
+PASS: La CLI informa que el trabajo no existe.
+
+========================================
+TC-045 - FILTRAR TRABAJOS POR ESTADO MEDIANTE IPC
+========================================
+Filtro SUCCEEDED:
+ID: 26acd3dc-e037-4ad8-ba7f-7d5f998024e3 | Estado: SUCCEEDED | Comando: echo Filtro IPC
+PASS: El filtro SUCCEEDED termina con codigo 0.
+PASS: El listado filtrado contiene trabajos SUCCEEDED.
+PASS: El filtro SUCCEEDED no muestra trabajos FAILED.
+
+Filtro FAILED:
+ID: acfc31c2-3ce7-491c-887d-160ed50ef1b3 | Estado: FAILED | Comando: ls /directorio_inexistente_qa_123
+PASS: El filtro FAILED termina con codigo 0.
+PASS: El listado filtrado contiene trabajos FAILED.
+PASS: El filtro FAILED no muestra trabajos SUCCEEDED.
+
+========================================
+TC-046 - ENVIAR ACCION IPC INVALIDA
+========================================
+Respuesta: {'status': 'error', 'message': 'Acción no válida'}
+PASS: El daemon responde con status error.
+PASS: El daemon informa que la accion no es valida.
+
+========================================
+TC-047 - ENVIAR JSON INVALIDO
+========================================
+Respuesta: {'status': 'error', 'message': 'Expecting property name enclosed in double quotes: line 1 column 2 (char 1)'}
+PASS: El daemon responde de forma controlada ante JSON invalido.
+PASS: La respuesta contiene un mensaje de error.
+
+========================================
+TC-048 - DAEMON SIGUE OPERATIVO DESPUES DE ERRORES
+========================================
+Exit code: 0
+STDOUT:
+ID: 26acd3dc-e037-4ad8-ba7f-7d5f998024e3 | Estado: SUCCEEDED | Comando: echo Filtro IPC
+ID: acfc31c2-3ce7-491c-887d-160ed50ef1b3 | Estado: FAILED | Comando: ls /directorio_inexistente_qa_123
+STDERR: ''
+PASS: El daemon sigue respondiendo despues de solicitudes invalidas.
+PASS: El proceso del daemon sigue activo.
+
+========================================
+TC-049 - ELIMINAR SOCKET DURANTE SHUTDOWN
+========================================
+Socket antes del shutdown: True
+Socket despues del shutdown: False
+PASS: El socket existia antes de apagar el daemon.
+PASS: El socket fue eliminado durante el apagado del daemon.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.

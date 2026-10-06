@@ -1,0 +1,49 @@
+========================================
+TC-018 - CANCELAR TRABAJO EN QUEUED
+========================================
+Job ID: 517004d1-f071-4f0f-a2b9-e2503259f7ef
+Estado antes: QUEUED
+Estado despues: CANCELED
+finished_at: 2026-10-03 01:06:22.271133+00:00
+PASS: El trabajo QUEUED cambia a CANCELED.
+PASS: El trabajo cancelado registra finished_at.
+
+========================================
+TC-019 - CANCELAR TRABAJO EN RUNNING
+========================================
+Proceso iniciado: True
+Estado antes de cancelar: RUNNING
+PID: 3002
+PASS: El trabajo alcanza RUNNING y tiene un proceso Linux asociado.
+Estado despues: CANCELED
+finished_at: 2026-10-03 01:06:22.321547+00:00
+PASS: El trabajo RUNNING cambia a CANCELED.
+PASS: El trabajo cancelado registra finished_at.
+PASS: El proceso Linux asociado termina despues de la cancelacion.
+PASS: Executor limpia la referencia al proceso.
+PASS: Executor conserva el estado CANCELED al terminar el proceso.
+
+========================================
+TC-020 - CANCELAR ID INEXISTENTE
+========================================
+Error controlado: No existe un trabajo con el ID 'id-que-no-existe'.
+PASS: Se rechaza la cancelacion de un ID inexistente.
+
+========================================
+TC-021 - CANCELAR TRABAJO FINALIZADO
+========================================
+Estado antes de cancelar: SUCCEEDED
+Error controlado: No se puede cancelar un trabajo con estado 'SUCCEEDED'.
+PASS: El trabajo finaliza correctamente antes de intentar cancelarlo.
+PASS: Se rechaza la cancelacion de un trabajo finalizado.
+
+========================================
+TC-022 - CANCELAR DOS VECES
+========================================
+Error controlado: No se puede cancelar un trabajo con estado 'CANCELED'.
+PASS: La primera cancelacion deja el trabajo en CANCELED.
+PASS: La segunda cancelacion es rechazada.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.

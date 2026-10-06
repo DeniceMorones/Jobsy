@@ -1,0 +1,9 @@
+RECHAZADO: []
+Motivo: El comando no puede estar vacio.
+RECHAZADO: 
+Motivo: El comando debe enviarse como una lista.
+RECHAZADO: ['', '10']
+Motivo: El nombre del programa no puede estar vacio.
+RECHAZADO: ['sleep', 10]
+Motivo: El comando y sus argumentos deben ser texto.
+ACEPTADO: ['echo', 'Hola']

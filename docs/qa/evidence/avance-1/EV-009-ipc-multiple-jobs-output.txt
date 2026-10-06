@@ -1,0 +1,102 @@
+========================================
+PREPARACION - INICIAR DAEMON
+========================================
+PID del daemon: 1389
+Socket existe: True
+PASS: El daemon permanece activo.
+PASS: El socket UNIX fue creado.
+
+========================================
+TC-050 - EJECUTAR MULTIPLES TRABAJOS MEDIANTE IPC
+========================================
+Comando: echo Trabajo 1 | Exit code CLI: 0 | Job ID: 30792d66-d7ed-4983-94f5-da08b7701e9a
+PASS: El comando echo Trabajo 1 fue aceptado por el daemon.
+PASS: Se genero ID para echo Trabajo 1.
+Comando: echo Trabajo 2 | Exit code CLI: 0 | Job ID: 4c356828-ddfb-4413-909c-7a78798596bf
+PASS: El comando echo Trabajo 2 fue aceptado por el daemon.
+PASS: Se genero ID para echo Trabajo 2.
+Comando: echo Trabajo 3 | Exit code CLI: 0 | Job ID: 9cfd3ad4-b468-46c1-99cd-4b599802f58e
+PASS: El comando echo Trabajo 3 fue aceptado por el daemon.
+PASS: Se genero ID para echo Trabajo 3.
+Comando: true | Exit code CLI: 0 | Job ID: afcbc120-75df-4fe2-b7e7-784e2e99b2b9
+PASS: El comando true fue aceptado por el daemon.
+PASS: Se genero ID para true.
+Comando: false | Exit code CLI: 0 | Job ID: 27b91e5f-f2c0-44a6-9389-3dd7cf1726ec
+PASS: El comando false fue aceptado por el daemon.
+PASS: Se genero ID para false.
+PASS: Todos los trabajos enviados recibieron un ID.
+
+========================================
+TC-051 - VERIFICAR IDS UNICOS
+========================================
+IDs generados:
+30792d66-d7ed-4983-94f5-da08b7701e9a
+4c356828-ddfb-4413-909c-7a78798596bf
+9cfd3ad4-b468-46c1-99cd-4b599802f58e
+afcbc120-75df-4fe2-b7e7-784e2e99b2b9
+27b91e5f-f2c0-44a6-9389-3dd7cf1726ec
+PASS: Todos los trabajos tienen identificadores unicos.
+
+========================================
+TC-052 - CONSERVAR MULTIPLES TRABAJOS EN LA SESION
+========================================
+
+ID: 30792d66-d7ed-4983-94f5-da08b7701e9a
+Estado: SUCCEEDED
+Comando: echo Trabajo 1
+Recibido: 2026-10-05 05:48:18 UTC
+Inicio: 2026-10-05 05:48:18 UTC
+Fin: 2026-10-05 05:48:18 UTC
+Código de salida: 0
+PASS: El trabajo 30792d66-d7ed-4983-94f5-da08b7701e9a puede consultarse despues de su ejecucion.
+
+ID: 4c356828-ddfb-4413-909c-7a78798596bf
+Estado: SUCCEEDED
+Comando: echo Trabajo 2
+Recibido: 2026-10-05 05:48:18 UTC
+Inicio: 2026-10-05 05:48:18 UTC
+Fin: 2026-10-05 05:48:18 UTC
+Código de salida: 0
+PASS: El trabajo 4c356828-ddfb-4413-909c-7a78798596bf puede consultarse despues de su ejecucion.
+
+ID: 9cfd3ad4-b468-46c1-99cd-4b599802f58e
+Estado: SUCCEEDED
+Comando: echo Trabajo 3
+Recibido: 2026-10-05 05:48:18 UTC
+Inicio: 2026-10-05 05:48:18 UTC
+Fin: 2026-10-05 05:48:18 UTC
+Código de salida: 0
+PASS: El trabajo 9cfd3ad4-b468-46c1-99cd-4b599802f58e puede consultarse despues de su ejecucion.
+
+ID: afcbc120-75df-4fe2-b7e7-784e2e99b2b9
+Estado: SUCCEEDED
+Comando: true
+Recibido: 2026-10-05 05:48:18 UTC
+Inicio: 2026-10-05 05:48:18 UTC
+Fin: 2026-10-05 05:48:18 UTC
+Código de salida: 0
+PASS: El trabajo afcbc120-75df-4fe2-b7e7-784e2e99b2b9 puede consultarse despues de su ejecucion.
+
+ID: 27b91e5f-f2c0-44a6-9389-3dd7cf1726ec
+Estado: FAILED
+Comando: false
+Recibido: 2026-10-05 05:48:18 UTC
+Inicio: 2026-10-05 05:48:18 UTC
+Fin: 2026-10-05 05:48:18 UTC
+Código de salida: 1
+PASS: El trabajo 27b91e5f-f2c0-44a6-9389-3dd7cf1726ec puede consultarse despues de su ejecucion.
+
+Listado final:
+ID: 30792d66-d7ed-4983-94f5-da08b7701e9a | Estado: SUCCEEDED | Comando: echo Trabajo 1
+ID: 4c356828-ddfb-4413-909c-7a78798596bf | Estado: SUCCEEDED | Comando: echo Trabajo 2
+ID: 9cfd3ad4-b468-46c1-99cd-4b599802f58e | Estado: SUCCEEDED | Comando: echo Trabajo 3
+ID: afcbc120-75df-4fe2-b7e7-784e2e99b2b9 | Estado: SUCCEEDED | Comando: true
+ID: 27b91e5f-f2c0-44a6-9389-3dd7cf1726ec | Estado: FAILED | Comando: false
+PASS: El listado final termina con codigo 0.
+PASS: Todos los trabajos enviados permanecen en el listado del daemon.
+PASS: Todos los trabajos pudieron consultarse individualmente.
+PASS: El daemon continua activo despues de multiples solicitudes.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.

@@ -20,16 +20,51 @@ Desarrollar una herramienta sencilla para administrar tareas en el sistema Linux
 * **Backend Development:** Denice Estefania Rico Morones
 * **QA y Certificación:** Alexia Gomez Rubio
 
-## 🛠️ Construcción provisional:
-Jobsy será desarrollado para linux como **una herramienta de línea de comandos (CLI)** para registrar, ejecutar, supervisar y controlaar trabajos.
-### Consideraciones técnicas clave:
-* **Administración:** Un servicio centralizado se encargará de gestionar el ciclo de vida de los trabajos, controlar la concurrencia, ejecutar procesos y capturar `stdout`y `stderr`.
-* **Mecanismos del sistema:** Se utilizará primitivas nativas de Linux para procesos, señales, concurrencia e IPC.
-* **Alcance de red:** El sistema funcionará de forma local en su primera etapa y posteriormente permitirá acceso remoto restringido a una red LAN autorizada o VPN.
+## 🛠️ Arquitectura y componentes implementados:
+El proyecto está organizado de forma modular dentro del directorio src/
 
-> ⚠️ **Nota:** La arquitectura final, lenguaje de programación, protocolo de red, mecanismos de cancelación, persistencia y administración de recursos se encuentran en evaluación. Se formalizarán mediante registros de decisiones de arquitectura (**ADR**). Esta propuesta es provisional y está sujeta a cambios durante las revisiones técnicas.
+* **src/client/cli.py:** Interfaz de línea de comandos para parsear argumentos y formatear la salida en terminal.
+
+* **src/daemon/executor.py:** Motor de ejecución asíncrona mediante subprocess.Popen e hilos.
+
+* **src/daemon/job_manager.py:** Gestor del ciclo de vida de los trabajos, asignación de UUIDs y control de estados.
+
+* **src/daemon/job.py:** Modelo de datos, estados (QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELED) y metadatos.
+
+* **src/daemon/server.py:** Guardián del servicio encargado del apagado seguro;
+
+* **src/protocol/validation.py:** Módulo para validación y sanitización de comandos.
+
+## ⚙️ Construcción y ejecución:
+**Requisitos previos**
+*Linux o WSL
+*Python 3.10 o superior
+
+**1. Clonar repositorio**
+git clone <URL_DEL_REPOSITORIO>
+cd Jobsy
+
+**2. Iniciar servidor**
+Abre una terminal en WSL y levanta el servicio en segundo plano:
+**python3 -m src.daemon.server**
+
+**3. Interactuar desde CLI**
+Abre una segunda terminal en WSL para enviar comandos:
+
+* **Crear y ejecutar un trabajo:** python3 -m src.client.cli run -- sleep 20
+
+* **Consultar la lista y persistencia de trabajos:** python3 -m src.client.cli list
+
+* **Ver el estado detallado de un trabajo:** python3 -m src.client.cli status <UUID_DEL_TRABAJO>
+
+* **Solicitar la cancelación de un trabajo activo:** python3 -m src.client.cli cancel <UUID_DEL_TRABAJO>
+
+## 🔢 Códigos de Salida
+El cliente CLI y las funciones del gestor retornan los siguientes códigos de estado para indicar el resultado del procesamiento:
+* **0**: Ejecución exitosa
+* **1**: Error de validación
+* **2**: Error de sintaxis
 
 ## 📊 Estado del proyecto:
-Estado: Inicio/Planeación
-Código Funcional: No disponible todavía
-Próximo hito: Avance 1
+Estado: Avance 1 completado
+Próximo hito: Avance 2
