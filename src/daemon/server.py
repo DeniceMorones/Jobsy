@@ -132,6 +132,11 @@ class DaemonServer:
         print("[Daemon] Servicio detenido.")
         sys.exit(0)
 
-if __name__ == "__main__":
+def main():
+    """Start the daemon with its existing signal handlers and lifecycle."""
     server = DaemonServer()
     server.start()
+
+
+if __name__ == "__main__":
+    main()
