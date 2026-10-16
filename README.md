@@ -35,29 +35,71 @@ El proyecto está organizado de forma modular dentro del directorio src/
 
 * **src/protocol/validation.py:** Módulo para validación y sanitización de comandos.
 
-## ⚙️ Construcción y ejecución:
-**Requisitos previos**
-*Linux o WSL
-*Python 3.10 o superior
+## Instalación y ejecución
 
-**1. Clonar repositorio**
-git clone <URL_DEL_REPOSITORIO>
-cd Jobsy
+Requiere Linux o WSL y Python 3.10+ con `venv` y `pip`. Desde la raíz del clon:
 
-**2. Iniciar servidor**
-Abre una terminal en WSL y levanta el servicio en segundo plano:
-**python3 -m src.daemon.server**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+```
 
-**3. Interactuar desde CLI**
-Abre una segunda terminal en WSL para enviar comandos:
+La instalación editable mantiene los cambios del código disponibles. Para una
+instalación normal, usa `python -m pip install .` en lugar de `-e .`.
+Los comandos `execute`, `jobsy`, `jobsy-daemon`, `list`, `status` y `cancel` están disponibles después de
+instalar y activar el entorno; no se convierten automáticamente en comandos
+globales del sistema. Una vez instalado, puedes usarlos desde otro directorio.
 
-* **Crear y ejecutar un trabajo:** python3 -m src.client.cli run -- sleep 20
+Los comandos cortos equivalen a `jobsy list`, `jobsy status` y `jobsy cancel`.
+Por ejemplo: `list --status RUNNING`, `status ID_DEVUELTO` y `cancel ID_DEVUELTO`.
+Los nombres genéricos pueden coincidir con otras herramientas (por ejemplo,
+`cancel` de un sistema de impresión). Comprueba `type -a list status cancel`
+en la shell: la activación antepone `.venv/bin` al PATH, pero los alias y funciones
+de shell pueden tener prioridad. Usa `jobsy list`, `jobsy status` o `jobsy cancel`
+para evitar ambigüedades. Repite `python -m pip install -e .` tras esta actualización.
 
-* **Consultar la lista y persistencia de trabajos:** python3 -m src.client.cli list
+Si ya existe un daemon, reutilízalo: no inicies otro ni borres su socket.
+En un entorno sin daemon ni socket previo, inicia el servicio en una terminal:
 
-* **Ver el estado detallado de un trabajo:** python3 -m src.client.cli status <UUID_DEL_TRABAJO>
+```bash
+jobsy-daemon
+```
 
-* **Solicitar la cancelación de un trabajo activo:** python3 -m src.client.cli cancel <UUID_DEL_TRABAJO>
+En otra terminal activa el mismo entorno y ejecuta:
+
+```bash
+execute sleep 20
+execute ls -l /tmp
+jobsy list
+jobsy list --status RUNNING
+jobsy status ID_DEVUELTO
+jobsy cancel ID_DEVUELTO
+```
+
+Sustituye `ID_DEVUELTO` por el UUID recibido. El daemon permanece en primer plano;
+`Ctrl+C` solicita su apagado habitual. No uses ese apagado si atiende trabajos ajenos.
+El listado conserva trabajos durante la sesión, no después de reiniciar el daemon.
+
+Las invocaciones anteriores siguen disponibles desde la raíz del repositorio
+o desde cualquier directorio si el paquete está instalado en el intérprete usado:
+
+```bash
+python3 -m src.client.cli run -- sleep 20
+python3 -m src.daemon.server
+```
+
+Pruebas de los puntos de entrada, sin conectar al socket ni iniciar procesos de trabajo:
+
+```bash
+python -B -m unittest discover -s test -p 'test_entry_points.py' -v
+```
+
+Si aparece `command not found`, activa el entorno en esa terminal y comprueba
+`command -v jobsy` y `python -m pip show jobsy`. Si el servicio no responde,
+consulta la [guía de usuario](docs/user-guide/README.md), que incluye instalación,
+argumentos con espacios y resolución de problemas. No elimines `/tmp/jobsy.sock`
+como parte de una comprobación automática.
 
 ## 🔢 Códigos de Salida
 El cliente CLI y las funciones del gestor retornan los siguientes códigos de estado para indicar el resultado del procesamiento:
