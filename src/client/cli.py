@@ -8,7 +8,7 @@ import shlex
 import socket
 import argparse
 
-SOCKET_PATH = "/tmp/jobsy.sock"
+from src.protocol.endpoint import client_socket_path
 
 def build_parser():
     parser = argparse.ArgumentParser(
@@ -38,12 +38,13 @@ def build_parser():
 
 def send_ipc_request(payload: dict) -> dict:
     """Envía la petición en JSON al socket UNIX y retorna la respuesta."""
-    if not os.path.exists(SOCKET_PATH):
+    socket_path = client_socket_path()
+    if not os.path.exists(socket_path):
         print("Error: El servicio Jobsy no está en ejecución.", file=sys.stderr)
         sys.exit(1)
 
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect(SOCKET_PATH)
+        client_socket.connect(socket_path)
         client_socket.sendall(json.dumps(payload).encode("utf-8"))
         response_data = client_socket.recv(4096)
         return json.loads(response_data.decode("utf-8"))

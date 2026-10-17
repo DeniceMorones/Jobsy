@@ -1,5 +1,26 @@
 # Jobsy
 
+## Avance 2.1: cola y concurrencia
+
+El daemon incorpora una cola FIFO acotada y reservas de ejecución sincronizadas.
+Por defecto admite hasta 3 procesos principales simultáneos y 100 trabajos en
+espera. En una sesión propia sin daemon ni socket existente:
+
+```bash
+jobsy-daemon --max-running 3 --queue-capacity 100
+```
+
+La forma heredada acepta las mismas opciones:
+`python3 -m src.daemon.server --max-running 3 --queue-capacity 100`.
+No ejecutes ambas simultáneamente. La capacidad de espera puede ser 0; el límite
+de ejecución debe ser al menos 1. La cola llena se rechaza sin registrar trabajos.
+Cancelar no libera una reserva activa hasta confirmar la recolección del proceso.
+Se conservan CLI y protocolo; Avance 2.2 añade persistencia SQLite y recuperación
+conservadora sin reejecución automática.
+
+Detalles operativos y ejemplos en la [guía de usuario](docs/user-guide/README.md)
+y [ADR-004](docs/technical-guide/ADR-004-Cola-y-Limite-de-Concurrencia.md).
+
 ## 🎯 Propósito:
 Desarrollar una herramienta sencilla para administrar tareas en el sistema Linux, permitiendo:
 * Agregar comandos o programas.
@@ -37,7 +58,11 @@ El proyecto está organizado de forma modular dentro del directorio src/
 
 ## Instalación y ejecución
 
-Requiere Linux o WSL y Python 3.10+ con `venv` y `pip`. Desde la raíz del clon:
+Referencia de desarrollo: Ubuntu 26.04.1 LTS sobre WSL2 con Python 3.14.4.
+Python >=3.10 es el mínimo declarado, no verificado en esta tarea. No se afirma
+verificación en Linux nativo ni otras distribuciones. Las 105 pruebas anteriores
+en Ubuntu WSL son verificación de desarrollo, no certificación de Alexia.
+Se requieren `venv` y `pip`. Desde la raíz del clon:
 
 ```bash
 python3 -m venv .venv
@@ -79,7 +104,42 @@ jobsy cancel ID_DEVUELTO
 
 Sustituye `ID_DEVUELTO` por el UUID recibido. El daemon permanece en primer plano;
 `Ctrl+C` solicita su apagado habitual. No uses ese apagado si atiende trabajos ajenos.
-El listado conserva trabajos durante la sesión, no después de reiniciar el daemon.
+El listado recupera el historial al reiniciar con el mismo directorio de datos.
+
+Puede seleccionarse un directorio fuera del repositorio:
+
+```bash
+jobsy-daemon --data-dir "$HOME/.local/state/jobsy" --max-running 3 --queue-capacity 100
+# Alternativa heredada, no simultánea:
+python3 -m src.daemon.server --data-dir "$HOME/.local/state/jobsy"
+```
+
+Sin --data-dir se usa $XDG_STATE_HOME/jobsy (si XDG_STATE_HOME es absoluto) o
+~/.local/state/jobsy. Un lock impide dos daemons sobre el mismo directorio.
+Los límites y el directorio se fijan al inicio, sin recarga dinámica. Cambiar
+--data-dir selecciona otra base; no migra el historial ni cambia el socket.
+El socket predeterminado sigue siendo /tmp/jobsy.sock. Para una instancia propia
+aislada, usa una ruta absoluta dentro de un directorio privado existente:
+
+```bash
+jobsy-daemon --socket-path "$HOME/.local/state/jobsy/control.sock" --data-dir "$HOME/.local/state/jobsy"
+# En otra terminal, con el mismo entorno virtual activado:
+export JOBSY_SOCKET_PATH="$HOME/.local/state/jobsy/control.sock"
+jobsy list
+```
+
+El directorio padre del socket debe existir antes del arranque. El daemon no
+lee JOBSY_SOCKET_PATH; los clientes sí, incluidos execute, list, status y cancel.
+Sin variable, los clientes vuelven a /tmp/jobsy.sock (`unset JOBSY_SOCKET_PATH`).
+No se borran rutas existentes para arrancar. No existen opciones de interfaz TCP ni puerto.
+RF-16 permanece parcial; la decisión de red está pendiente de aprobación.
+Consulta los [contratos públicos](docs/technical-guide/interfaces-publicas.md)
+y [ADR-007](docs/technical-guide/ADR-007-Cancelacion.md).
+Los pendientes anteriores se cancelan; una ejecución interrumpida se marca
+FAILED solo tras descartar procesos supervivientes. La incertidumbre bloquea
+el arranque con diagnóstico. No borres la base, el lock ni el socket para evitarlo.
+Se conservan resultados confirmados, no necesariamente salida parcial durante
+una caída. Consulta [ADR-006](docs/technical-guide/ADR-006-Recuperacion.md).
 
 Las invocaciones anteriores siguen disponibles desde la raíz del repositorio
 o desde cualquier directorio si el paquete está instalado en el intérprete usado:
@@ -102,11 +162,15 @@ argumentos con espacios y resolución de problemas. No elimines `/tmp/jobsy.sock
 como parte de una comprobación automática.
 
 ## 🔢 Códigos de Salida
-El cliente CLI y las funciones del gestor retornan los siguientes códigos de estado para indicar el resultado del procesamiento:
-* **0**: Ejecución exitosa
-* **1**: Error de validación
-* **2**: Error de sintaxis
+El cliente CLI utiliza estos códigos para la solicitud, no para el resultado del proceso ejecutado:
+* **0**: Solicitud procesada correctamente.
+* **1**: Error de solicitud, comunicación o servicio.
+* **2**: Error de sintaxis.
 
 ## 📊 Estado del proyecto:
-Estado: Avance 1 completado
-Próximo hito: Avance 2
+El alcance de Benjamin en 2.2 incorpora persistencia y recuperación conservadora.
+La verificación local de desarrollo registró 105 pruebas aprobadas en Ubuntu WSL,
+sin fallos ni omisiones; no equivale a certificación formal ni al cierre de todo
+Avance 02. Las pruebas nuevas permanecen locales y fuera del commit propuesto.
+Alexia conserva la responsabilidad de verificación independiente y evidencia QA.
+Consultar el [traspaso técnico](docs/technical-guide/ADR-006-Recuperacion.md#traspaso-técnico-a-alexia).
