@@ -75,6 +75,33 @@ Este resultado no certifica la entrega ni promete reproducción desde un clon
 limpio. [ADR-006](ADR-006-Recuperacion.md#traspaso-técnico-a-alexia) contiene los
 escenarios que Alexia debe verificar de forma independiente.
 
+## Interfaces y modularidad: Avance 2.5A
+
+Véanse [interfaces públicas](interfaces-publicas.md) y
+[ADR-007](ADR-007-Cancelacion.md). No se modifica el backend.
+La CLI analiza argumentos, intercambia JSON y presenta resultados;
+protocol/validation.py valida listas de argumentos, no autoriza comandos.
+
+Dependencias: server compone config, JobManager, Executor y PersistenceRuntime.
+JobManager coordina Scheduler y el repositorio; Scheduler delega procesos en
+Executor. PersistenceRuntime compone JobRepository, RecoveryService e identidad
+Linux. JobRepository no depende del gestor ni ejecuta procesos; RecoveryService
+reconcilia registros y consulta identidad, sin adoptar ni matar procesos.
+Los métodos _locked requieren la Condition compartida. El orden de bloqueos es
+Condition -> repositorio -> SQLite; el repositorio no llama al gestor.
+
+RNF-17 se aborda mediante estas responsabilidades, sin dividir archivos por
+tamaño ni introducir capas innecesarias. RNF-18 documenta contratos y decisiones;
+la certificación independiente sigue correspondiendo a QA.
+La referencia de desarrollo es Ubuntu 26.04.1 LTS en WSL2, Python 3.14.4.
+Python >=3.10 es el mínimo declarado, no verificado aquí. No se afirma
+verificación en Linux nativo.
+
+RF-16 permanece parcial: directorio y límites configurables al inicio, pero
+/tmp/jobsy.sock sigue fijo para la CLI. No hay interfaz TCP ni puerto
+configurables. El transporte remoto y su seguridad requieren otra decisión;
+una ruta Unix no satisface automáticamente ese requisito.
+
 ## Referencia histórica: diseño del Avance 01
 
 El contenido siguiente documenta el diseño inicial, no el estado vigente.

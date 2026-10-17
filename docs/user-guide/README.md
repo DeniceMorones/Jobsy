@@ -17,6 +17,11 @@ python3 -m src.daemon.server --data-dir "$HOME/.local/state/jobsy-prueba"
 
 --data-dir no cambia /tmp/jobsy.sock. Dos instancias no pueden compartir ni el
 socket ni el directorio de datos. No se agregan opciones de interfaz o puerto.
+RF-16 sigue parcial: interfaz TCP y puerto configurables requieren una decisión
+posterior. No hay opción --host, --port ni --socket-path en la CLI actual.
+Cambiar --data-dir selecciona otra base, no migra el historial existente.
+Véanse los [contratos públicos](../technical-guide/interfaces-publicas.md) y
+[ADR-007](../technical-guide/ADR-007-Cancelacion.md).
 
 Para verificar un reinicio limpio, envía execute printf 'persistente', conserva
 el ID y espera a que jobsy status ID_DEVUELTO indique SUCCEEDED. Detén solo tu
@@ -105,7 +110,11 @@ El límite abarca procesos principales por daemon, no árboles de descendientes.
 
 ## Instalación en Linux o WSL
 
-Se necesita Python 3.10 o superior con `venv` y `pip`. Dentro del clon:
+Referencia de desarrollo: Ubuntu 26.04.1 LTS sobre WSL2 con Python 3.14.4.
+Python >=3.10 es el mínimo declarado, no una versión verificada en esta tarea.
+No se certifican Linux nativo ni otras distribuciones. Las 105 pruebas anteriores
+en Ubuntu WSL son verificación de desarrollo, distinta de la certificación
+formal de Alexia. Se necesitan `venv` y `pip`. Dentro del clon:
 
 ```bash
 python3 -m venv .venv

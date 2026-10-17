@@ -58,7 +58,11 @@ El proyecto está organizado de forma modular dentro del directorio src/
 
 ## Instalación y ejecución
 
-Requiere Linux o WSL y Python 3.10+ con `venv` y `pip`. Desde la raíz del clon:
+Referencia de desarrollo: Ubuntu 26.04.1 LTS sobre WSL2 con Python 3.14.4.
+Python >=3.10 es el mínimo declarado, no verificado en esta tarea. No se afirma
+verificación en Linux nativo ni otras distribuciones. Las 105 pruebas anteriores
+en Ubuntu WSL son verificación de desarrollo, no certificación de Alexia.
+Se requieren `venv` y `pip`. Desde la raíz del clon:
 
 ```bash
 python3 -m venv .venv
@@ -112,6 +116,12 @@ python3 -m src.daemon.server --data-dir "$HOME/.local/state/jobsy"
 
 Sin --data-dir se usa $XDG_STATE_HOME/jobsy (si XDG_STATE_HOME es absoluto) o
 ~/.local/state/jobsy. Un lock impide dos daemons sobre el mismo directorio.
+Los límites y el directorio se fijan al inicio, sin recarga dinámica. Cambiar
+--data-dir selecciona otra base; no migra el historial ni cambia el socket.
+La CLI utiliza /tmp/jobsy.sock: no existen opciones de interfaz TCP ni puerto.
+RF-16 permanece parcial; la decisión de red está pendiente de aprobación.
+Consulta los [contratos públicos](docs/technical-guide/interfaces-publicas.md)
+y [ADR-007](docs/technical-guide/ADR-007-Cancelacion.md).
 Los pendientes anteriores se cancelan; una ejecución interrumpida se marca
 FAILED solo tras descartar procesos supervivientes. La incertidumbre bloquea
 el arranque con diagnóstico. No borres la base, el lock ni el socket para evitarlo.

@@ -84,8 +84,10 @@ Un pool externo añadiría dependencias sin eliminar la coordinación del proces
 Se eligen deque, Condition y subprocess de la biblioteca estándar.
 
 El límite es por instancia y para procesos principales; no limita descendientes,
-memoria de salida ni historial. El registro y la cola viven en RAM: no hay
-persistencia, recuperación ni deduplicación de reintentos IPC. Se preservan
+memoria de salida ni historial. En 2.1 el registro y la cola vivían solo en RAM;
+desde 2.2 el daemon persiste historial y recupera sin reejecutar (ADR-005 y
+ADR-006). Las colas y reservas activas siguen en RAM. No hay deduplicación de
+reintentos IPC. La cancelación se detalla en ADR-007. Se preservan
 create_job/execute como interfaz interna heredada; el servidor usa submit_job
 para admisión atómica. Los antiguos mutadores de estado sin coordinación
 mark_job_started/mark_job_finished se sustituyen por el ciclo del Scheduler.
@@ -98,14 +100,16 @@ Desde la raíz, con el entorno activado:
 python -B -m unittest discover -s test -p 'test_scheduler.py' -v
 python -B -m unittest discover -s test -p 'test_entry_points.py' -v
 python -B -m unittest discover -s test -p 'test_queue_processes.py' -v
-python -B -m unittest discover -s test -p 'test_queue_ipc.py' -v
 ```
 
 test_scheduler usa procesos controlados, barreras y eventos para FIFO,
 capacidades, rechazo, carreras de cancelación, fallos y liberación única.
 test_queue_processes ejecuta únicamente hijos propios. test_queue_ipc inicia
 un daemon propio con socket temporal, nunca /tmp/jobsy.sock, y se omite cuando
-faltan sockets Unix. No se modifican ni regeneran evidencias históricas de QA.
+faltan sockets Unix. Desde 2.2, la prueba IPC versionada requiere además un
+directorio de datos temporal explícito antes de ejecutarse; la adaptación
+corresponde a QA. No ejecutar descubrimiento global indiscriminado. La variante
+de desarrollo permanece local y excluida. No se modifican evidencias de QA.
 
 Antecedente de verificación (17 de octubre de 2026): ejecución conjunta
 con Python en Windows, 46 pruebas descubiertas, 44 aprobadas y 2 omitidas por
@@ -116,7 +120,7 @@ el IPC real ni las señales POSIX en aquella ejecución.
 
 ### Nota técnica de verificación de Benjamin
 
-Benjamin ejecutó posteriormente las cuatro suites anteriores en Ubuntu WSL,
+Benjamin ejecutó posteriormente las suites de Scheduler, CLI, procesos e IPC de 2.1 en Ubuntu WSL,
 desde el entorno virtual del repositorio. Según la salida de terminal que
 compartió, se aprobaron 46 pruebas: 21 de Scheduler y configuración, 20 de CLI,
 3 de procesos reales y 2 de IPC Unix; cero fallos y cero omisiones.
