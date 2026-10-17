@@ -48,19 +48,21 @@ def send_ipc_request(payload: dict) -> dict:
         response_data = client_socket.recv(4096)
         return json.loads(response_data.decode("utf-8"))
 
-def main():
+def main(argv=None, *, split_command_string=True):
+    """Run the CLI; retain legacy single-string parsing unless disabled."""
+    argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
 
-    if len(sys.argv) == 1:
+    if not argv:
         parser.print_help()
         sys.exit(2)  # código de salida 2 indica error de sintaxis
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     try:
         if args.subcommand == "run":
             raw_command = args.command
-            if len(raw_command) == 1 and " " in raw_command[0]:
+            if split_command_string and len(raw_command) == 1 and " " in raw_command[0]:
                 command_list = shlex.split(raw_command[0])
             else:
                 command_list = raw_command
@@ -120,6 +122,27 @@ def main():
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
+def execute_main(argv=None):
+    """Submit literal command arguments through the existing run action."""
+    argv = list(sys.argv[1:] if argv is None else argv)
+    return main(["run", "--", *argv], split_command_string=False)
+
+
+def list_main(argv=None):
+    """Delegate the short list command to the existing CLI."""
+    return main(["list", *(sys.argv[1:] if argv is None else argv)])
+
+
+def status_main(argv=None):
+    """Delegate the short status command to the existing CLI."""
+    return main(["status", *(sys.argv[1:] if argv is None else argv)])
+
+
+def cancel_main(argv=None):
+    """Delegate the short cancel command to the existing CLI."""
+    return main(["cancel", *(sys.argv[1:] if argv is None else argv)])
+
 
 if __name__ == "__main__":
     main()
