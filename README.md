@@ -1,5 +1,25 @@
 # Jobsy
 
+## Avance 2.1: cola y concurrencia
+
+El daemon incorpora una cola FIFO acotada y reservas de ejecución sincronizadas.
+Por defecto admite hasta 3 procesos principales simultáneos y 100 trabajos en
+espera. En una sesión propia sin daemon ni socket existente:
+
+```bash
+jobsy-daemon --max-running 3 --queue-capacity 100
+```
+
+La forma heredada acepta las mismas opciones:
+`python3 -m src.daemon.server --max-running 3 --queue-capacity 100`.
+No ejecutes ambas simultáneamente. La capacidad de espera puede ser 0; el límite
+de ejecución debe ser al menos 1. La cola llena se rechaza sin registrar trabajos.
+Cancelar no libera una reserva activa hasta confirmar la recolección del proceso.
+Se conservan CLI y protocolo; no se implementan persistencia ni recuperación.
+
+Detalles, pruebas y ejemplos en la [guía de usuario](docs/user-guide/README.md)
+y [ADR-004](docs/technical-guide/ADR-004-Cola-y-Limite-de-Concurrencia.md).
+
 ## 🎯 Propósito:
 Desarrollar una herramienta sencilla para administrar tareas en el sistema Linux, permitiendo:
 * Agregar comandos o programas.

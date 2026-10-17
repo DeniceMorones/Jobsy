@@ -1,5 +1,47 @@
 # Guía de usuario de Jobsy
 
+## Cola y concurrencia: Avance 2.1
+
+En un entorno autorizado sin daemon ni socket previo:
+
+```bash
+jobsy-daemon --max-running 3 --queue-capacity 100
+# Alternativa heredada; no ejecutar un segundo daemon:
+python3 -m src.daemon.server --max-running 3 --queue-capacity 100
+```
+
+Los valores predeterminados son 3 y 100. max-running debe ser un entero >= 1;
+queue-capacity, un entero >= 0. Los argumentos inválidos terminan con código 2
+antes de abrir el socket. Los límites se fijan al iniciar; no cambian en caliente.
+
+La capacidad de cola cuenta solo trabajos esperando una reserva. Con capacidad
+0 se aceptan trabajos únicamente cuando hay una reserva libre. Al completarse,
+fallar o recolectarse un proceso cancelado se despacha automáticamente el primer
+trabajo pendiente. Si se llenan procesos y espera, execute/jobsy run reciben
+un error de cola llena (salida CLI 1), sin un trabajo residual.
+
+Para observarlo, inicia tu daemon de prueba con --max-running 1 --queue-capacity 1
+y envía tres veces execute sleep 30 desde otra terminal. El primero ocupa una
+reserva, el segundo espera y el tercero se rechaza mientras sigan ocupados.
+Consulta jobsy list y cancela solo los IDs propios. Un cancelado en espera no
+arranca. Una cancelación activa se confirma inmediatamente, pero el slot queda
+ocupado hasta terminar y recolectar el proceso; finished_at puede aparecer como -.
+
+Ctrl+C en tu daemon cierra admisión, cancela la espera, concede hasta cinco
+segundos a los activos y cancela los restantes. No uses esta prueba con trabajos
+ajenos. No borres sockets como parte de pruebas automáticas.
+
+Pruebas nuevas, desde la raíz del clon:
+
+```bash
+python -B -m unittest discover -s test -p 'test_scheduler.py' -v
+python -B -m unittest discover -s test -p 'test_queue*.py' -v
+```
+
+La primera suite usa procesos simulados. La segunda crea hijos propios y,
+solo en Linux/WSL, un daemon con socket temporal privado; no usa /tmp/jobsy.sock.
+El límite abarca procesos principales por daemon, no árboles de descendientes.
+
 ## Instalación en Linux o WSL
 
 Se necesita Python 3.10 o superior con `venv` y `pip`. Dentro del clon:
@@ -26,7 +68,7 @@ cambiar de directorio y seguir usando los comandos. Usa `deactivate` para salir.
 
 Primero comprueba si ya existe `/tmp/jobsy.sock` (`test -S /tmp/jobsy.sock`).
 Si existe, no arranques otro daemon ni borres el socket: confirma con su operador
-si puedes reutilizarlo. El arranque actual elimina un socket existente.
+si puedes reutilizarlo. El arranque rechaza una ruta de socket existente.
 Un socket sobrante de una caída requiere diagnóstico manual de su propietario.
 
 En una sesión de prueba autorizada sin daemon ni socket previo, inicia:
@@ -112,7 +154,7 @@ el trabajo termine correctamente; consulta `jobsy status ID_DEVUELTO`.
 - `ModuleNotFoundError: src`: usa el Python del entorno donde instalaste Jobsy o
   ejecuta las formas heredadas desde la raíz del repositorio.
 - Trabajo desconocido después de reiniciar: los trabajos actuales viven en RAM;
-  este empaquetado no añade persistencia ni cambia la cancelación o planificación.
+  esta implementación no añade persistencia ni recuperación.
 
 La CLI actual muestra metadatos, pero no ofrece una acción para leer stdout/stderr.
 

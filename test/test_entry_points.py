@@ -4,12 +4,14 @@ import contextlib
 import io
 import json
 import runpy
+import socket
 import sys
 import unittest
 from unittest.mock import patch
 
 from src.client import cli
 from src.daemon import server
+from src.daemon.config import DaemonConfig
 
 
 class EntryPointTests(unittest.TestCase):
@@ -82,8 +84,8 @@ class EntryPointTests(unittest.TestCase):
 
     def test_daemon_entry_point_delegates_once(self):
         with patch.object(server, "DaemonServer") as daemon:
-            server.main()
-        daemon.assert_called_once_with()
+            server.main([])
+        daemon.assert_called_once_with(config=DaemonConfig())
         daemon.return_value.start.assert_called_once_with()
 
     def test_daemon_constructor_retains_signal_registration(self):
@@ -95,7 +97,8 @@ class EntryPointTests(unittest.TestCase):
 
     def test_legacy_cli_module_entry_point(self):
         # Run the real __main__ block, replacing socket operations before execution.
-        with patch("socket.socket") as socket_factory, patch("os.path.exists", return_value=True):
+        with patch("socket.socket") as socket_factory, patch("os.path.exists", return_value=True), \
+                patch.object(socket, "AF_UNIX", 1, create=True):
             connection = socket_factory.return_value.__enter__.return_value
             connection.recv.return_value = b'{"status":"ok","job_id":"example-id"}'
             with patch.object(sys, "argv", ["src.client.cli", "run", "--", "sleep", "20"]):
@@ -115,11 +118,11 @@ class EntryPointTests(unittest.TestCase):
             pass
 
         with patch("src.daemon.job_manager.JobManager", side_effect=StartupReached) as manager:
-            with patch.dict(sys.modules):
+            with patch.dict(sys.modules), patch.object(sys, "argv", ["src.daemon.server"]):
                 sys.modules.pop("src.daemon.server", None)
                 with self.assertRaises(StartupReached):
                     runpy.run_module("src.daemon.server", run_name="__main__")
-            manager.assert_called_once_with()
+            manager.assert_called_once_with(DaemonConfig())
 
     def test_short_commands_map_arguments(self):
         for function, action, argv in (

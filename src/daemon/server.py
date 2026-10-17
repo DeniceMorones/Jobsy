@@ -9,13 +9,21 @@ import signal
 
 from src.daemon.job_manager import JobManager
 from src.daemon.executor import Executor
+from src.daemon.config import parse_config
 
 SOCKET_PATH = "/tmp/jobsy.sock"
 
 class DaemonServer:
-    def __init__(self, manager: JobManager = None, executor: Executor = None):
-        self.manager = manager if manager is not None else JobManager()
+    def __init__(self, manager: JobManager = None, executor: Executor = None,
+                 config=None, socket_path=None):
+        self.manager = manager if manager is not None else JobManager(config)
         self.executor = executor if executor is not None else Executor(self.manager)
+        if self.manager.executor is None:
+            self.manager.attach_executor(self.executor)
+        if self.manager.executor is not self.executor:
+            raise ValueError("El servidor y el gestor deben compartir ejecutor.")
+        self.socket_path = SOCKET_PATH if socket_path is None else socket_path
+        self._owns_socket = False
         self.is_running = True
         self.server_socket = None
 
@@ -25,26 +33,30 @@ class DaemonServer:
 
     def _handle_shutdown_signal(self, signum, frame):
         print("\n[Daemon] Señal de apagado recibida...")
-        self.stop()
+        self.is_running = False
 
     def start(self):
-        # Eliminar el archivo del socket si existía previamente
-        if os.path.exists(SOCKET_PATH):
-            os.remove(SOCKET_PATH)
+        # Never unlink a socket that this server does not own.
+        if os.path.exists(self.socket_path):
+            raise FileExistsError("El socket ya existe; compruebe si hay un daemon activo.")
 
         self.server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.server_socket.bind(SOCKET_PATH)
+        self.server_socket.bind(self.socket_path)
+        self._owns_socket = True
         self.server_socket.listen(5)
+        self.server_socket.settimeout(0.2)
 
-        print(f"[Daemon] Servidor Jobsy activo escuchando en {SOCKET_PATH}...")
+        print(f"[Daemon] Servidor Jobsy activo escuchando en {self.socket_path}...")
 
         while self.is_running:
             try:
                 conn, _ = self.server_socket.accept()
+                conn.settimeout(1.0)
                 self._handle_client(conn)
             except Exception:
                 if not self.is_running:
                     break
+        self.stop()
 
     def _handle_client(self, conn):
         with conn:
@@ -59,8 +71,7 @@ class DaemonServer:
 
                 if action == "run":
                     command = request.get("command")
-                    job = self.manager.create_job(command)
-                    self.executor.execute(job)
+                    job = self.manager.submit_job(command)
                     response = {"status": "ok", "job_id": job.id}
 
                 elif action == "list":
@@ -80,7 +91,7 @@ class DaemonServer:
 
                 elif action == "status":
                     job_id = request.get("job_id")
-                    job = self.manager.get_job(job_id)
+                    job = self.manager.snapshot(job_id)
                     
                     def format_dt(dt):
                         return dt.strftime("%Y-%m-%d %H:%M:%S UTC") if dt else "-"
@@ -126,15 +137,17 @@ class DaemonServer:
 
         self.manager.shutdown(timeout=5.0)
 
-        if os.path.exists(SOCKET_PATH):
-            os.remove(SOCKET_PATH)
+        if self._owns_socket and os.path.exists(self.socket_path):
+            os.remove(self.socket_path)
+            self._owns_socket = False
 
         print("[Daemon] Servicio detenido.")
         sys.exit(0)
 
-def main():
+def main(argv=None):
     """Start the daemon with its existing signal handlers and lifecycle."""
-    server = DaemonServer()
+    config = parse_config(argv)
+    server = DaemonServer(config=config)
     server.start()
 
 

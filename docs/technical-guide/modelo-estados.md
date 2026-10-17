@@ -1,55 +1,46 @@
-# Modelo preliminar de estados de Jobsy
+# Modelo de estados de Jobsy: Avance 2.1
 
-**Proyecto:** Jobsy  
-**Avance:** Avance 01 - Local MVP  
-**Issue relacionado:** #43 - Modelo preliminar de estados
+Relacionado con RF-03, RF-05, RNF-07 y el modelo inicial del Issue #43.
 
-## 1. Objetivo
+## Estados y transiciones
 
-Definir los estados por los que puede pasar un trabajo dentro del MVP local de Jobsy, desde su creación hasta que finaliza o es cancelado.
-
-El modelo corresponde con el comportamiento implementado actualmente en el proyecto.
-
-## 2. Estados
-
-- `QUEUED`: el trabajo fue creado y está pendiente de ejecución.
-- `RUNNING`: el trabajo se encuentra en ejecución.
-- `SUCCEEDED`: el trabajo terminó correctamente con código de salida `0`.
-- `FAILED`: el trabajo terminó con un código de salida diferente de `0`.
-- `CANCELED`: el trabajo fue cancelado antes de terminar normalmente.
-
-`QUEUED` es el estado inicial.
-
-`SUCCEEDED`, `FAILED` y `CANCELED` son estados finales.
-
-## 3. Diagrama de estados
-
-```text
-QUEUED
- ├──> RUNNING
- │      ├──> SUCCEEDED
- │      ├──> FAILED
- │      └──> CANCELED
- │
- └──> CANCELED
-```
-
-## 4. Transiciones válidas
-
-| Estado actual | Evento | Nuevo estado |
+| Origen | Evento | Destino |
 | --- | --- | --- |
-| QUEUED | Comienza la ejecución | RUNNING |
-| QUEUED | Se solicita cancelación | CANCELED |
-| RUNNING | Termina con código 0 | SUCCEEDED |
-| RUNNING | Termina con código diferente de 0 | FAILED |
-| RUNNING | Se solicita cancelación | CANCELED |
+| QUEUED | Popen exitoso y proceso publicado | RUNNING |
+| QUEUED | Error de lanzamiento | FAILED |
+| QUEUED | Cancelación o apagado antes del lanzamiento | CANCELED |
+| RUNNING | Proceso recolectado con código 0 y sin error de captura | SUCCEEDED |
+| RUNNING | Proceso recolectado con código distinto de 0 o error de captura | FAILED |
+| RUNNING | Solicitud de cancelación | CANCELED |
+| RUNNING | Error al crear o arrancar el hilo supervisor | CANCELED |
 
-## 5. Reglas básicas
+SUCCEEDED, FAILED y CANCELED son terminales: nunca regresan a QUEUED o RUNNING.
+Una solicitud rechazada por capacidad no crea un estado ni deja un trabajo.
+QUEUED incluye espera FIFO y reserva lista para lanzar: no se añade STARTING.
 
-- Todo trabajo comienza en `QUEUED`.
-- Un trabajo en `QUEUED` puede comenzar su ejecución o ser cancelado.
-- Un trabajo en `RUNNING` puede terminar correctamente, fallar o ser cancelado.
-- Los estados `SUCCEEDED`, `FAILED` y `CANCELED` son terminales.
-- Un trabajo que llega a un estado terminal no debe regresar a `QUEUED` o `RUNNING`.
+## Estado público y recursos internos
 
-Este modelo es preliminar y puede ampliarse en avances posteriores si se requieren estados adicionales para persistencia, recuperación o manejo de cancelaciones.
+received_at se asigna al crear el trabajo; started_at al publicar Popen exitoso.
+finished_at se asigna al fallo de lanzamiento, cancelación sin proceso o
+recolección. En CANCELED con proceso aún en limpieza puede ser nulo.
+exit_code se obtiene al recolectar; el fallo de lanzamiento se representa con 1.
+Si falla la captura y el proceso termina con código 0, Executor devuelve 1
+para representar ese fallo. La finalización conserva CANCELED aunque el proceso
+termine con código 0; solo completa sus metadatos y libera su reserva.
+
+Cancelar establece un evento y el estado CANCELED bajo la Condition. Si aún
+no hay proceso, se retira de la cola o reservas listas. Si Popen ya comenzó,
+la cancelación espera la publicación bajo el mismo lock. Si el lanzamiento
+falla o la finalización gana la carrera y ya dejó un estado terminal, se
+rechaza cancelar. En caso contrario, el supervisor termina y recolecta el
+proceso. No hay resurrección del trabajo cancelado.
+
+La reserva no depende de contar RUNNING: permanece durante limpieza y se
+libera exactamente una vez. Una reserva sin proceso se puede liberar al
+cancelar antes del lanzamiento. Si no se confirma la limpieza de un proceso,
+permanece ocupada y se registra el diagnóstico en stderr; no se fuerza FAILED
+ni finished_at. El estado conserva su valor previo (RUNNING o CANCELED).
+Por ello una cancelación aceptada no significa que el slot esté libre todavía.
+
+Ver [ADR-004](ADR-004-Cola-y-Limite-de-Concurrencia.md). Todo permanece en RAM;
+este modelo no implementa persistencia ni recuperación después de reiniciar.

@@ -1,4 +1,57 @@
-# Arquitectura inicial del MVP local de Jobsy
+# Arquitectura de Jobsy: Avance 2.1 y referencia del MVP local
+
+## Arquitectura vigente: Avance 2.1
+
+Esta sección sustituye las descripciones del MVP histórico que siguen abajo.
+Requisitos: RF-03 (#52), RF-05 (#23), RNF-07 (#26).
+Decisiones y límites: [ADR-004](ADR-004-Cola-y-Limite-de-Concurrencia.md).
+
+Flujo real: CLI instalada o módulo -> JSON por socket Unix -> DaemonServer ->
+JobManager.submit_job -> Scheduler -> Executor -> proceso principal.
+La respuesta de admisión devuelve el ID, no espera al fin de la ejecución.
+
+- config.py: configuración inmutable validada y argumentos del daemon.
+- job_manager.py: registro en RAM, admisión atómica, snapshots y cancelación.
+- scheduler.py: FIFO acotada, reservas, despachador y supervisores.
+- executor.py: Popen, captura separada, terminación y recolección.
+- job.py: cinco estados públicos y evento interno de cancelación.
+- server.py: IPC existente, señales y apagado coordinado.
+
+La Condition compartida protege las decisiones de admisión, promoción,
+lanzamiento y cancelación. Los procesos se esperan fuera del lock.
+Una reserva cubre desde la admisión directa o promoción hasta la recolección,
+incluso si el estado público ya es CANCELED y hay un proceso en limpieza.
+El fallo de lanzamiento o la cancelación antes de crear el proceso libera
+la reserva sin recolección. Si la limpieza de un proceso no se confirma, se
+conserva su reserva para impedir exceso de procesos.
+
+pending es la cola FIFO de espera acotada; ready es la cola de reservas listas
+para lanzar. Un despachador único procesa ready y publica Popen bajo el lock.
+admitted evita un segundo lanzamiento del mismo ID, pero no deduplica
+solicitudes IPC reenviadas. FIFO se refiere al orden de admisión/lanzamiento,
+no al de finalización. Con queue_capacity=0 no hay espera en pending, aunque
+un trabajo reservado puede seguir QUEUED hasta su lanzamiento.
+
+Por defecto se permiten tres procesos principales y cien trabajos en espera.
+Las opciones --max-running y --queue-capacity se aplican al arranque, tanto
+con jobsy-daemon como con python3 -m src.daemon.server.
+No se añade persistencia, recuperación, control de descendientes ni un nuevo
+protocolo. La recepción IPC sigue siendo secuencial; el gestor sí sincroniza
+llamadas concurrentes desde varios hilos.
+
+El apagado cancela pendientes y concede cinco segundos de gracia a los activos;
+después solicita su terminación y une los hilos fuera del lock. No se garantiza
+un tiempo total de apagado de cinco segundos. La política de escalamiento
+permanece encapsulada en Executor.terminate_and_reap para integración con el
+trabajo de Backend, sin introducir nuevos estados ni mensajes IPC.
+
+La [nota técnica de ADR-004](ADR-004-Cola-y-Limite-de-Concurrencia.md#nota-técnica-de-verificación-de-benjamin)
+registra las 46 pruebas aprobadas por Benjamin en Ubuntu WSL. No reemplaza
+los entregables formales de QA de Alexia.
+
+## Referencia histórica: diseño del Avance 01
+
+El contenido siguiente documenta el diseño inicial, no el estado vigente.
 
 **Proyecto:** Jobsy  
 **Avance:** Avance 01 - Local MVP  
