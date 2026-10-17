@@ -35,6 +35,7 @@ class Scheduler:
             thread = threading.Thread(target=self._dispatch, name="jobsy-scheduler", daemon=True)
             thread.start()
             self.dispatcher = thread
+        self.manager.persist_creation_locked(job)
         self.admitted.add(job.id)
         if len(self.reservations) < self.config.max_running:
             self.reservations.add(job.id)
@@ -63,10 +64,15 @@ class Scheduler:
         # Called only after failed spawn or confirmed reaping.
         if job.id not in self.reservations:
             return False
+        at = datetime.now(timezone.utc)
+        status = job.status if job.status == "CANCELED" else (
+            "SUCCEEDED" if exit_code == 0 else "FAILED")
+        self.manager._persist_locked(job, "store_results", status=status,
+            exit_code=exit_code, stdout=stdout, stderr=stderr, finished_at=at)
         job.stdout = stdout
         job.stderr = stderr
         job.exit_code = exit_code
-        job.finished_at = datetime.now(timezone.utc)
+        job.finished_at = at
         if job.status != "CANCELED":
             job.status = "SUCCEEDED" if exit_code == 0 else "FAILED"
         job.process = None
@@ -85,15 +91,29 @@ class Scheduler:
                     self.cancel_queued_locked(job)
                     continue
                 try:
+                    self.manager.persist_launch_locked(job)
+                except Exception:
+                    return
+                try:
                     # Serialize the final cancellation check, spawn and publication.
                     # No preexec_fn, communicate, wait, kill or joins in this section.
                     process = self.manager.executor.spawn(job.command)
                 except Exception as error:
-                    self.finish_locked(job, 1, stderr=str(error))
+                    try:
+                        self.finish_locked(job, 1, stderr=str(error))
+                    except Exception:
+                        return
                     continue
                 job.process = process
-                job.status = "RUNNING"
-                job.started_at = datetime.now(timezone.utc)
+                at = datetime.now(timezone.utc)
+                try:
+                    self.manager.persist_running_locked(job, process, at)
+                except Exception:
+                    # Retain ownership and reservation; cleanup happens outside the lock.
+                    job.cancel_requested.set()
+                else:
+                    job.status = "RUNNING"
+                    job.started_at = at
                 self.condition.notify_all()
             monitor = None
             try:
@@ -105,8 +125,11 @@ class Scheduler:
             except Exception:
                 with self.condition:
                     self.monitors.discard(monitor)
+                    try:
+                        self.manager.cancel_job(job.id)
+                    except Exception as error:
+                        self.manager.fail_closed_locked(error)
                     job.cancel_requested.set()
-                    job.status = "CANCELED"
                 # Keep ownership and reap even if a supervisor cannot be started.
                 self._monitor(job, process)
 
@@ -118,8 +141,8 @@ class Scheduler:
         except Exception as error:
             # Fail closed: an unconfirmed process must retain its reservation.
             with self.condition:
-                job.stderr = f"No se pudo confirmar la limpieza del proceso: {error}"
-                self.condition.notify_all()
+                self.manager.fail_closed_locked(
+                    f"No se pudo confirmar la limpieza o persistencia del proceso: {error}")
         finally:
             with self.condition:
                 self.monitors.discard(threading.current_thread())

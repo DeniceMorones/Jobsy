@@ -15,9 +15,10 @@ La forma heredada acepta las mismas opciones:
 No ejecutes ambas simultáneamente. La capacidad de espera puede ser 0; el límite
 de ejecución debe ser al menos 1. La cola llena se rechaza sin registrar trabajos.
 Cancelar no libera una reserva activa hasta confirmar la recolección del proceso.
-Se conservan CLI y protocolo; no se implementan persistencia ni recuperación.
+Se conservan CLI y protocolo; Avance 2.2 añade persistencia SQLite y recuperación
+conservadora sin reejecución automática.
 
-Detalles, pruebas y ejemplos en la [guía de usuario](docs/user-guide/README.md)
+Detalles operativos y ejemplos en la [guía de usuario](docs/user-guide/README.md)
 y [ADR-004](docs/technical-guide/ADR-004-Cola-y-Limite-de-Concurrencia.md).
 
 ## 🎯 Propósito:
@@ -99,7 +100,23 @@ jobsy cancel ID_DEVUELTO
 
 Sustituye `ID_DEVUELTO` por el UUID recibido. El daemon permanece en primer plano;
 `Ctrl+C` solicita su apagado habitual. No uses ese apagado si atiende trabajos ajenos.
-El listado conserva trabajos durante la sesión, no después de reiniciar el daemon.
+El listado recupera el historial al reiniciar con el mismo directorio de datos.
+
+Puede seleccionarse un directorio fuera del repositorio:
+
+```bash
+jobsy-daemon --data-dir "$HOME/.local/state/jobsy" --max-running 3 --queue-capacity 100
+# Alternativa heredada, no simultánea:
+python3 -m src.daemon.server --data-dir "$HOME/.local/state/jobsy"
+```
+
+Sin --data-dir se usa $XDG_STATE_HOME/jobsy (si XDG_STATE_HOME es absoluto) o
+~/.local/state/jobsy. Un lock impide dos daemons sobre el mismo directorio.
+Los pendientes anteriores se cancelan; una ejecución interrumpida se marca
+FAILED solo tras descartar procesos supervivientes. La incertidumbre bloquea
+el arranque con diagnóstico. No borres la base, el lock ni el socket para evitarlo.
+Se conservan resultados confirmados, no necesariamente salida parcial durante
+una caída. Consulta [ADR-006](docs/technical-guide/ADR-006-Recuperacion.md).
 
 Las invocaciones anteriores siguen disponibles desde la raíz del repositorio
 o desde cualquier directorio si el paquete está instalado en el intérprete usado:
@@ -122,11 +139,15 @@ argumentos con espacios y resolución de problemas. No elimines `/tmp/jobsy.sock
 como parte de una comprobación automática.
 
 ## 🔢 Códigos de Salida
-El cliente CLI y las funciones del gestor retornan los siguientes códigos de estado para indicar el resultado del procesamiento:
-* **0**: Ejecución exitosa
-* **1**: Error de validación
-* **2**: Error de sintaxis
+El cliente CLI utiliza estos códigos para la solicitud, no para el resultado del proceso ejecutado:
+* **0**: Solicitud procesada correctamente.
+* **1**: Error de solicitud, comunicación o servicio.
+* **2**: Error de sintaxis.
 
 ## 📊 Estado del proyecto:
-Estado: Avance 1 completado
-Próximo hito: Avance 2
+El alcance de Benjamin en 2.2 incorpora persistencia y recuperación conservadora.
+La verificación local de desarrollo registró 105 pruebas aprobadas en Ubuntu WSL,
+sin fallos ni omisiones; no equivale a certificación formal ni al cierre de todo
+Avance 02. Las pruebas nuevas permanecen locales y fuera del commit propuesto.
+Alexia conserva la responsabilidad de verificación independiente y evidencia QA.
+Consultar el [traspaso técnico](docs/technical-guide/ADR-006-Recuperacion.md#traspaso-técnico-a-alexia).
