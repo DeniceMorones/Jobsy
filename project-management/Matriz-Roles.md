@@ -99,6 +99,8 @@ Para garantizar que nadie dependa de un módulo no implementado, el desarrollo s
 ## 📌 Fase 1: Fundamentos de Arquitectura, Configuración e I/O
 > **Objetivo:** Establecer las estructuras de datos base, módulo de configuración y captura independiente de streams antes de manejar concurrencia compleja.
 
+## Periodo: 4 días (17 de octubre – 20 de octubre)
+
 1. **Benjamín (Arquitectura):**
    - Configuración global del servicio: directorio de datos, límites, interfaz/puerto (`#72` / RF-16).
    - Refactorización modular inicial (`#77` / RNF-17).
@@ -120,6 +122,8 @@ Para garantizar que nadie dependa de un módulo no implementado, el desarrollo s
 
 ## 📌 Fase 2: Concurrencia, Manejo de Cola y Cancelaciones
 > **Objetivo:** Controlar el flujo de ejecución simultánea, políticas de límites, contrapresión y terminación limpia de procesos.
+
+## Periodo: 3 días (21 de octubre – 23 de octubre)
 
 1. **Benjamín (Arquitectura):**
    - Implementación de la cola de trabajo en memoria cuando se supera la capacidad inmediata (`#52` / RF-03).
@@ -143,6 +147,9 @@ Para garantizar que nadie dependa de un módulo no implementado, el desarrollo s
 
 ## 📌 Fase 3: Persistencia Atómica, Recuperación y Resiliencia
 > **Objetivo:** Guardar el estado en disco de forma segura y garantizar la recuperación consistente tras un reinicio inesperado.
+
+## Periodo: 3 días (24 de octubre – 26 de octubre)
+
 1. **Benjamín (Arquitectura):**
    - Serialización y escritura atómica de metadatos en disco (`.json` / archivos temporales + `rename`) (`#56` / RF-12, `#60` / RNF-11, `#61` / RNF-28).
    - Lógica de lectura e hidratación del historial al arrancar el servicio (`#57` / RF-13).
@@ -164,6 +171,8 @@ Para garantizar que nadie dependa de un módulo no implementado, el desarrollo s
 
 ## 📌 Fase 4: Estabilización, Documentación y Evidencia TR2
 > **Objetivo:** Consolidar entregables, redacción de ADRs, incidentes técnicos y script único de verificación.
+
+## Periodo: 3 días (27 de octubre – 29 de octubre)
 
 1. **Benjamín (Arquitecto):**
    - Redacción de ADRs definitivos (Concurrencia, Persistencia, Recuperación, Cancelación) (`#78` / RNF-18).
