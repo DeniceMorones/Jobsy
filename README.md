@@ -118,7 +118,20 @@ Sin --data-dir se usa $XDG_STATE_HOME/jobsy (si XDG_STATE_HOME es absoluto) o
 ~/.local/state/jobsy. Un lock impide dos daemons sobre el mismo directorio.
 Los límites y el directorio se fijan al inicio, sin recarga dinámica. Cambiar
 --data-dir selecciona otra base; no migra el historial ni cambia el socket.
-La CLI utiliza /tmp/jobsy.sock: no existen opciones de interfaz TCP ni puerto.
+El socket predeterminado sigue siendo /tmp/jobsy.sock. Para una instancia propia
+aislada, usa una ruta absoluta dentro de un directorio privado existente:
+
+```bash
+jobsy-daemon --socket-path "$HOME/.local/state/jobsy/control.sock" --data-dir "$HOME/.local/state/jobsy"
+# En otra terminal, con el mismo entorno virtual activado:
+export JOBSY_SOCKET_PATH="$HOME/.local/state/jobsy/control.sock"
+jobsy list
+```
+
+El directorio padre del socket debe existir antes del arranque. El daemon no
+lee JOBSY_SOCKET_PATH; los clientes sí, incluidos execute, list, status y cancel.
+Sin variable, los clientes vuelven a /tmp/jobsy.sock (`unset JOBSY_SOCKET_PATH`).
+No se borran rutas existentes para arrancar. No existen opciones de interfaz TCP ni puerto.
 RF-16 permanece parcial; la decisión de red está pendiente de aprobación.
 Consulta los [contratos públicos](docs/technical-guide/interfaces-publicas.md)
 y [ADR-007](docs/technical-guide/ADR-007-Cancelacion.md).

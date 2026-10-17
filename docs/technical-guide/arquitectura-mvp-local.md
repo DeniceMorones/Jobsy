@@ -12,6 +12,7 @@ JobManager.submit_job -> Scheduler -> Executor -> proceso principal.
 La respuesta de admisión devuelve el ID, no espera al fin de la ejecución.
 
 - config.py: configuración inmutable validada y argumentos del daemon.
+- protocol/endpoint.py: ruta Unix compartida, validación y variable del cliente.
 - job_manager.py: vista en RAM, commits coordinados, admisión, snapshots y cancelación.
 - scheduler.py: FIFO acotada, reservas, despachador y supervisores.
 - executor.py: Popen, captura separada, terminación y recolección.
@@ -98,9 +99,21 @@ Python >=3.10 es el mínimo declarado, no verificado aquí. No se afirma
 verificación en Linux nativo.
 
 RF-16 permanece parcial: directorio y límites configurables al inicio, pero
-/tmp/jobsy.sock sigue fijo para la CLI. No hay interfaz TCP ni puerto
+/tmp/jobsy.sock era fijo para la CLI en 2.5A; 2.5B añade la selección descrita abajo.
+No hay interfaz TCP ni puerto
 configurables. El transporte remoto y su seguridad requieren otra decisión;
 una ruta Unix no satisface automáticamente ese requisito.
+
+## Configuración local: Avance 2.5B
+
+DaemonConfig incorpora socket_path, seleccionado por --socket-path también en
+el módulo heredado. Los clientes leen JOBSY_SOCKET_PATH por solicitud; ambos
+usan /tmp/jobsy.sock en ausencia de configuración. endpoint.py centraliza la
+validación sin conocer JobManager, SQLite ni Scheduler. La ruta requiere padre
+existente y de confianza; no se eliminan sockets para arrancar. El cierre
+comprueba el inode propio con lstat. La exclusividad de datos sigue separada
+de la selección del socket. No cambian contratos JSON, reservas ni recuperación.
+RF-16 permanece parcial: no hay interfaz IP ni puerto TCP configurables.
 
 ## Referencia histórica: diseño del Avance 01
 

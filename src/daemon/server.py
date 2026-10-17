@@ -11,8 +11,7 @@ from src.daemon.job_manager import JobManager
 from src.daemon.executor import Executor
 from src.daemon.config import parse_config
 from src.daemon.persistence import PersistenceRuntime
-
-SOCKET_PATH = "/tmp/jobsy.sock"
+from src.protocol.endpoint import resolve_socket_path
 
 class DaemonServer:
     def __init__(self, manager: JobManager = None, executor: Executor = None,
@@ -23,7 +22,8 @@ class DaemonServer:
             self.manager.attach_executor(self.executor)
         if self.manager.executor is not self.executor:
             raise ValueError("El servidor y el gestor deben compartir ejecutor.")
-        self.socket_path = SOCKET_PATH if socket_path is None else socket_path
+        self.socket_path = resolve_socket_path(
+            self.manager.config.socket_path if socket_path is None else socket_path)
         self._owns_socket = False
         self.is_running = True
         self.server_socket = None
@@ -49,7 +49,7 @@ class DaemonServer:
             self.server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self.server_socket.bind(self.socket_path)
             self._owns_socket = True
-            info = os.stat(self.socket_path)
+            info = os.lstat(self.socket_path)
             self._socket_identity = (info.st_dev, info.st_ino)
             self.server_socket.listen(5)
             self.server_socket.settimeout(0.2)
@@ -156,9 +156,12 @@ class DaemonServer:
                     self.persistence.close(clean=clean)
                     self.persistence = None
             finally:
-                if self._owns_socket and os.path.exists(self.socket_path):
-                    info = os.stat(self.socket_path)
-                    if (info.st_dev, info.st_ino) == self._socket_identity:
+                if self._owns_socket:
+                    try:
+                        info = os.lstat(self.socket_path)
+                    except FileNotFoundError:
+                        info = None
+                    if info is not None and (info.st_dev, info.st_ino) == self._socket_identity:
                         os.remove(self.socket_path)
                     self._owns_socket = False
         print("[Daemon] Servicio detenido.")

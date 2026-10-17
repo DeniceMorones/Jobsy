@@ -59,16 +59,33 @@ cierre coordinado; señales externas como SIGKILL no son cierre limpio.
 | `--max-running N` | 3; entero >=1, procesos principales por daemon. |
 | `--queue-capacity N` | 100; entero >=0, trabajos esperando reserva. |
 | `--data-dir RUTA` | Ruta explícita no vacía; expande ~ y resuelve rutas relativas respecto al directorio actual. |
+| `--socket-path RUTA` | /tmp/jobsy.sock; ruta absoluta de socket Unix, padre existente, máximo 107 bytes resueltos. |
 
 Sin --data-dir se usa $XDG_STATE_HOME/jobsy si XDG_STATE_HOME es absoluto;
 en otro caso ~/.local/state/jobsy. Cambiar la ruta selecciona otra base, no
 migra datos. Se recomienda ruta absoluta privada en almacenamiento Linux local.
 Los valores se fijan al inicio; no hay archivo de configuración ni recarga.
 
-DaemonConfig(max_running=3, queue_capacity=100, data_dir=None) es inmutable;
+DaemonConfig(max_running=3, queue_capacity=100, data_dir=None,
+socket_path="/tmp/jobsy.sock") es inmutable;
 data_directory() devuelve Path y parse_config(argv=None) usa argparse.
-La CLI y el daemon usan /tmp/jobsy.sock. El parámetro Python socket_path permite
-arneses aislados, pero no existe --socket-path, --host ni --port instalados.
+El daemon usa --socket-path o /tmp/jobsy.sock y no lee JOBSY_SOCKET_PATH.
+El cliente lee JOBSY_SOCKET_PATH por solicitud, con el mismo predeterminado
+si está ausente; una variable vacía es inválida. Afecta a los cinco ejecutables
+cliente y al módulo heredado. No hay --host ni --port.
+El argumento socket_path de DaemonServer prevalece sobre manager.config.socket_path;
+sin gestor inyectado, se usa la configuración recibida por el servidor.
+
+src/protocol/endpoint.py centraliza DEFAULT_SOCKET_PATH, resolve_socket_path(path)
+y client_socket_path(). Valida texto/ruta absoluta, expande ~, exige padre
+existente y lo resuelve, rechaza NUL y enlaces simbólicos finales y limita a 107
+bytes codificados para Linux. No crea, borra ni cambia permisos de archivos.
+El componente final nunca se resuelve como enlace. Usar un padre privado de
+confianza. Argumentos inválidos generan ValueError (argparse: salida 2; CLI: 1).
+Un error de permisos al bind/connect se informa por el mecanismo existente.
+El arranque conserva el rechazo de toda ruta existente; el cierre compara
+dispositivo/inode con lstat, sin seguir enlaces finales. No hay limpieza automática
+de sockets obsoletos. La exclusividad del directorio de datos permanece independiente.
 RF-16 (#72) permanece parcial: interfaz TCP y puerto requieren aprobación futura.
 
 ## Contrato IPC actual

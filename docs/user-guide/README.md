@@ -18,7 +18,8 @@ python3 -m src.daemon.server --data-dir "$HOME/.local/state/jobsy-prueba"
 --data-dir no cambia /tmp/jobsy.sock. Dos instancias no pueden compartir ni el
 socket ni el directorio de datos. No se agregan opciones de interfaz o puerto.
 RF-16 sigue parcial: interfaz TCP y puerto configurables requieren una decisión
-posterior. No hay opción --host, --port ni --socket-path en la CLI actual.
+posterior. No hay opción --host ni --port. El daemon acepta --socket-path;
+los clientes seleccionan esa misma ruta mediante JOBSY_SOCKET_PATH.
 Cambiar --data-dir selecciona otra base, no migra el historial existente.
 Véanse los [contratos públicos](../technical-guide/interfaces-publicas.md) y
 [ADR-007](../technical-guide/ADR-007-Cancelacion.md).
@@ -134,9 +135,57 @@ Los ejecutables quedan dentro de `.venv/bin`, disponibles al activar ese entorno
 no se instalan automáticamente como comandos globales. Tras instalar, puedes
 cambiar de directorio y seguir usando los comandos. Usa `deactivate` para salir.
 
+## Socket Unix configurable: Avance 2.5B
+
+El valor predeterminado es /tmp/jobsy.sock. Para una instancia propia aislada,
+prepara un directorio privado y existente, por ejemplo con
+`mkdir -p -m 700 "$HOME/.local/state/jobsy-local"` si aún no existe.
+Comprueba que no contenga un socket de otra instancia; no lo elimines.
+
+```bash
+jobsy-daemon --socket-path "$HOME/.local/state/jobsy-local/control.sock" --data-dir "$HOME/.local/state/jobsy-local"
+# Alternativa heredada, no ejecutar simultáneamente:
+python3 -m src.daemon.server --socket-path "$HOME/.local/state/jobsy-local/control.sock" --data-dir "$HOME/.local/state/jobsy-local"
+```
+
+En otra terminal, activa el entorno y selecciona el mismo endpoint:
+
+```bash
+export JOBSY_SOCKET_PATH="$HOME/.local/state/jobsy-local/control.sock"
+execute sleep 20
+jobsy list
+list --status RUNNING
+status ID_DEVUELTO
+cancel ID_DEVUELTO
+```
+
+Sustituye ID_DEVUELTO por el UUID propio. La variable se lee en cada solicitud
+y afecta también a los subcomandos jobsy y al módulo heredado del cliente.
+El daemon solo usa --socket-path o el predeterminado, no la variable.
+`unset JOBSY_SOCKET_PATH` restaura el endpoint predeterminado del cliente.
+Para una instalación no editable, reinstala el paquete tras actualizarlo.
+
+Se exige ruta absoluta (se permite ~), sin NUL, con nombre de archivo y padre
+existente. El padre se resuelve, pero no el componente final: se rechazan enlaces
+simbólicos finales. El límite Linux es 107 bytes de ruta resuelta, no caracteres.
+Una variable vacía es un error, no una solicitud de usar el predeterminado.
+El daemon devuelve 2 ante configuración inválida; el cliente devuelve 1 ante
+endpoint inválido o fallo de conexión. Los permisos se aplican por el sistema;
+Jobsy no crea ni cambia permisos del padre del socket. Usa un directorio privado
+de confianza: no se promete protección contra un usuario que pueda sustituirlo.
+
+El arranque rechaza cualquier ruta final existente, incluso un socket obsoleto.
+No la borra ni la sobrescribe. El cierre solo elimina su propia ruta si coincide
+su identidad de dispositivo/inode, sin seguir enlaces finales. Cambiar de socket
+no permite compartir un directorio de datos entre daemons: se conserva flock.
+No cambian la cola, los estados, la persistencia ni el protocolo JSON.
+RF-16 sigue parcial; interfaz IP y puerto TCP requieren aprobación del profesor.
+
 ## Arranque y verificación manual
 
-Primero comprueba si ya existe `/tmp/jobsy.sock` (`test -S /tmp/jobsy.sock`).
+Para el endpoint predeterminado, comprueba si ya existe `/tmp/jobsy.sock`
+(`test -e /tmp/jobsy.sock || test -L /tmp/jobsy.sock`). Para uno personalizado,
+comprueba la ruta elegida en su lugar.
 Si existe, no arranques otro daemon ni borres el socket: confirma con su operador
 si puedes reutilizarlo. El arranque rechaza una ruta de socket existente.
 Un socket sobrante de una caída requiere diagnóstico manual de su propietario.
