@@ -1,6 +1,27 @@
-# Casos de prueba — MVP Avance 1
+# Casos de prueba — Jobsy
 
-Este documento registra los casos de prueba ejecutados sobre el núcleo funcional de Jobsy correspondiente a los PR #101 y #102 del Avance 1.
+Este documento registra los casos de prueba ejecutados por QA sobre los alcances funcionales revisados de Jobsy en los PR #101, #102, #104 y #110.
+
+La numeración de los casos se mantiene de forma acumulativa para conservar la trazabilidad entre pruebas, requisitos, scripts y evidencias.
+
+Hasta el momento se han documentado y ejecutado los casos **TC-001 a TC-070**.
+
+Las pruebas cubren validación de entradas, ejecución de trabajos, estados y metadatos, cancelación, apagado seguro, comportamiento de la CLI, comunicación IPC mediante sockets UNIX, robustez ante solicitudes inválidas, múltiples trabajos durante una misma sesión y configuración de sockets UNIX personalizados.
+
+Los casos **TC-053 a TC-070** corresponden a la validación del **PR #110**, relacionado con la configuración del socket UNIX local.
+
+### Entorno de ejecución del PR #110
+
+Las pruebas del PR #110 fueron ejecutadas en:
+
+- Ubuntu 26.04.1 LTS.
+- Arquitectura ARM64 (`aarch64`).
+- Linux kernel 7.0.0-38-generic.
+- Python 3.14.4.
+- Git 2.53.0.
+- Máquina virtual Linux ejecutada sobre MacBook Pro con Apple Silicon M1.
+
+Para las pruebas de los puntos de entrada públicos se utilizó un entorno virtual de Python (`.venv`) con Jobsy instalado en modo editable.
 
 
 ## Estados
@@ -23,6 +44,8 @@ Cada caso puede encontrarse en uno de los siguientes estados:
 - `EV-007-ipc-flow-output.txt`: salida de `test_ipc_flow.py`.
 - `EV-008-ipc-robustness-output.txt`: salida de `test_ipc_robustness.py`.
 - `EV-009-ipc-multiple-jobs-output.txt`: salida de `test_ipc_multiple_jobs.py`.
+- `EV-010-socket-config-output.txt`: configuración, validación e integración básica del socket UNIX configurable.
+- `EV-011-socket-cli-contract-output.txt`: contrato público de CLI, variable `JOBSY_SOCKET_PATH`, códigos de salida y puntos de entrada.
 
 > Las evidencias del avance #1 del MVP se almacenan en `docs/qa/evidence/avance-1/`.
 
@@ -32,9 +55,9 @@ Cada caso puede encontrarse en uno de los siguientes estados:
 
 ### TC-XXX — Nombre del caso
 
-**Requisito relacionado:**  
-**Tipo:**  
-**Prioridad:**  
+**Requisito relacionado:**
+**Tipo:**
+**Prioridad:**
 
 #### Objetivo
 
@@ -57,8 +80,8 @@ TC-003
 
 ## TC-001 — Validar comando correcto
 
-**Tipo:** Funcional  
-**Prioridad:** Alta  
+**Tipo:** Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -89,8 +112,8 @@ ACEPTADO: ['echo', 'Hola']
 
 ## TC-002 — Rechazar comando vacío
 
-**Tipo:** Negativa  
-**Prioridad:** Alta  
+**Tipo:** Negativa
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -117,8 +140,8 @@ Motivo: El comando no puede estar vacio.
 
 ## TC-003 — Rechazar comando con formato incorrecto
 
-**Tipo:** Negativa  
-**Prioridad:** Alta  
+**Tipo:** Negativa
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -140,8 +163,8 @@ Motivo: El comando debe enviarse como una lista.
 
 ## TC-004 — Rechazar nombre de programa vacío
 
-**Tipo:** Negativa  
-**Prioridad:** Alta  
+**Tipo:** Negativa
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -168,8 +191,8 @@ Motivo: El nombre del programa no puede estar vacio.
 
 ## TC-005 — Rechazar argumentos no textuales
 
-**Tipo:** Negativa  
-**Prioridad:** Alta  
+**Tipo:** Negativa
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -196,8 +219,8 @@ Motivo: El comando y sus argumentos deben ser texto.
 
 ## TC-006 — Generar IDs únicos
 
-**Tipo:** Funcional  
-**Prioridad:** Alta  
+**Tipo:** Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -229,8 +252,8 @@ Los tres identificadores fueron diferentes.
 
 ## TC-007 — Ejecutar trabajo sin bloquear otros trabajos
 
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -258,8 +281,8 @@ echo -> SUCCEEDED
 
 ## TC-008 — Ejecutar trabajo exitosamente
 
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -285,8 +308,8 @@ status='SUCCEEDED'
 
 ## TC-009 — Capturar stdout
 
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -312,8 +335,8 @@ stdout='Hola desde Jobsy\n'
 
 ## TC-010 — Registrar código de salida exitoso
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -335,8 +358,8 @@ status='SUCCEEDED'
 
 ## TC-011 — Ejecutar trabajo que termina con error
 
-**Tipo:** Negativa / Integración  
-**Prioridad:** Alta  
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -363,8 +386,8 @@ exit_code=2
 
 ## TC-012 — Capturar stderr
 
-**Tipo:** Negativa / Integración  
-**Prioridad:** Alta  
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -390,8 +413,8 @@ stderr="ls: cannot access '/carpeta-que-no-existe': No such file or directory\n"
 
 ## TC-013 — Registrar código de salida de error
 
-**Tipo:** Funcional / Negativa  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Negativa
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -412,8 +435,8 @@ exit_code=2
 
 ## TC-014 — Registrar tiempos del ciclo de vida
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Media  
+**Tipo:** Funcional / Integración
+**Prioridad:** Media
 **Estado:** `PASS`
 
 ### Objetivo
@@ -450,8 +473,8 @@ Se cumplió el orden temporal esperado y la duración fue aproximadamente de 10 
 
 ## TC-015 — Consultar trabajo con ID válido
 
-**Tipo:** Funcional  
-**Prioridad:** Alta  
+**Tipo:** Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -496,8 +519,8 @@ El trabajo fue recuperado correctamente y la información obtenida coincidió co
 
 ## TC-016 — Consultar trabajo con ID inexistente
 
-**Tipo:** Negativa / Funcional  
-**Prioridad:** Alta  
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -526,8 +549,8 @@ El sistema rechazó correctamente el identificador inexistente y reportó el mot
 
 ## TC-017 — Listar trabajos y filtrar por estado
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -597,9 +620,9 @@ El listado general, el filtro por estado `QUEUED` y el rechazo del estado invál
 
 ## TC-018 — Cancelar trabajo en estado QUEUED
 
-**Requisito relacionado:** RF-10 — Issue #37  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-10 — Issue #37
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -629,9 +652,9 @@ PASS: El trabajo cancelado registra finished_at.
 
 ## TC-019 — Cancelar trabajo en estado RUNNING
 
-**Requisito relacionado:** RF-10 — Issue #37  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-10 — Issue #37
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -666,9 +689,9 @@ PASS: Executor conserva el estado CANCELED al terminar el proceso.
 
 ## TC-020 — Cancelar trabajo con ID inexistente
 
-**Requisito relacionado:** RF-10 — Issue #37  
-**Tipo:** Negativa / Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-10 — Issue #37
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -695,9 +718,9 @@ PASS: Se rechaza la cancelación de un ID inexistente.
 
 ## TC-021 — Intentar cancelar un trabajo finalizado
 
-**Requisito relacionado:** RF-10 — Issue #37  
-**Tipo:** Negativa / Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-10 — Issue #37
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -726,9 +749,9 @@ PASS: Se rechaza la cancelación de un trabajo finalizado.
 
 ## TC-022 — Intentar cancelar el mismo trabajo dos veces
 
-**Requisito relacionado:** RF-10 — Issue #37  
-**Tipo:** Negativa / Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-10 — Issue #37
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -753,9 +776,9 @@ PASS: La segunda cancelación es rechazada.
 
 ## TC-023 — Inicializar servicio
 
-**Requisito relacionado:** RF-15 — Issue #38  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-15 — Issue #38
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -781,9 +804,9 @@ PASS: JobManager acepta trabajos al iniciar el servicio.
 
 ## TC-024 — Apagado con trabajo en QUEUED
 
-**Requisito relacionado:** RF-15 — Issue #38  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-15 — Issue #38
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -810,9 +833,9 @@ Todas las comprobaciones asociadas obtuvieron `PASS`.
 
 ## TC-025 — Apagado con trabajo RUNNING de corta duración
 
-**Requisito relacionado:** RF-15 — Issue #38  
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-15 — Issue #38
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -844,9 +867,9 @@ Todas las comprobaciones asociadas obtuvieron `PASS`.
 
 ## TC-026 — Rechazar nuevos trabajos después del shutdown
 
-**Requisito relacionado:** RF-15 — Issue #38  
-**Tipo:** Negativa / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-15 — Issue #38
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -868,9 +891,9 @@ PASS: Se rechazan nuevos trabajos después de iniciar el shutdown.
 
 ## TC-027 — Procesar señal de apagado
 
-**Requisito relacionado:** RF-15 — Issue #38  
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-15 — Issue #38
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -901,9 +924,9 @@ Todas las comprobaciones asociadas obtuvieron `PASS`.
 
 ## TC-028 — Forzar cancelación por timeout de shutdown
 
-**Requisito relacionado:** RF-15 — Issue #38; RNF-25 — Issue #28; RNF-30 — Issue #29  
-**Tipo:** Integración / Robustez  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-15 — Issue #38; RNF-25 — Issue #28; RNF-30 — Issue #29
+**Tipo:** Integración / Robustez
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -935,9 +958,9 @@ La ejecución cumplió todas las comprobaciones esperadas y finalizó en `PASS`.
 
 ## TC-029 — Mostrar ayuda sin argumentos
 
-**Requisito relacionado:** RF-17 — Issue #39  
-**Tipo:** Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-17 — Issue #39
+**Tipo:** Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -961,9 +984,9 @@ PASS: La CLI muestra informacion de ayuda.
 
 ## TC-030 — Ejecutar comando válido desde la CLI
 
-**Requisito relacionado:** RF-01 — Issue #30; RF-17 — Issue #39  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-01 — Issue #30; RF-17 — Issue #39
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -987,9 +1010,9 @@ Todas las comprobaciones asociadas obtuvieron `PASS`.
 
 ## TC-031 — Listar trabajos desde la CLI
 
-**Requisito relacionado:** RF-09 — Issue #36; RF-17 — Issue #39  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-09 — Issue #36; RF-17 — Issue #39
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1008,9 +1031,9 @@ Los dos IDs creados y sus estados fueron mostrados correctamente; el comando ter
 
 ## TC-032 — Consultar estado desde la CLI
 
-**Requisito relacionado:** RF-08 — Issue #35; RF-17 — Issue #39  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-08 — Issue #35; RF-17 — Issue #39
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1029,9 +1052,9 @@ La CLI mostró el ID correcto, estado `QUEUED`, comando asociado y metadatos esp
 
 ## TC-033 — Cancelar trabajo desde la CLI
 
-**Requisito relacionado:** RF-10 — Issue #37; RF-17 — Issue #39  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-10 — Issue #37; RF-17 — Issue #39
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1056,9 +1079,9 @@ Todas las comprobaciones asociadas obtuvieron `PASS`.
 
 ## TC-034 — Consultar ID inexistente desde la CLI
 
-**Requisito relacionado:** RF-08 — Issue #35; RF-17 — Issue #39  
-**Tipo:** Negativa / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-08 — Issue #35; RF-17 — Issue #39
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1080,9 +1103,9 @@ STDERR: Error de validación: No existe un trabajo con el ID 'id-que-no-existe'.
 
 ## TC-035 — Rechazar filtro de estado inválido en la CLI
 
-**Requisito relacionado:** RF-09 — Issue #36; RF-17 — Issue #39  
-**Tipo:** Negativa / Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-09 — Issue #36; RF-17 — Issue #39
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1106,9 +1129,9 @@ La CLI terminó con código `2` y `argparse` informó correctamente el valor inv
 
 ## TC-036 — Rechazar subcomando inexistente
 
-**Requisito relacionado:** RF-17 — Issue #39  
-**Tipo:** Negativa / Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-17 — Issue #39
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1132,8 +1155,8 @@ La CLI terminó con código `2` e informó correctamente que el subcomando era i
 
 ## TC-037 — Iniciar daemon y crear socket UNIX
 
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1162,8 +1185,8 @@ PASS: El daemon crea el socket UNIX.
 
 ## TC-038 — Enviar trabajo mediante CLI e IPC
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1192,8 +1215,8 @@ PASS: El daemon devuelve un identificador de trabajo.
 
 ## TC-039 — Consultar trabajo mediante IPC
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1225,8 +1248,8 @@ PASS: La consulta conserva el comando asociado.
 
 ## TC-040 — Listar trabajos persistentes durante la sesión
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1251,8 +1274,8 @@ PASS: El listado conserva el trabajo creado por una invocacion anterior.
 
 ## TC-041 — Cancelar trabajo mediante IPC
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1285,8 +1308,8 @@ PASS: El estado consultado posteriormente es CANCELED.
 
 ## TC-042 — Consultar ID inexistente mediante IPC
 
-**Tipo:** Negativa / Integración  
-**Prioridad:** Alta  
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1316,8 +1339,8 @@ PASS: La CLI informa de forma controlada que el trabajo no existe.
 
 ## TC-043 — Ejecutar CLI sin daemon activo
 
-**Tipo:** Negativa / Integración  
-**Prioridad:** Alta  
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1348,8 +1371,8 @@ PASS: La CLI informa que el servicio Jobsy no esta en ejecucion.
 
 ## TC-044 — Cancelar ID inexistente mediante IPC
 
-**Tipo:** Negativa / Integración  
-**Prioridad:** Alta  
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1379,8 +1402,8 @@ PASS: La CLI informa que el trabajo no existe.
 
 ## TC-045 — Filtrar trabajos por estado mediante IPC
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1426,8 +1449,8 @@ PASS: El filtro FAILED no muestra trabajos SUCCEEDED.
 
 ## TC-046 — Enviar acción IPC inválida
 
-**Tipo:** Negativa / Integración  
-**Prioridad:** Alta  
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1458,8 +1481,8 @@ PASS: El daemon informa que la accion no es valida.
 
 ## TC-047 — Enviar JSON inválido
 
-**Tipo:** Negativa / Robustez  
-**Prioridad:** Alta  
+**Tipo:** Negativa / Robustez
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1491,8 +1514,8 @@ PASS: La respuesta contiene un mensaje de error.
 
 ## TC-048 — Mantener daemon operativo después de solicitudes inválidas
 
-**Tipo:** Robustez / Integración  
-**Prioridad:** Alta  
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1516,8 +1539,8 @@ PASS: El proceso del daemon sigue activo.
 
 ## TC-049 — Eliminar socket durante el apagado del daemon
 
-**Tipo:** Integración / Robustez  
-**Prioridad:** Alta  
+**Tipo:** Integración / Robustez
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1548,8 +1571,8 @@ PASS: El socket fue eliminado durante el apagado del daemon.
 
 ## TC-050 — Ejecutar múltiples trabajos mediante IPC
 
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1587,8 +1610,8 @@ Los cinco trabajos fueron aceptados por el daemon.
 
 ## TC-051 — Verificar IDs únicos en múltiples trabajos
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1618,8 +1641,8 @@ PASS: Todos los trabajos tienen identificadores unicos.
 
 ## TC-052 — Conservar múltiples trabajos durante la sesión
 
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 ### Objetivo
@@ -1655,6 +1678,513 @@ PASS: El daemon continua activo despues de multiples solicitudes.
 
 ### Evidencia
 `EV-009-ipc-multiple-jobs-output.txt`
+
+---
+
+
+# Casos de prueba — PR #110
+
+## Socket UNIX configurable — Issue #72
+
+## TC-053 — Utilizar socket UNIX predeterminado
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Funcional
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy utilice `/tmp/jobsy.sock` como ruta predeterminada del socket UNIX.
+
+### Resultado esperado
+La configuración debe resolver `/tmp/jobsy.sock` como socket predeterminado cuando no se especifica una ruta personalizada.
+
+### Resultado obtenido
+```text
+Exit code: 0
+STDOUT: '/tmp/jobsy.sock'
+STDERR: ''
+
+PASS: La configuracion puede cargarse correctamente.
+PASS: El socket predeterminado es /tmp/jobsy.sock.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-054 — Aceptar una ruta absoluta personalizada para el socket
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Funcional
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy permita configurar el daemon con una ruta absoluta válida para el socket UNIX.
+
+### Resultado esperado
+La ruta absoluta debe ser aceptada y conservarse como ruta del socket configurado.
+
+### Resultado obtenido
+```text
+Exit code: 0
+STDOUT: '/tmp/.../control.sock'
+STDERR: ''
+
+PASS: Se acepta una ruta absoluta valida.
+PASS: La configuracion conserva la ruta personalizada.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-055 — Utilizar JOBSY_SOCKET_PATH desde la CLI
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la CLI pueda conectarse al daemon utilizando la ruta definida mediante `JOBSY_SOCKET_PATH`.
+
+### Resultado esperado
+La CLI debe utilizar el socket indicado por la variable de entorno y comunicarse correctamente con el daemon.
+
+### Resultado obtenido
+```text
+PASS: El daemon crea el socket personalizado.
+Exit code: 0
+STDOUT: 'No se encontraron trabajos.'
+STDERR: ''
+
+PASS: La CLI puede conectarse usando JOBSY_SOCKET_PATH.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-056 — Ejecutar operaciones mediante un socket personalizado
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que una operación real de la CLI pueda ejecutarse correctamente mediante un socket UNIX personalizado.
+
+### Resultado esperado
+La operación debe procesarse correctamente utilizando el socket personalizado y sin errores de comunicación.
+
+### Resultado obtenido
+```text
+Exit code: 0
+STDOUT: 'No se encontraron trabajos.'
+STDERR: ''
+
+PASS: La operacion list no devuelve error.
+PASS: El socket personalizado se elimina al detener el daemon.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-057 — Rechazar una ruta relativa de socket
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Negativa
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy rechace una ruta relativa al configurar el socket UNIX.
+
+### Resultado esperado
+La configuración debe fallar indicando que la ruta del socket debe ser absoluta.
+
+### Resultado obtenido
+```text
+Exit code: 1
+ValueError: La ruta del socket debe ser absoluta y nombrar un archivo.
+
+PASS: Una ruta relativa es rechazada.
+PASS: El error indica que la ruta debe ser absoluta.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-058 — Rechazar un directorio padre inexistente
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Negativa
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy rechace una ruta de socket cuyo directorio padre no exista.
+
+### Resultado esperado
+La configuración debe fallar indicando que el directorio padre debe existir y ser accesible.
+
+### Resultado obtenido
+```text
+Exit code: 1
+ValueError: El directorio padre del socket debe existir y ser accesible.
+
+PASS: Se rechaza una ruta cuyo directorio padre no existe.
+PASS: El error indica que el directorio padre debe existir.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-059 — Rechazar un enlace simbólico como ruta final del socket
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Negativa
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy no permita utilizar un enlace simbólico como componente final de la ruta del socket.
+
+### Resultado esperado
+La configuración debe rechazar la ruta indicando que el socket no puede ser un enlace simbólico.
+
+### Resultado obtenido
+```text
+Exit code: 1
+ValueError: La ruta final del socket no puede ser un enlace simbólico.
+
+PASS: La ruta final como enlace simbolico es rechazada.
+PASS: El error informa que no se permite un enlace simbolico.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-060 — Rechazar una ruta de socket mayor a 107 bytes
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Negativa
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy respete el límite de longitud del socket UNIX en Linux.
+
+### Resultado esperado
+Una ruta resuelta que exceda 107 bytes debe ser rechazada.
+
+### Resultado obtenido
+```text
+Longitud bytes: 122
+Exit code: 1
+ValueError: La ruta del socket excede 107 bytes en Linux.
+
+PASS: Se rechaza una ruta mayor a 107 bytes.
+PASS: El error informa el limite maximo permitido.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-061 — No sobrescribir una ruta de socket existente
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Negativa
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el daemon no elimine ni sobrescriba una ruta que ya exista antes de iniciar.
+
+### Resultado esperado
+El daemon debe rechazar el inicio, conservar la ruta existente y no modificar su contenido.
+
+### Resultado obtenido
+```text
+Exit code: 1
+FileExistsError: El socket ya existe; compruebe si hay un daemon activo.
+
+PASS: El daemon no inicia si la ruta ya existe.
+PASS: La ruta existente no es eliminada.
+PASS: El contenido existente permanece intacto.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-062 — Volver al socket predeterminado sin JOBSY_SOCKET_PATH
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Funcional
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el cliente vuelva a utilizar `/tmp/jobsy.sock` cuando `JOBSY_SOCKET_PATH` no está definida.
+
+### Resultado esperado
+La resolución del endpoint debe devolver `/tmp/jobsy.sock`.
+
+### Resultado obtenido
+```text
+Exit code: 0
+STDOUT: '/tmp/jobsy.sock'
+STDERR: ''
+
+PASS: La resolucion del socket funciona sin variable de entorno.
+PASS: Sin JOBSY_SOCKET_PATH se usa /tmp/jobsy.sock.
+```
+
+### Evidencia
+`EV-010-socket-config-output.txt`
+
+---
+
+## TC-063 — Verificar que el daemon ignore JOBSY_SOCKET_PATH
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que `JOBSY_SOCKET_PATH` afecte únicamente a los clientes y no modifique la ruta utilizada por el daemon.
+
+### Resultado esperado
+El daemon debe utilizar exclusivamente la ruta proporcionada mediante `--socket-path` y no crear el socket indicado por `JOBSY_SOCKET_PATH`.
+
+### Resultado obtenido
+```text
+PASS: El daemon utiliza --socket-path.
+PASS: JOBSY_SOCKET_PATH no crea ni sustituye el socket del daemon.
+```
+
+### Evidencia
+`EV-011-socket-cli-contract-output.txt`
+
+---
+
+## TC-064 — Rechazar JOBSY_SOCKET_PATH vacío
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Negativa
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el cliente rechace una variable `JOBSY_SOCKET_PATH` definida con una cadena vacía.
+
+### Resultado esperado
+La solicitud debe ser rechazada y la CLI debe finalizar con código de salida 1.
+
+### Resultado obtenido
+```text
+Exit code: 1
+STDOUT: ''
+STDERR: 'Error: La ruta del socket debe ser texto no vacío y sin NUL.'
+
+PASS: El cliente devuelve codigo 1 con JOBSY_SOCKET_PATH vacio.
+PASS: El cliente informa un error relacionado con el endpoint.
+```
+
+### Evidencia
+`EV-011-socket-cli-contract-output.txt`
+
+---
+
+## TC-065 — Devolver código 2 ante socket inválido del daemon
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Negativa
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el código de salida del daemon cuando `--socket-path` recibe una configuración inválida.
+
+### Resultado esperado
+El daemon debe rechazar la configuración antes de iniciar y terminar con código de salida 2.
+
+### Resultado obtenido
+```text
+Exit code: 2
+STDOUT: ''
+STDERR: 'jobsy-daemon: error: La ruta del socket debe ser absoluta y nombrar un archivo.'
+
+PASS: Una configuracion invalida del daemon devuelve codigo 2.
+```
+
+### Evidencia
+`EV-011-socket-cli-contract-output.txt`
+
+---
+
+## TC-066 — Devolver código 1 cuando el endpoint no tiene servicio
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Negativa
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el comportamiento del cliente cuando `JOBSY_SOCKET_PATH` apunta a un endpoint válido pero no existe un daemon atendiendo la solicitud.
+
+### Resultado esperado
+La CLI debe informar que el servicio no está disponible y finalizar con código de salida 1.
+
+### Resultado obtenido
+```text
+Exit code: 1
+STDOUT: ''
+STDERR: 'Error: El servicio Jobsy no está en ejecución.'
+
+PASS: El cliente devuelve codigo 1 cuando no existe el servicio.
+```
+
+### Evidencia
+`EV-011-socket-cli-contract-output.txt`
+
+---
+
+## TC-067 — Expandir ~ en la ruta personalizada del socket
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Funcional
+**Prioridad:** Media
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que Jobsy expanda correctamente `~` al directorio HOME al recibir una ruta personalizada.
+
+### Resultado esperado
+El daemon debe crear el socket en el directorio HOME correspondiente y eliminarlo al apagarse.
+
+### Resultado obtenido
+```text
+PASS: La ruta con ~ se expande al HOME del usuario.
+PASS: El socket expandido se elimina al detener el daemon.
+```
+
+### Evidencia
+`EV-011-socket-cli-contract-output.txt`
+
+---
+
+## TC-068 — Iniciar jobsy-daemon con un socket personalizado
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el punto de entrada público `jobsy-daemon` pueda iniciar el servicio utilizando `--socket-path`.
+
+### Resultado esperado
+El daemon debe iniciar correctamente y crear el socket UNIX en la ruta personalizada.
+
+### Resultado obtenido
+```text
+PASS: jobsy-daemon inicia con un socket personalizado.
+PASS: El socket del entry point se elimina al detener el daemon.
+```
+
+### Evidencia
+`EV-011-socket-cli-contract-output.txt`
+
+---
+
+## TC-069 — Utilizar JOBSY_SOCKET_PATH desde los puntos de entrada de consulta y cancelación
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que los puntos de entrada públicos `jobsy`, `list`, `status` y `cancel` utilicen el endpoint definido mediante `JOBSY_SOCKET_PATH`.
+
+### Resultado esperado
+Todos los comandos deben comunicarse correctamente con el daemon mediante el socket personalizado y operar sobre el trabajo correspondiente.
+
+### Resultado obtenido
+```text
+jobsy list:
+Exit code: 0
+Estado del trabajo: RUNNING
+
+PASS: jobsy list utiliza JOBSY_SOCKET_PATH.
+PASS: jobsy list muestra el trabajo creado.
+
+list:
+Exit code: 0
+PASS: El comando corto list utiliza JOBSY_SOCKET_PATH.
+
+status:
+Exit code: 0
+Estado: RUNNING
+PASS: El comando corto status utiliza JOBSY_SOCKET_PATH.
+PASS: status consulta el trabajo correcto.
+
+cancel:
+Exit code: 0
+Estado actual: CANCELED
+PASS: El comando corto cancel utiliza JOBSY_SOCKET_PATH.
+```
+
+### Evidencia
+`EV-011-socket-cli-contract-output.txt`
+
+---
+
+## TC-070 — Utilizar JOBSY_SOCKET_PATH desde execute
+
+**Requisito relacionado:** Issue #72 — Socket UNIX configurable
+**Tipo:** Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el punto de entrada público `execute` utilice el socket definido mediante `JOBSY_SOCKET_PATH`.
+
+### Resultado esperado
+`execute` debe enviar el trabajo al daemon mediante el socket personalizado y devolver un UUID válido.
+
+### Resultado obtenido
+```text
+Exit code: 0
+STDOUT: 'Trabajo creado y enviado a ejecución con ID: 86072639-0da9-4052-843c-26ad2354b1f8'
+STDERR: ''
+
+PASS: execute utiliza JOBSY_SOCKET_PATH.
+PASS: execute devuelve un UUID de trabajo.
+```
+
+### Evidencia
+`EV-011-socket-cli-contract-output.txt`
 
 ---
 
@@ -1714,16 +2244,38 @@ PASS: El daemon continua activo despues de multiples solicitudes.
 | TC-050 | Ejecutar múltiples trabajos mediante IPC | PASS | EV-009 |
 | TC-051 | Verificar IDs únicos en múltiples trabajos | PASS | EV-009 |
 | TC-052 | Conservar múltiples trabajos durante la sesión | PASS | EV-009 |
+| TC-053 | Utilizar socket UNIX predeterminado | PASS | EV-010 |
+| TC-054 | Aceptar una ruta absoluta personalizada para el socket | PASS | EV-010 |
+| TC-055 | Utilizar JOBSY_SOCKET_PATH desde la CLI | PASS | EV-010 |
+| TC-056 | Ejecutar operaciones mediante un socket personalizado | PASS | EV-010 |
+| TC-057 | Rechazar una ruta relativa de socket | PASS | EV-010 |
+| TC-058 | Rechazar un directorio padre inexistente | PASS | EV-010 |
+| TC-059 | Rechazar un enlace simbólico como ruta final del socket | PASS | EV-010 |
+| TC-060 | Rechazar una ruta de socket mayor a 107 bytes | PASS | EV-010 |
+| TC-061 | No sobrescribir una ruta de socket existente | PASS | EV-010 |
+| TC-062 | Volver al socket predeterminado sin JOBSY_SOCKET_PATH | PASS | EV-010 |
+| TC-063 | Verificar que el daemon ignore JOBSY_SOCKET_PATH | PASS | EV-011 |
+| TC-064 | Rechazar JOBSY_SOCKET_PATH vacío | PASS | EV-011 |
+| TC-065 | Devolver código 2 ante socket inválido del daemon | PASS | EV-011 |
+| TC-066 | Devolver código 1 cuando el endpoint no tiene servicio | PASS | EV-011 |
+| TC-067 | Expandir ~ en la ruta personalizada del socket | PASS | EV-011 |
+| TC-068 | Iniciar jobsy-daemon con un socket personalizado | PASS | EV-011 |
+| TC-069 | Utilizar JOBSY_SOCKET_PATH desde puntos de entrada públicos | PASS | EV-011 |
+| TC-070 | Utilizar JOBSY_SOCKET_PATH desde execute | PASS | EV-011 |
 
 
 ## Resultado general
 
-Se han ejecutado un total de **52 casos de prueba** sobre los alcances revisados de los PR #101, #102 y #104. Los 52 casos obtuvieron resultado `PASS`.
+Se han ejecutado un total de **70 casos de prueba** sobre los alcances revisados de los PR #101, #102, #104 y #110. Los 70 casos obtuvieron resultado `PASS`.
 
-Para el PR #104 se añadieron 16 casos de prueba, del `TC-037` al `TC-052`, enfocados en validar la comunicación entre la CLI y el daemon mediante socket UNIX, la conservación de trabajos durante una misma sesión, operaciones de consulta, listado y cancelación mediante IPC, manejo de solicitudes inválidas, comportamiento de la CLI cuando el servicio no está disponible, limpieza del socket durante el apagado y ejecución de múltiples solicitudes consecutivas.
+Para el PR #110 se añadieron **18 casos de prueba**, del `TC-053` al `TC-070`, enfocados en validar la configuración del socket UNIX local, el uso del endpoint predeterminado y personalizado, las validaciones de ruta, el comportamiento de `JOBSY_SOCKET_PATH`, los códigos de salida y los puntos de entrada públicos instalados.
 
-Las pruebas confirmaron que el daemon permanece operativo ante errores de protocolo controlados, que múltiples ejecuciones independientes de la CLI pueden interactuar con el mismo estado mantenido por el servicio y que los trabajos conservan sus identificadores, estados y códigos de salida durante la sesión.
+Las pruebas confirmaron que `/tmp/jobsy.sock` continúa siendo el endpoint predeterminado, que el daemon puede utilizar `--socket-path`, que los clientes pueden seleccionar el endpoint mediante `JOBSY_SOCKET_PATH`, que el daemon no toma su configuración desde esa variable, y que las rutas inválidas se rechazan de forma controlada.
 
-No se identificaron defectos bloqueantes dentro del alcance funcional validado del PR #104.
+También se verificó que una ruta existente no sea sobrescrita, que una variable vacía sea rechazada, que una configuración inválida del daemon devuelva código `2`, que un error de endpoint del cliente devuelva código `1`, que `~` se expanda correctamente y que los comandos públicos `jobsy-daemon`, `jobsy`, `execute`, `list`, `status` y `cancel` funcionen utilizando un socket personalizado.
+
+No se identificaron defectos bloqueantes dentro del alcance funcional validado del PR #110.
+
+La implementación validada no incorpora comunicación TCP, host o puerto configurables, por lo que el alcance relacionado con RF-16 continúa siendo parcial.
 
 La demostración explícita de separación entre el proceso del daemon y los procesos de los trabajos mediante comparación directa de PID continúa fuera de los casos ejecutados actualmente.
