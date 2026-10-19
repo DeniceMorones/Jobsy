@@ -1,5 +1,10 @@
 # ADR-002: Concurrencia e IPC
 
+Nota de evolución: este ADR conserva el contexto histórico del MVP. El IPC
+actual usa sockets Unix (ADR-003) y la planificación acotada se define en
+[ADR-004](ADR-004-Cola-y-Limite-de-Concurrencia.md), que sustituye la decisión
+de concurrencia sin límite. La ausencia de IPC descrita abajo ya no aplica.
+
 **Estado:** Aceptado  
 **Issue relacionado:** #46
 
