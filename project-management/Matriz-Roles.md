@@ -2,7 +2,7 @@
 
 ## Benjamín — Arquitecto
 *Líder técnico en arquitectura de concurrencia, diseño de persistencia y estructura de código local.*
-
+##COMPLETADO
 ### Avance 2.1 Cola y concurrencia (#9)
 - **RF-03** (#52) Cola cuando no exista capacidad inmediata.
 - **RF-05** (#23) Límite configurable de trabajos simultáneos.
@@ -24,6 +24,7 @@
 
 ## Denice — Backend Developer
 *Desarrollo del núcleo de ejecución, captura de I/O, políticas de cancelación y escalamiento.*
+## Periodo: 19 de octubre al 21 de octubre
 
 ### Avance 2.1 Cola y concurrencia (#9)
 - **RNF-04** (#25) Soportar al menos 3 trabajos simultáneos bajo el límite.
@@ -43,9 +44,14 @@
 - **RNF-30** (#29) Prevención de procesos huérfanos tras falla del servicio.
 
 ---
+## Revisión de pr de Denice (Alexia)
+## Periodo: 21 de octubre al 22 de octubre
+
+---
 
 ## Jocelyn — PM y Backend Developer
 *Coordinación, desarrollo de robustez, límites de la cola, observabilidad y operación.*
+## Periodo: 23 de octubre al 26 de octubre
 
 ### Avance 2.1 Cola y concurrencia (#9)
 - **RF-25** (#53) Rechazo explícito cuando la cola alcance capacidad.
@@ -68,9 +74,14 @@
 - **RNF-23** (#83) Guía de Usuario actualizada, seguimiento de entregables, AI-LOG, Registro de Riesgos e Issues/Cronograma.
 
 ---
+## Revisión Pr de Naomi (Alexia)
+## Periodo: 26 de octubre al 27 de octubre
+
+---
 
 ## Alexia — QA y Certificación
 *Validación técnica de robustez, estrés de recursos, pruebas automatizadas e incidentes.*
+## Periodo para terminar lo que haga falta de Alexia: 27 de octubre al 30 de octubre
 
 ### Avance 2.2 Salidas, persistencia y recuperación (#10)
 - **RNF-31** (#62) Verificación de recuperación distinguiendo pendientes, terminados e interrumpidos.
@@ -89,103 +100,3 @@
 - Matriz de trazabilidad actualizada para el Avance 02.
 - Reporte de al menos 1 incidente técnico documentado (síntomas, causa, hipótesis, fix y prueba de regresión).
 - Evidencia de la versión demostrada y batería de pruebas ejecutada para la Technical Review 2.
-
-# 🚀 Plan de Ejecución Secuencial y Flujo de Trabajo — Avance 2
-
-Para garantizar que nadie dependa de un módulo no implementado, el desarrollo se organizará en **4 Fases Secuenciales**. Cada fase define qué debe integrar cada miembro antes de avanzar a la siguiente.
-
----
-
-## 📌 Fase 1: Fundamentos de Arquitectura, Configuración e I/O
-> **Objetivo:** Establecer las estructuras de datos base, módulo de configuración y captura independiente de streams antes de manejar concurrencia compleja.
-
-## Periodo: 4 días (17 de octubre – 20 de octubre)
-
-1. **Benjamín (Arquitectura):**
-   - Configuración global del servicio: directorio de datos, límites, interfaz/puerto (`#72` / RF-16).
-   - Refactorización modular inicial (`#77` / RNF-17).
-   - Definición del modelo de datos para la cola en memoria y límites configurables (`#23` / RF-05).
-
-2. **Denice (Backend):**
-   - Implementación de captura separada de `stdout` y `stderr` sin interbloqueos (`#55` / RF-11).
-   - Aislamiento de ejecución para soportar múltiples procesos sin interferencia (`#25` / RNF-04).
-
-3. **Jocelyn (PM & Backend):**
-   - Módulo centralizado de Bitácora / Logging con marca temporal y `job_id` (`#66` / RF-14, `#82` / RNF-22).
-   - Esquema básico de manejo y formateo de errores (`#81` / RNF-21).
-
-4. **Alexia (QA):**
-   - Diseño inicial de la Matriz de Trazabilidad y plantillas de Casos de Prueba (`TC-XXX`).
-   - Verificación del entorno de construcción limpio y permisos no-root (`#75` / RNF-02, `#76` / RNF-03).
-
----
-
-## 📌 Fase 2: Concurrencia, Manejo de Cola y Cancelaciones
-> **Objetivo:** Controlar el flujo de ejecución simultánea, políticas de límites, contrapresión y terminación limpia de procesos.
-
-## Periodo: 3 días (21 de octubre – 23 de octubre)
-
-1. **Benjamín (Arquitectura):**
-   - Implementación de la cola de trabajo en memoria cuando se supera la capacidad inmediata (`#52` / RF-03).
-   - Control de concurrencia activa para no rebasar el límite configurado (`#26` / RNF-07).
-
-2. **Jocelyn (PM & Backend):**
-   - Implementación del rechazo explícito por cola llena (`#53` / RF-25).
-   - Mecanismo de contrapresión ante límites de memoria/sockets/cola (`#54` / RNF-29).
-   - Validación y semántica de solicitudes duplicadas (`#64` / RF-27).
-
-3. **Denice (Backend):**
-   - Detección de terminación inesperada de procesos hijos y recolección de recursos/exit codes (`#24` / RF-29).
-   - Prevención de procesos huérfanos/zombis (`#29` / RNF-30).
-   - Lógica de cancelación e implementación de política de escalamiento (`SIGINT` -> `SIGTERM` -> `SIGKILL`) (`#63` / RF-26, `#65` / RF-30).
-
-4. **Alexia (QA):**
-   - Automatización de pruebas de concurrencia y saturación de cola.
-   - Casos de prueba para cancelación de trabajos y verificación de no huérfanos (`#27` / RNF-09).
-
----
-
-## 📌 Fase 3: Persistencia Atómica, Recuperación y Resiliencia
-> **Objetivo:** Guardar el estado en disco de forma segura y garantizar la recuperación consistente tras un reinicio inesperado.
-
-## Periodo: 3 días (24 de octubre – 26 de octubre)
-
-1. **Benjamín (Arquitectura):**
-   - Serialización y escritura atómica de metadatos en disco (`.json` / archivos temporales + `rename`) (`#56` / RF-12, `#60` / RNF-11, `#61` / RNF-28).
-   - Lógica de lectura e hidratación del historial al arrancar el servicio (`#57` / RF-13).
-
-2. **Denice (Backend):**
-   - Validación de estados tras reinicio: marcado coherente de trabajos interrumpidos para no reportar `RUNNING` en procesos extintos (`#59` / RNF-10).
-   - Verificación de rendimiento para conservar al menos 500 registros de metadatos (`#58` / RNF-06).
-
-3. **Jocelyn (PM & Backend):**
-   - Módulo de salud del servicio (estatus global, activos, en cola, errores) (`#73` / RF-24).
-   - Resiliencia del daemon ante clientes desconectados o payloads malformados (`#67` / RF-23, `#68` / RF-28, `#69` / RNF-08).
-   - Garantía de máquina de estados consistentes sin regresiones (`#70` / RNF-27).
-
-4. **Alexia (QA):**
-   - Pruebas de recuperación de desastres (matar el daemon con `kill -9` y verificar consistencia al reiniciar) (`#62` / RNF-31).
-   - Pruebas de estrés y fugas de memoria/descriptores (`#71` / RNF-33).
-
----
-
-## 📌 Fase 4: Estabilización, Documentación y Evidencia TR2
-> **Objetivo:** Consolidar entregables, redacción de ADRs, incidentes técnicos y script único de verificación.
-
-## Periodo: 3 días (27 de octubre – 29 de octubre)
-
-1. **Benjamín (Arquitecto):**
-   - Redacción de ADRs definitivos (Concurrencia, Persistencia, Recuperación, Cancelación) (`#78` / RNF-18).
-   - Verificación de compilación sin advertencias (`#79` / RNF-19) y soporte Linux oficial (`#74` / RNF-01).
-
-2. **Jocelyn (PM & Backend):**
-   - Actualización de Guía de Usuario, AI-LOG, Registro de Riesgos y Cronograma final (`#83` / RNF-23).
-   - Coordinación de la presentación y asignación de temas técnicos a defender para la revisión presencial.
-
-3. **Denice (Backend):**
-   - Apoyo en la documentación del reporte de al menos 1 Incidente Técnico (síntoma, causa raíz, fix y regresión).
-   - Profiling de recursos e inspección final de fuga de descriptores de archivo.
-
-4. **Alexia (QA y Certificación):**
-   - Integración del script de verificación ejecutable en un único comando (`#80` / RNF-20).
-   - Matriz de Trazabilidad final y generación del reporte con capturas/evidencia de ejecución de la batería de pruebas TR2.
