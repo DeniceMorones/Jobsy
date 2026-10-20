@@ -7,6 +7,8 @@ import json
 import socket
 import signal
 
+from aiohttp import request
+
 from src.daemon.job_manager import JobManager
 from src.daemon.executor import Executor
 from src.daemon.config import parse_config
@@ -127,6 +129,16 @@ class DaemonServer:
                         "status": "ok",
                         "job_id": job.id,
                         "job_status": job.status
+                    }
+                
+                elif action == "output":
+                    job = self.manager.snapshot(request.get("job_id"))
+                    response = {
+                        "status": "ok",
+                        "job_id": job.id,
+                        "job_status": job.status,
+                        "stdout": job.stdout,
+                        "stderr": job.stderr,
                     }
 
                 else:

@@ -33,6 +33,10 @@ def build_parser():
     # comando cancel
     cancel_parser = subparsers.add_parser("cancel", help="Cancela un trabajo")
     cancel_parser.add_argument("job_id", help="ID del trabajo")
+    
+    # comando output
+    output_parser = subparsers.add_parser("output", help="Muestra stdout y stderr de un trabajo")
+    output_parser.add_argument("job_id", help="ID del trabajo")
 
     return parser
 
