@@ -1,62 +1,59 @@
-#ejecutar procesos utilizar subprocees.Popen()
-
+"""Process creation, output capture and termination; no admission decisions."""
 import subprocess
-from sys import stderr
-import threading
 
-from .job import Job
-from src.daemon import job
-from .job_manager import JobManager
 
 class Executor:
-
-    def __init__(self, manager: JobManager):#constructor
+    def __init__(self, manager, popen_factory=None):
         self.manager = manager
+        self.popen_factory = popen_factory or subprocess.Popen
+        manager.attach_executor(self)
 
-    def execute(self, job: Job) -> None:#no retorna ningun valor
+    def execute(self, job):
+        """Compatibility entry point: every execution still passes admission."""
+        self.manager.schedule_job(job)
 
-        thread = threading.Thread(#funcion para ejecutar un hilo en paralelo, con esto no bloqueamos el flujo de atender otros procesos
-            target=self._run_job,#nota: poner una funcio  con () hace que se ejecute inmediatamente, por eso no se pone () para que se ejecute cuando el hilo lo indique
-            args=(job,),
-            daemon=True#hilo que trabaja en segundo plano
-        )
+    def spawn(self, command):
+        return self.popen_factory(command, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE, text=True)
 
-        thread.start()#empezar el hilo
-
-    def _run_job(self, job: Job) -> None:
-
-        self.manager.mark_job_started(job.id)
-
+    @staticmethod
+    def terminate_and_reap(process):
+        """Preserve SIGTERM -> 2s -> SIGKILL; always wait after escalation."""
+        if process.poll() is None:
+            try:
+                process.terminate()
+            except ProcessLookupError:
+                pass
         try:
-            process = subprocess.Popen(#popen para los subprocesos, permite ejecutar otros programas y comandos
-                job.command,
-                stdout=subprocess.PIPE,#salidas normales/correctas, el programa capturaria el contenido
-                stderr=subprocess.PIPE,#errores
-                text=True
-            )
+            process.wait(timeout=2.0)
+        except subprocess.TimeoutExpired:
+            try:
+                process.kill()
+            except ProcessLookupError:
+                pass
+            process.wait(timeout=2.0)
 
-            #se asigna la referencia al proceso activo
-            job.process = process
-
-            stdout, stderr = process.communicate()
-            
-            job.stdout = stdout
-            job.stderr = stderr
-
-            ## Si el trabajo ya fue marcado como CANCELED por cancel_job(), respetamos ese estado
-            if job.status != "CANCELED":
-                self.manager.mark_job_finished(
-                    job.id,
-                    process.returncode#este codigo lo retorna el proceso
-                )
-
-        #si es diferente de CANCELED, se marca como finalizado
-        except Exception:
-            if job.status != "CANCELED":
-                self.manager.mark_job_finished(
-                    job.id,
-                    1
-                )
-        finally:
-            job.process = None #se limpia la referencia al finalizar
-        
+    def collect(self, job, process):
+        stdout, stderr = "", ""
+        capture_failed = False
+        try:
+            while True:
+                if job.cancel_requested.is_set():
+                    self.terminate_and_reap(process)
+                    stdout, stderr = process.communicate(timeout=0.5)
+                    break
+                try:
+                    stdout, stderr = process.communicate(timeout=0.1)
+                    break
+                except subprocess.TimeoutExpired:
+                    continue
+        except Exception as error:
+            self.terminate_and_reap(process)
+            capture_failed = True
+            stderr = str(error)
+            # Main process is reaped; descendants holding pipes are out of scope.
+            for stream in (process.stdout, process.stderr):
+                if stream is not None:
+                    stream.close()
+        process.wait()
+        return (process.returncode or 1) if capture_failed else process.returncode, stdout, stderr

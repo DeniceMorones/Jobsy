@@ -1,0 +1,79 @@
+========================================
+TC-063 - DAEMON IGNORA JOBSY_SOCKET_PATH
+========================================
+PASS: El daemon utiliza --socket-path.
+PASS: JOBSY_SOCKET_PATH no crea ni sustituye el socket del daemon.
+
+========================================
+TC-064 - JOBSY_SOCKET_PATH VACIO
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: 'Error: La ruta del socket debe ser texto no vacío y sin NUL.'
+PASS: El cliente devuelve codigo 1 con JOBSY_SOCKET_PATH vacio.
+PASS: El cliente informa un error relacionado con el endpoint.
+
+========================================
+TC-065 - SOCKET INVALIDO DEL DAEMON
+========================================
+Exit code: 2
+STDOUT: ''
+STDERR: 'usage: jobsy-daemon [-h] [--max-running MAX_RUNNING]\n                    [--queue-capacity QUEUE_CAPACITY] [--data-dir DATA_DIR]\n                    [--socket-path SOCKET_PATH]\njobsy-daemon: error: La ruta del socket debe ser absoluta y nombrar un archivo.'
+PASS: Una configuracion invalida del daemon devuelve codigo 2.
+
+========================================
+TC-066 - ENDPOINT SIN SERVICIO
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: 'Error: El servicio Jobsy no está en ejecución.'
+PASS: El cliente devuelve codigo 1 cuando no existe el servicio.
+
+========================================
+TC-067 - EXPANSION DE ~
+========================================
+PASS: La ruta con ~ se expande al HOME del usuario.
+PASS: El socket expandido se elimina al detener el daemon.
+
+========================================
+TC-068 / TC-069 / TC-070 - ENTRY POINTS
+========================================
+PASS: jobsy-daemon inicia con un socket personalizado.
+
+execute:
+Exit code: 0
+STDOUT: 'Trabajo creado y enviado a ejecución con ID: cf931110-1ddf-4927-86de-e75b33a79b69'
+STDERR: ''
+PASS: execute utiliza JOBSY_SOCKET_PATH.
+PASS: execute devuelve un UUID de trabajo.
+
+jobsy list:
+Exit code: 0
+STDOUT: 'ID: cf931110-1ddf-4927-86de-e75b33a79b69 | Estado: RUNNING | Comando: sleep 20'
+STDERR: ''
+PASS: jobsy list utiliza JOBSY_SOCKET_PATH.
+PASS: jobsy list muestra el trabajo creado.
+
+list:
+Exit code: 0
+STDOUT: 'ID: cf931110-1ddf-4927-86de-e75b33a79b69 | Estado: RUNNING | Comando: sleep 20'
+STDERR: ''
+PASS: El comando corto list utiliza JOBSY_SOCKET_PATH.
+
+status:
+Exit code: 0
+STDOUT: 'ID: cf931110-1ddf-4927-86de-e75b33a79b69\nEstado: RUNNING\nComando: sleep 20\nRecibido: 2026-10-19 01:08:47 UTC\nInicio: 2026-10-19 01:08:47 UTC\nFin: -\nCódigo de salida: -'
+STDERR: ''
+PASS: El comando corto status utiliza JOBSY_SOCKET_PATH.
+PASS: status consulta el trabajo correcto.
+
+cancel:
+Exit code: 0
+STDOUT: 'Cancelando trabajo con ID: cf931110-1ddf-4927-86de-e75b33a79b69\nEstado actual: CANCELED'
+STDERR: ''
+PASS: El comando corto cancel utiliza JOBSY_SOCKET_PATH.
+PASS: El socket del entry point se elimina al detener el daemon.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.
