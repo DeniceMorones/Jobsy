@@ -1,6 +1,7 @@
 """Bounded FIFO admission and execution reservations (RF-03, RNF-07)."""
 from collections import deque
 from datetime import datetime, timezone
+import sys
 import threading
 
 
@@ -78,6 +79,9 @@ class Scheduler:
         job.process = None
         self.reservations.remove(job.id)
         self._promote_locked()
+        if exit_code is not None and exit_code < 0 and job.status != "CANCELED":
+            print(f"[Daemon] Trabajo {job.id} terminó por señal {-exit_code}; recursos liberados.",
+                file=sys.stderr)
         return True
 
     def _dispatch(self):

@@ -7,13 +7,28 @@ import json
 import socket
 import signal
 
-from aiohttp import request
+#from aiohttp import request
 
 from src.daemon.job_manager import JobManager
 from src.daemon.executor import Executor
 from src.daemon.config import parse_config
 from src.daemon.persistence import PersistenceRuntime
 from src.protocol.endpoint import resolve_socket_path
+
+def diagnose(job):
+    """Texto de diagnóstico derivado del estado y exit_code; None si no aplica """
+    code = job.exit_code
+    if job.status == "CANCELED":
+        return "cancelado por solicitud del usuario"
+    if code is None or code == 0:
+        return None
+    if code < 0:
+        try:
+            name = signal.Signals(-code).name
+        except ValueError:
+            name = f"señal {-code}"
+        return f"terminado inesperadamente por {name}"
+    return f"terminó con código de salida {code}"
 
 class DaemonServer:
     def __init__(self, manager: JobManager = None, executor: Executor = None,
@@ -118,7 +133,8 @@ class DaemonServer:
                             "received_at": format_dt(job.received_at),
                             "started_at": format_dt(job.started_at),
                             "finished_at": format_dt(job.finished_at),
-                            "exit_code": job.exit_code
+                            "exit_code": job.exit_code,
+                            "diagnostic": diagnose(job)
                         }
                     }
 
