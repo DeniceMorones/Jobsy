@@ -1,9 +1,11 @@
 """Bounded FIFO admission and execution reservations (RF-03, RNF-07)."""
 from collections import deque
 from datetime import datetime, timezone
+import subprocess
 import sys
 import threading
 
+ISOLATION_POLL_SECONDS = 1.0
 
 class QueueFullError(ValueError):
     """Compatible with the existing IPC error envelope."""
@@ -139,11 +141,17 @@ class Scheduler:
 
     def _monitor(self, job, process):
         try:
-            result = self.manager.executor.collect(job, process)
+            try:
+                result = self.manager.executor.collect(job, process)
+            except Exception as error:
+                #un fallo de limpieza de ESTE trabajo no bloquea el servicio.
+                result = self._isolate_failed_cleanup(job, process, error)
+                if result is None:
+                    return
             with self.condition:
                 self.finish_locked(job, *result)
         except Exception as error:
-            # Fail closed: an unconfirmed process must retain its reservation.
+            # Fallos de persistencia siguen siendo globales: fail closed.
             with self.condition:
                 self.manager.fail_closed_locked(
                     f"No se pudo confirmar la limpieza o persistencia del proceso: {error}")
@@ -151,6 +159,22 @@ class Scheduler:
             with self.condition:
                 self.monitors.discard(threading.current_thread())
                 self.condition.notify_all()
+
+    def _isolate_failed_cleanup(self, job, process, error):
+        diagnostic = f"No se pudo confirmar la terminación del proceso: {error}"
+        print(f"[Daemon] Trabajo {job.id} aislado: {diagnostic}", file=sys.stderr)
+        while True:
+            with self.condition:
+                if self.stopping:
+                    return None
+            try:
+                process.wait(timeout=ISOLATION_POLL_SECONDS)
+                break
+            except subprocess.TimeoutExpired:
+                continue
+            except Exception:
+                continue
+        return (process.returncode or 1), "", diagnostic
 
     def counts(self):
         with self.condition:
