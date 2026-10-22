@@ -6,9 +6,12 @@ DEFAULT_GRACE_SECONDS = 2.0
 
 
 class Executor:
-    def __init__(self, manager, popen_factory=None, grace_seconds=DEFAULT_GRACE_SECONDS):
+    def __init__(self, manager, popen_factory=None, grace_seconds=None):
         self.manager = manager
         self.popen_factory = popen_factory or subprocess.Popen
+        if grace_seconds is None:
+            config = getattr(manager, "config", None)
+            grace_seconds = getattr(config, "cancel_grace_seconds", DEFAULT_GRACE_SECONDS)
         self.grace_seconds = grace_seconds
         manager.attach_executor(self)
 
