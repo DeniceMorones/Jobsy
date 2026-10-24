@@ -1,0 +1,62 @@
+
+========================================
+TC-076 - CREAR GRUPO DE PROCESOS INDEPENDIENTE
+========================================
+Exit code execute: 0
+STDOUT execute: 'Trabajo creado y enviado a ejecución con ID: 350eda8a-2aa7-4227-a7eb-08e8474ae671\n'
+STDERR execute: ''
+PASS: El trabajo de prueba es aceptado por el daemon.
+Job ID: 350eda8a-2aa7-4227-a7eb-08e8474ae671
+ID: 350eda8a-2aa7-4227-a7eb-08e8474ae671
+Estado: RUNNING
+Comando: sh -c sleep 600 & wait
+Recibido: 2026-10-23 01:50:12 UTC
+Inicio: 2026-10-23 01:50:12 UTC
+Fin: -
+Código de salida: -
+Proceso padre: {'pid': 46804, 'ppid': 46799, 'pgid': 46804, 'sid': 46804, 'stat': 'Ss', 'cmd': 'sh -c sleep 600 & wait'}
+Proceso hijo: {'pid': 46806, 'ppid': 46804, 'pgid': 46804, 'sid': 46804, 'stat': 'S', 'cmd': 'sleep 600'}
+PASS: Se localiza el proceso principal del trabajo.
+PASS: El proceso principal lidera su propio grupo y sesión.
+
+========================================
+TC-077 - HIJO PERTENECE AL MISMO GRUPO
+========================================
+PASS: Se localiza el proceso hijo del trabajo.
+PASS: El proceso hijo pertenece al mismo grupo y sesión del trabajo.
+
+========================================
+TC-078 - CANCELAR TODO EL GRUPO DE PROCESOS
+========================================
+Exit code cancel: 0
+STDOUT cancel: 'Cancelando trabajo con ID: 350eda8a-2aa7-4227-a7eb-08e8474ae671\nEstado actual: CANCELED\n'
+STDERR cancel: ''
+PASS: La cancelación del trabajo termina con código 0.
+ID: 350eda8a-2aa7-4227-a7eb-08e8474ae671
+Estado: CANCELED
+Comando: sh -c sleep 600 & wait
+Recibido: 2026-10-23 01:50:12 UTC
+Inicio: 2026-10-23 01:50:12 UTC
+Fin: 2026-10-23 01:50:13 UTC
+Código de salida: -15
+Diagnóstico: cancelado por solicitud del usuario
+PID padre activo: False
+PID hijo activo: False
+Miembros restantes del PGID: []
+PASS: El proceso padre termina después de cancelar el trabajo.
+PASS: El proceso hijo termina después de cancelar el trabajo.
+PASS: No quedan procesos pertenecientes al grupo del trabajo.
+PASS: El trabajo conserva el estado CANCELED.
+PASS: El trabajo cancelado registra finished_at.
+
+========================================
+TC-079 - DAEMON SIGUE OPERATIVO
+========================================
+Exit code list: 0
+Daemon activo: True
+PASS: El daemon continúa respondiendo después de cancelar el grupo.
+PASS: El proceso del daemon permanece activo.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.
