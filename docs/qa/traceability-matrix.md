@@ -2,21 +2,21 @@
 
 Esta matriz relaciona las funcionalidades requeridas del MVP, los requisitos formales y los entregables de QA con sus casos de prueba, scripts, artefactos y evidencias.
 
-La matriz se mantiene de forma acumulativa e incluye las validaciones ejecutadas por QA sobre los PR #101, #102, #104 y #110.
+La matriz se mantiene de forma acumulativa e incluye las validaciones ejecutadas por QA sobre los PR #101, #102, #104, #110 y #114.
 
 | ID | Requisito / funcionalidad | Caso(s) de prueba | Automatización / artefacto | Evidencia | Estado | Requisito formal / Issue |
 |---|---|---|---|---|---|---|
 | MVP-01 | Enviar un trabajo | TC-030, TC-038, TC-050 | `test/test_cli_behavior.py`, `test/test_ipc_flow.py`, `test/test_ipc_multiple_jobs.py` | EV-006, EV-007, EV-009 | PASS | RF-01 / #30 |
 | MVP-02 | Obtener identificador único | TC-006, TC-030, TC-038, TC-051 | `test/test_executor.py`, `test/test_cli_behavior.py`, `test/test_ipc_flow.py`, `test/test_ipc_multiple_jobs.py` | EV-002, EV-006, EV-007, EV-009 | PASS | RF-01 / #30 |
-| MVP-03 | Ejecutar trabajos sin bloquear nuevas solicitudes | TC-007, TC-019, TC-050, TC-052 | `test/test_executor.py`, `test/test_cancellation.py`, `test/test_ipc_multiple_jobs.py` | EV-002, EV-004, EV-009 | PARCIAL | RF-04 / #32 |
+| MVP-03 | Ejecutar trabajos sin bloquear nuevas solicitudes | TC-007, TC-019, TC-050, TC-052, TC-076 a TC-079 | `test/test_executor.py`, `test/test_cancellation.py`, `test/test_ipc_multiple_jobs.py`, `test/test_process_group_cancellation.py` | EV-002, EV-004, EV-009, EV-013 | PASS | RF-04 / #32; RNF-30 / #29 |
 | MVP-04 | Consultar estado y metadatos por ID | TC-015, TC-016, TC-032, TC-034, TC-039, TC-042 | `test/test_job_manager.py`, `test/test_cli_behavior.py`, `test/test_ipc_flow.py` | EV-003, EV-006, EV-007 | PASS | RF-08 / #35 |
 | MVP-05 | Listar trabajos y filtrar por estado | TC-017, TC-031, TC-035, TC-040, TC-045, TC-052 | `test/test_job_manager.py`, `test/test_cli_behavior.py`, `test/test_ipc_flow.py`, `test/test_ipc_robustness.py`, `test/test_ipc_multiple_jobs.py` | EV-003, EV-006, EV-007, EV-008, EV-009 | PASS | RF-09 / #36 |
-| MVP-06 | Solicitar cancelación | TC-018 a TC-022, TC-033, TC-041, TC-044 | `test/test_cancellation.py`, `test/test_cli_behavior.py`, `test/test_ipc_flow.py`, `test/test_ipc_robustness.py` | EV-004, EV-006, EV-007, EV-008 | PASS | RF-10 / #37 |
+| MVP-06 | Solicitar cancelación | TC-018 a TC-022, TC-033, TC-041, TC-044, TC-078, TC-080, TC-081, TC-087 | `test/test_cancellation.py`, `test/test_cli_behavior.py`, `test/test_ipc_flow.py`, `test/test_ipc_robustness.py`, `test/test_process_group_cancellation.py`, `test/test_repeated_cancellation.py`, `test/test_cancel_grace.py` | EV-004, EV-006, EV-007, EV-008, EV-013, EV-014, EV-015 | PASS | RF-10 / #37; RF-26; RF-30 |
 | MVP-07 | Registrar código de salida y tiempos | TC-010, TC-013, TC-014, TC-039, TC-052 | `test/test_executor.py`, `test/test_ipc_flow.py`, `test/test_ipc_multiple_jobs.py` | EV-002, EV-007, EV-009 | PASS | RF-07 / #34 |
 | MVP-08 | Validar entradas incorrectas de forma controlada | TC-001 a TC-005, TC-034 a TC-036, TC-042 a TC-047 | `test/test_validation.py`, `test/test_cli_behavior.py`, `test/test_ipc_flow.py`, `test/test_ipc_robustness.py` | EV-001, EV-006, EV-007, EV-008 | PASS | RF-02 / #31; RF-17 / #39 |
 | MVP-09 | Representar estados mínimos del trabajo | TC-007, TC-008, TC-011, TC-018, TC-019, TC-039, TC-041, TC-045, TC-052 | `test/test_executor.py`, `test/test_cancellation.py`, `test/test_ipc_flow.py`, `test/test_ipc_robustness.py`, `test/test_ipc_multiple_jobs.py` | EV-002, EV-004, EV-007, EV-008, EV-009 | PASS | RF-06 / #33 |
 | MVP-10 | Inicio y apagado controlado del servicio | TC-023 a TC-028, TC-037, TC-049 | `test/test_service_shutdown.py`, `test/test_ipc_flow.py`, `test/test_ipc_robustness.py` | EV-005, EV-007, EV-008 | PASS | RF-15 / #38 |
-| MVP-11 | Ayuda y códigos de salida del cliente | TC-029 a TC-036, TC-038, TC-042 a TC-044, TC-064 a TC-066 | `test/test_cli_behavior.py`, `test/test_ipc_flow.py`, `test/test_ipc_robustness.py`, `test/test_socket_cli_contract.py` | EV-006, EV-007, EV-008, EV-011 | PASS | RF-17 / #39; PR #110 / #72 |
+| MVP-11 | Ayuda y códigos de salida del cliente | TC-029 a TC-036, TC-038, TC-042 a TC-044, TC-064 a TC-066, TC-075, TC-081, TC-084 a TC-087 | `test/test_cli_behavior.py`, `test/test_ipc_flow.py`, `test/test_ipc_robustness.py`, `test/test_socket_cli_contract.py`, `test/test_output_behavior.py`, `test/test_repeated_cancellation.py`, `test/test_cancel_grace.py` | EV-006, EV-007, EV-008, EV-011, EV-012, EV-014, EV-015 | PASS | RF-17 / #39; PR #110 / #72; RF-11; RF-26; RF-30 |
 | MVP-12 | Comunicación entre CLI y daemon mediante socket UNIX | TC-037 a TC-041, TC-045, TC-050 a TC-052, TC-055, TC-056, TC-068 a TC-070 | `test/test_ipc_flow.py`, `test/test_ipc_robustness.py`, `test/test_ipc_multiple_jobs.py`, `test/test_socket_integration.py`, `test/test_socket_cli_contract.py` | EV-007, EV-008, EV-009, EV-010, EV-011 | PASS | PR #104 / Issues #41, #44, #45; PR #110 / #72 |
 | MVP-13 | Mantener trabajos disponibles durante la sesión del daemon | TC-039, TC-040, TC-052 | `test/test_ipc_flow.py`, `test/test_ipc_multiple_jobs.py` | EV-007, EV-009 | PASS | PR #104 / Issues #41, #44, #45 |
 | MVP-14 | Manejar solicitudes inválidas sin detener el servicio | TC-043, TC-046 a TC-048 | `test/test_ipc_robustness.py` | EV-008 | PASS | PR #104 / Issues #41, #44, #45 |
@@ -29,7 +29,7 @@ La matriz se mantiene de forma acumulativa e incluye las validaciones ejecutadas
 | QA-01 | Documentar casos de prueba ejecutados | TC-001 a TC-070 | `docs/qa/test-cases.md` | EV-001 a EV-011 | PASS | QA / #47 |
 | QA-02 | Mantener scripts reproducibles de verificación | TC-001 a TC-070 | `test/*.py` | EV-001 a EV-011 | PASS | QA / #48 |
 | QA-03 | Mantener matriz de trazabilidad requisito → prueba → evidencia | TC-001 a TC-070 | `docs/qa/traceability-matrix.md` | EV-001 a EV-011 | PASS | QA / #49 |
-| QA-04 | Registrar evidencia de la versión demostrada | TC-001 a TC-070 | `docs/qa/evidence/avance-1/` | EV-001 a EV-011 | PASS | QA / #51 |
+| QA-04 | Registrar evidencia de la versión demostrada | TC-001 a TC-070 | `docs/qa/evidence/avance-1/`, `docs/qa/evidence/avance-2/` | EV-001 a EV-011 | PASS | QA / #51 |
 | QA-05 | Registrar usos representativos de IA durante el avance | N/A | `docs/technical-guide/Registros_uso_IA.pdf` | `Registros_uso_IA.pdf` | PASS | QA / #50 |
 
 ## Observaciones
