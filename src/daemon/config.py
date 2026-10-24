@@ -12,6 +12,7 @@ class DaemonConfig:
     queue_capacity: int = 100
     data_dir: str | None = None
     socket_path: str = DEFAULT_SOCKET_PATH
+    cancel_grace_seconds: float = 2.0
 
     def data_directory(self):
         if self.data_dir is not None:
@@ -29,6 +30,9 @@ class DaemonConfig:
             value = getattr(self, name)
             if type(value) is not int or value < minimum:
                 raise ValueError(f"{name} debe ser un entero >= {minimum}.")
+        grace = self.cancel_grace_seconds
+        if isinstance(grace, bool) or not isinstance(grace, (int, float)) or not 0 < grace <= 60:
+            raise ValueError("cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.")                                 
 
 
 def parse_config(argv=None):
@@ -38,8 +42,10 @@ def parse_config(argv=None):
     parser.add_argument("--data-dir", help="Directorio persistente (predeterminado: XDG_STATE_HOME/jobsy)")
     parser.add_argument("--socket-path", default=DEFAULT_SOCKET_PATH,
                         help=f"Ruta absoluta del socket Unix (predeterminado: {DEFAULT_SOCKET_PATH})")
+    parser.add_argument("--cancel-grace", type=float, default=2.0,
+                        help="Segundos entre SIGTERM y SIGKILL al cancelar un trabajo (predeterminado: 2)")
     args = parser.parse_args(argv)
     try:
-        return DaemonConfig(args.max_running, args.queue_capacity, args.data_dir, args.socket_path)
+        return DaemonConfig(args.max_running, args.queue_capacity, args.data_dir, args.socket_path, args.cancel_grace)
     except ValueError as error:
         parser.error(str(error))

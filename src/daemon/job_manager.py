@@ -167,6 +167,8 @@ class JobManager:
     def cancel_job(self, job_id):
         with self.condition:
             job = self._get_locked(job_id)
+            if job.status == "CANCELED":
+                raise ValueError("La cancelación de este trabajo ya fue solicitada (estado CANCELED).")
             if job.status in TERMINAL_STATES:
                 raise ValueError(f"No se puede cancelar un trabajo con estado '{job.status}'.")
             at = datetime.now(timezone.utc)
@@ -174,6 +176,7 @@ class JobManager:
                 without_process=job.process is None)
             job.cancel_requested.set()
             job.status = "CANCELED"
+
             if job.process is None:
                 job.finished_at = at
                 self.scheduler.cancel_queued_locked(job)

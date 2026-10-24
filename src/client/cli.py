@@ -33,6 +33,10 @@ def build_parser():
     # comando cancel
     cancel_parser = subparsers.add_parser("cancel", help="Cancela un trabajo")
     cancel_parser.add_argument("job_id", help="ID del trabajo")
+    
+    # comando output
+    output_parser = subparsers.add_parser("output", help="Muestra stdout y stderr de un trabajo")
+    output_parser.add_argument("job_id", help="ID del trabajo")
 
     return parser
 
@@ -46,8 +50,22 @@ def send_ipc_request(payload: dict) -> dict:
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client_socket:
         client_socket.connect(socket_path)
         client_socket.sendall(json.dumps(payload).encode("utf-8"))
-        response_data = client_socket.recv(4096)
+        response_data = _recv_all(client_socket)
         return json.loads(response_data.decode("utf-8"))
+    
+def _recv_all(sock):
+    chunks = []
+    while True:
+        chunk = sock.recv(65536)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        try:
+            json.loads(b"".join(chunks).decode("utf-8"))
+            break
+        except (ValueError, UnicodeDecodeError):
+            continue
+    return b"".join(chunks)
 
 def main(argv=None, *, split_command_string=True):
     """Run the CLI; retain legacy single-string parsing unless disabled."""
@@ -101,6 +119,8 @@ def main(argv=None, *, split_command_string=True):
                 print(f"Inicio: {j['started_at']}")
                 print(f"Fin: {j['finished_at']}")
                 print(f"Código de salida: {j['exit_code'] if j['exit_code'] is not None else '-'}")
+                if j.get("diagnostic"):
+                    print(f"Diagnóstico: {j['diagnostic']}")
                 sys.exit(0)
             else:
                 print(f"Error de validación: {res['message']}", file=sys.stderr)
@@ -111,6 +131,16 @@ def main(argv=None, *, split_command_string=True):
             if res["status"] == "ok":
                 print(f"Cancelando trabajo con ID: {res['job_id']}")
                 print(f"Estado actual: {res['job_status']}")
+                sys.exit(0)
+            else:
+                print(f"Error de validación: {res['message']}", file=sys.stderr)
+                sys.exit(1)
+        
+        elif args.subcommand == "output":
+            res = send_ipc_request({"action": "output", "job_id": args.job_id})
+            if res["status"] == "ok":
+                sys.stdout.write(res["stdout"])
+                sys.stderr.write(res["stderr"])
                 sys.exit(0)
             else:
                 print(f"Error de validación: {res['message']}", file=sys.stderr)
