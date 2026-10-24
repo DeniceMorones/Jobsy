@@ -30,9 +30,9 @@ class DaemonConfig:
             value = getattr(self, name)
             if type(value) is not int or value < minimum:
                 raise ValueError(f"{name} debe ser un entero >= {minimum}.")
-                grace = self.cancel_grace_seconds
-                if isinstance(grace, bool) or not isinstance(grace, (int, float)) or not 0 < grace <= 60:
-                    raise ValueError("cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.")
+        grace = self.cancel_grace_seconds
+        if isinstance(grace, bool) or not isinstance(grace, (int, float)) or not 0 < grace <= 60:
+            raise ValueError("cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.")                                 
 
 
 def parse_config(argv=None):
