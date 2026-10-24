@@ -18,26 +18,26 @@ PASS: --cancel-grace 0.5 es aceptado correctamente.
 ========================================
 TC-084 - RECHAZAR CANCEL-GRACE IGUAL A CERO
 ========================================
-Exit code: 0
-STDOUT: '0.0\n'
-STDERR: ''
-FAIL: --cancel-grace 0 fue aceptado aunque debe ser mayor que 0.
+Exit code: 2
+STDOUT: ''
+STDERR: 'usage: jobsy-daemon [-h] [--max-running MAX_RUNNING]\n                    [--queue-capacity QUEUE_CAPACITY] [--data-dir DATA_DIR]\n                    [--socket-path SOCKET_PATH] [--cancel-grace CANCEL_GRACE]\njobsy-daemon: error: cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.\n'
+PASS: --cancel-grace 0 es rechazado.
 
 ========================================
 TC-085 - RECHAZAR CANCEL-GRACE NEGATIVO
 ========================================
-Exit code: 0
-STDOUT: '-1.0\n'
-STDERR: ''
-FAIL: --cancel-grace -1 fue aceptado aunque es inválido.
+Exit code: 2
+STDOUT: ''
+STDERR: 'usage: jobsy-daemon [-h] [--max-running MAX_RUNNING]\n                    [--queue-capacity QUEUE_CAPACITY] [--data-dir DATA_DIR]\n                    [--socket-path SOCKET_PATH] [--cancel-grace CANCEL_GRACE]\njobsy-daemon: error: cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.\n'
+PASS: --cancel-grace negativo es rechazado.
 
 ========================================
 TC-086 - RECHAZAR CANCEL-GRACE MAYOR A 60
 ========================================
-Exit code: 0
-STDOUT: '61.0\n'
-STDERR: ''
-FAIL: --cancel-grace 61 fue aceptado aunque supera el límite permitido.
+Exit code: 2
+STDOUT: ''
+STDERR: 'usage: jobsy-daemon [-h] [--max-running MAX_RUNNING]\n                    [--queue-capacity QUEUE_CAPACITY] [--data-dir DATA_DIR]\n                    [--socket-path SOCKET_PATH] [--cancel-grace CANCEL_GRACE]\njobsy-daemon: error: cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.\n'
+PASS: --cancel-grace mayor a 60 es rechazado.
 
 ========================================
 TC-087 - VALIDAR TIPO Y ESCALAMIENTO SIGTERM A SIGKILL
@@ -47,18 +47,18 @@ STDOUT: ''
 STDERR: "usage: jobsy-daemon [-h] [--max-running MAX_RUNNING]\n                    [--queue-capacity QUEUE_CAPACITY] [--data-dir DATA_DIR]\n                    [--socket-path SOCKET_PATH] [--cancel-grace CANCEL_GRACE]\njobsy-daemon: error: argument --cancel-grace: invalid float value: 'abc'\n"
 PASS: Un valor no numérico es rechazado con código 2.
 Exit code execute: 0
-STDOUT execute: 'Trabajo creado y enviado a ejecución con ID: 98956b0d-8604-4007-b5e8-5139779941a8\n'
+STDOUT execute: 'Trabajo creado y enviado a ejecución con ID: d7180e6b-5f3a-4a34-9f1b-8756a7158a2a\n'
 STDERR execute: ''
-Proceso principal: {'pid': 46914, 'ppid': 46911, 'pgid': 46914, 'sid': 46914, 'stat': 'Ss', 'cmd': 'sh -c trap "" TERM; while true; do sleep 1; done'}
+Proceso principal: {'pid': 4400, 'ppid': 4397, 'pgid': 4400, 'sid': 4400, 'stat': 'Ss', 'cmd': 'sh -c trap "" TERM; while true; do sleep 1; done'}
 PASS: Se localiza el proceso que ignora SIGTERM.
 Exit code cancel: 0
-Tiempo hasta estado terminal: 0.722 s
-ID: 98956b0d-8604-4007-b5e8-5139779941a8
+Tiempo hasta estado terminal: 0.747 s
+ID: d7180e6b-5f3a-4a34-9f1b-8756a7158a2a
 Estado: CANCELED
 Comando: sh -c trap "" TERM; while true; do sleep 1; done
-Recibido: 2026-10-23 01:50:19 UTC
-Inicio: 2026-10-23 01:50:19 UTC
-Fin: 2026-10-23 01:50:20 UTC
+Recibido: 2026-10-24 01:59:39 UTC
+Inicio: 2026-10-24 01:59:39 UTC
+Fin: 2026-10-24 01:59:39 UTC
 Código de salida: -9
 Diagnóstico: cancelado por solicitud del usuario
 Miembros restantes del grupo: []
@@ -69,5 +69,5 @@ PASS: Se respeta aproximadamente el plazo configurado antes de SIGKILL.
 PASS: El daemon permanece operativo después del escalamiento.
 
 ========================================
-RESULTADO GENERAL: FAIL
-Comprobaciones fallidas: 3
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.
