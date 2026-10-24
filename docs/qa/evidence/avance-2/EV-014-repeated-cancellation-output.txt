@@ -1,0 +1,45 @@
+
+========================================
+TC-080 - PRIMERA CANCELACION
+========================================
+Exit code execute: 0
+STDOUT execute: 'Trabajo creado y enviado a ejecución con ID: 5876f543-6056-4323-9ab4-b15bd7d6a827\n'
+STDERR execute: ''
+PASS: El trabajo de larga duración es aceptado por el daemon.
+Job ID: 5876f543-6056-4323-9ab4-b15bd7d6a827
+ID: 5876f543-6056-4323-9ab4-b15bd7d6a827
+Estado: RUNNING
+Comando: sleep 600
+Recibido: 2026-10-23 01:50:15 UTC
+Inicio: 2026-10-23 01:50:15 UTC
+Fin: -
+Código de salida: -
+Exit code primera cancelación: 0
+STDOUT primera cancelación: 'Cancelando trabajo con ID: 5876f543-6056-4323-9ab4-b15bd7d6a827\nEstado actual: CANCELED\n'
+STDERR primera cancelación: ''
+PASS: La primera cancelación termina con código 0.
+ID: 5876f543-6056-4323-9ab4-b15bd7d6a827
+Estado: CANCELED
+Comando: sleep 600
+Recibido: 2026-10-23 01:50:15 UTC
+Inicio: 2026-10-23 01:50:15 UTC
+Fin: 2026-10-23 01:50:16 UTC
+Código de salida: -15
+Diagnóstico: cancelado por solicitud del usuario
+PASS: El trabajo queda en estado CANCELED.
+PASS: El trabajo cancelado registra finished_at.
+
+========================================
+TC-081 - SEGUNDA CANCELACION
+========================================
+Exit code segunda cancelación: 1
+STDOUT segunda cancelación: ''
+STDERR segunda cancelación: 'Error de validación: La cancelación de este trabajo ya fue solicitada (estado CANCELED).\n'
+PASS: La segunda cancelación termina con código 1.
+PASS: La segunda cancelación informa claramente que ya fue solicitada.
+PASS: El estado permanece CANCELED después del segundo intento.
+PASS: El daemon continúa operativo después de la cancelación repetida.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.

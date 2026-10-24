@@ -1,14 +1,16 @@
 # Casos de prueba — Jobsy
 
-Este documento registra los casos de prueba ejecutados por QA sobre los alcances funcionales revisados de Jobsy en los PR #101, #102, #104 y #110.
+Este documento registra los casos de prueba ejecutados por QA sobre los alcances funcionales revisados de Jobsy en los PR #101, #102, #104, #110 y #114.
 
 La numeración de los casos se mantiene de forma acumulativa para conservar la trazabilidad entre pruebas, requisitos, scripts y evidencias.
 
-Hasta el momento se han documentado y ejecutado los casos **TC-001 a TC-070**.
+Hasta el momento se han documentado y ejecutado los casos **TC-001 a TC-090**.
 
 Las pruebas cubren validación de entradas, ejecución de trabajos, estados y metadatos, cancelación, apagado seguro, comportamiento de la CLI, comunicación IPC mediante sockets UNIX, robustez ante solicitudes inválidas, múltiples trabajos durante una misma sesión y configuración de sockets UNIX personalizados.
 
 Los casos **TC-053 a TC-070** corresponden a la validación del **PR #110**, relacionado con la configuración del socket UNIX local.
+
+Los casos **TC-071 a TC-090** corresponden a la validación del **PR #114**, relacionado con la gestión del ciclo de vida de trabajos, separación de salidas, grupos de procesos, cancelación repetida, período de gracia configurable y aislamiento de fallos de limpieza.
 
 ### Entorno de ejecución del PR #110
 
@@ -23,6 +25,18 @@ Las pruebas del PR #110 fueron ejecutadas en:
 
 Para las pruebas de los puntos de entrada públicos se utilizó un entorno virtual de Python (`.venv`) con Jobsy instalado en modo editable.
 
+### Entorno de ejecución del PR #114
+
+Las pruebas del PR #114 fueron ejecutadas en:
+
+- Windows 11 como sistema host.
+- Ubuntu 26.04.1 LTS mediante WSL2.
+- Arquitectura x86_64.
+- Linux kernel `6.18.33.2-microsoft-standard-WSL2`.
+- Python 3.14.4.
+- Git 2.53.0.
+- Repositorio ubicado en `/mnt/e/Alexia/Sistemas Avanzados/Jobsy`.
+- Entorno virtual de Python (`.venv`) con Jobsy instalado para las pruebas.
 
 ## Estados
 
@@ -46,8 +60,20 @@ Cada caso puede encontrarse en uno de los siguientes estados:
 - `EV-009-ipc-multiple-jobs-output.txt`: salida de `test_ipc_multiple_jobs.py`.
 - `EV-010-socket-config-output.txt`: configuración, validación e integración básica del socket UNIX configurable.
 - `EV-011-socket-cli-contract-output.txt`: contrato público de CLI, variable `JOBSY_SOCKET_PATH`, códigos de salida y puntos de entrada.
+- `EV-012-output-behavior-output.txt`: separación de `stdout` y `stderr`, integridad de salidas mayores a 4096 bytes y código de salida del comando `output`.
+- `EV-013-process-group-cancellation-output.txt`: creación de grupos/sesiones de procesos y cancelación completa de procesos padre e hijos.
+- `EV-014-repeated-cancellation-output.txt`: comportamiento de la primera y segunda solicitud de cancelación sobre un mismo trabajo.
+- `EV-015-cancel-grace-output.txt`: validación de `--cancel-grace`, rechazo de valores fuera de rango y escalamiento de `SIGTERM` a `SIGKILL`.
+- `EV-016-cleanup-isolation-output.txt`: aislamiento de fallos de cleanup sin bloquear el scheduler ni el servicio.
 
-> Las evidencias del avance #1 del MVP se almacenan en `docs/qa/evidence/avance-1/`.
+### Avance 1
+
+- EV-001 a EV-009: evidencias correspondientes a las pruebas del Avance 1.
+
+### Avance 2
+
+- `EV-010-socket-config-output.txt`: configuración, validación e integración básica del socket UNIX configurable.
+- `EV-011-socket-cli-contract-output.txt`: contrato público de CLI, variable `JOBSY_SOCKET_PATH`, códigos de salida y puntos de entrada.
 
 ---
 
@@ -2188,6 +2214,516 @@ PASS: execute devuelve un UUID de trabajo.
 
 ---
 
+### TC-071 — Separar stdout y stderr
+
+**Requisito relacionado:** RF-11  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que Jobsy conserve por separado la salida estándar y la salida de error de un trabajo.
+
+#### Datos de prueba
+```text
+sh -c 'echo SALIDA_STDOUT; echo SALIDA_STDERR >&2'
+```
+
+#### Resultado esperado
+`stdout` debe contener únicamente `SALIDA_STDOUT` y `stderr` únicamente `SALIDA_STDERR`.
+
+#### Resultado obtenido
+```text
+stdout: SALIDA_STDOUT
+stderr: SALIDA_STDERR
+PASS
+```
+
+#### Evidencia
+`EV-012-output-behavior-output.txt`
+
+---
+
+### TC-072 — Recuperar stdout mayor a 4096 bytes
+
+**Requisito relacionado:** RF-11  
+**Tipo:** Integración / Robustez  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que la CLI reciba íntegramente una salida estándar mayor a 4096 bytes.
+
+#### Resultado esperado
+La salida debe conservarse completa y sin truncamiento.
+
+#### Resultado obtenido
+```text
+Tamaño esperado: 10001 bytes
+Integridad: True
+PASS
+```
+
+#### Evidencia
+`EV-012-output-behavior-output.txt`
+
+---
+
+### TC-073 — Recuperar stderr mayor a 4096 bytes
+
+**Requisito relacionado:** RF-11  
+**Tipo:** Integración / Robustez  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que la CLI reciba íntegramente una salida de error mayor a 4096 bytes.
+
+#### Resultado esperado
+`stderr` debe conservarse completo y sin truncamiento.
+
+#### Resultado obtenido
+```text
+Tamaño esperado: 10001 bytes
+Integridad: True
+PASS
+```
+
+#### Evidencia
+`EV-012-output-behavior-output.txt`
+
+---
+
+### TC-074 — Mantener vacío el stream no utilizado
+
+**Requisito relacionado:** RF-11  
+**Tipo:** Funcional  
+**Prioridad:** Media  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que cuando un trabajo escribe únicamente en uno de los streams, el otro permanezca vacío.
+
+#### Resultado esperado
+El stream no utilizado debe tener longitud cero.
+
+#### Resultado obtenido
+```text
+PASS
+```
+
+#### Evidencia
+`EV-012-output-behavior-output.txt`
+
+---
+
+### TC-075 — Devolver código 0 al consultar output correctamente
+
+**Requisito relacionado:** RF-11  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Media  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el comando de consulta de salida termine con código `0`.
+
+#### Resultado esperado
+La operación debe finalizar con código de salida `0`.
+
+#### Resultado obtenido
+```text
+Exit code: 0
+PASS
+```
+
+#### Evidencia
+`EV-012-output-behavior-output.txt`
+
+---
+
+## RNF-30 — Gestión de grupos de procesos
+
+### TC-076 — Crear cada trabajo en su propio grupo de procesos
+
+**Requisito relacionado:** RNF-30  
+**Tipo:** Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que un trabajo se ejecute en un grupo de procesos y sesión propios.
+
+#### Resultado esperado
+El PID del proceso principal debe coincidir con su PGID y SID.
+
+#### Resultado obtenido
+```text
+PID = PGID = SID
+PASS
+```
+
+#### Evidencia
+`EV-013-process-group-cancellation-output.txt`
+
+---
+
+### TC-077 — Mantener procesos hijos en el mismo grupo
+
+**Requisito relacionado:** RNF-30  
+**Tipo:** Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que los procesos hijos creados por un trabajo pertenezcan al mismo grupo y sesión que el proceso principal.
+
+#### Resultado esperado
+Padre e hijo deben compartir PGID y SID.
+
+#### Resultado obtenido
+```text
+PASS
+```
+
+#### Evidencia
+`EV-013-process-group-cancellation-output.txt`
+
+---
+
+### TC-078 — Cancelar proceso principal y descendientes
+
+**Requisito relacionado:** RNF-30  
+**Tipo:** Integración / Robustez  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que al cancelar un trabajo terminen tanto el proceso principal como sus descendientes.
+
+#### Resultado esperado
+El trabajo debe terminar en `CANCELED`, registrar `finished_at` y no dejar procesos pertenecientes al grupo.
+
+#### Resultado obtenido
+```text
+Estado: CANCELED
+finished_at: registrado
+Miembros restantes del grupo: []
+PASS
+```
+
+#### Evidencia
+`EV-013-process-group-cancellation-output.txt`
+
+---
+
+### TC-079 — Mantener daemon operativo después de cancelar un grupo
+
+**Requisito relacionado:** RNF-30  
+**Tipo:** Robustez / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que la cancelación completa de un grupo de procesos no afecte la disponibilidad del daemon.
+
+#### Resultado esperado
+El daemon debe continuar respondiendo después de la cancelación.
+
+#### Resultado obtenido
+```text
+PASS
+```
+
+#### Evidencia
+`EV-013-process-group-cancellation-output.txt`
+
+---
+
+## RF-26 — Cancelación repetida
+
+### TC-080 — Cancelar un trabajo por primera vez
+
+**Requisito relacionado:** RF-26  
+**Tipo:** Funcional / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que la primera solicitud de cancelación se procese correctamente.
+
+#### Resultado esperado
+El trabajo debe cambiar a estado `CANCELED`.
+
+#### Resultado obtenido
+```text
+Estado: CANCELED
+PASS
+```
+
+#### Evidencia
+`EV-014-repeated-cancellation-output.txt`
+
+---
+
+### TC-081 — Rechazar una segunda cancelación con mensaje claro
+
+**Requisito relacionado:** RF-26  
+**Tipo:** Negativa / Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que una segunda solicitud de cancelación sea rechazada con un mensaje específico.
+
+#### Resultado esperado
+La CLI debe terminar con código `1`, conservar el estado `CANCELED` e informar que la cancelación ya fue solicitada.
+
+#### Resultado obtenido
+```text
+Error de validación: La cancelación de este trabajo ya fue solicitada (estado CANCELED).
+Exit code: 1
+PASS
+```
+
+#### Evidencia
+`EV-014-repeated-cancellation-output.txt`
+
+---
+
+## RF-30 — Período de gracia configurable
+
+### TC-082 — Aceptar cancel-grace entero válido
+
+**Requisito relacionado:** RF-30  
+**Tipo:** Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que `--cancel-grace 2` sea aceptado.
+
+#### Resultado esperado
+La configuración debe aceptar el valor `2`.
+
+#### Resultado obtenido
+```text
+Exit code: 0
+Valor: 2.0
+PASS
+```
+
+#### Evidencia
+`EV-015-cancel-grace-output.txt`
+
+---
+
+### TC-083 — Aceptar cancel-grace fraccionario válido
+
+**Requisito relacionado:** RF-30  
+**Tipo:** Funcional  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que `--cancel-grace 0.5` sea aceptado.
+
+#### Resultado esperado
+La configuración debe aceptar el valor `0.5`.
+
+#### Resultado obtenido
+```text
+Exit code: 0
+Valor: 0.5
+PASS
+```
+
+#### Evidencia
+`EV-015-cancel-grace-output.txt`
+
+---
+
+### TC-084 — Rechazar cancel-grace igual a cero
+
+**Requisito relacionado:** RF-30  
+**Tipo:** Negativa  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el daemon rechace un período de gracia igual a cero.
+
+#### Resultado esperado
+La configuración debe finalizar con código `2`.
+
+#### Resultado obtenido
+```text
+Exit code: 2
+jobsy-daemon: error: cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.
+PASS
+```
+
+#### Evidencia
+`EV-015-cancel-grace-output.txt`
+
+---
+
+### TC-085 — Rechazar cancel-grace negativo
+
+**Requisito relacionado:** RF-30  
+**Tipo:** Negativa  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el daemon rechace valores negativos para `--cancel-grace`.
+
+#### Resultado esperado
+La configuración debe finalizar con código `2`.
+
+#### Resultado obtenido
+```text
+Exit code: 2
+jobsy-daemon: error: cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.
+PASS
+```
+
+#### Evidencia
+`EV-015-cancel-grace-output.txt`
+
+---
+
+### TC-086 — Rechazar cancel-grace mayor a 60
+
+**Requisito relacionado:** RF-30  
+**Tipo:** Negativa  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el daemon rechace valores superiores a `60` segundos.
+
+#### Resultado esperado
+La configuración debe finalizar con código `2`.
+
+#### Resultado obtenido
+```text
+Exit code: 2
+jobsy-daemon: error: cancel_grace_seconds debe ser un número mayor que 0 y menor o igual a 60.
+PASS
+```
+
+#### Evidencia
+`EV-015-cancel-grace-output.txt`
+
+---
+
+### TC-087 — Escalar de SIGTERM a SIGKILL
+
+**Requisito relacionado:** RF-30  
+**Tipo:** Integración / Robustez  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar el comportamiento cuando un proceso ignora `SIGTERM`.
+
+#### Datos de prueba
+```text
+sh -c 'trap "" TERM; while true; do sleep 1; done'
+cancel_grace = 0.5
+```
+
+#### Resultado esperado
+Jobsy debe enviar `SIGTERM`, esperar aproximadamente el período configurado y posteriormente usar `SIGKILL`.
+
+#### Resultado obtenido
+```text
+Estado: CANCELED
+Código de salida: -9
+Miembros restantes del grupo: []
+Daemon operativo: True
+PASS
+```
+
+#### Evidencia
+`EV-015-cancel-grace-output.txt`
+
+---
+
+## RNF-09 — Aislamiento de fallos de cleanup
+
+### TC-088 — Aislar un fallo de cleanup
+
+**Requisito relacionado:** RNF-09  
+**Tipo:** Robustez / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que una excepción durante la limpieza de un trabajo sea aislada y no detenga el servicio.
+
+#### Resultado esperado
+El fallo debe registrarse como diagnóstico y no propagarse al scheduler.
+
+#### Resultado obtenido
+```text
+PASS
+```
+
+#### Evidencia
+`EV-016-cleanup-isolation-output.txt`
+
+---
+
+### TC-089 — Mantener scheduler responsivo durante cleanup fallido
+
+**Requisito relacionado:** RNF-09  
+**Tipo:** Robustez  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el scheduler continúe respondiendo mientras se procesa un fallo de cleanup aislado.
+
+#### Resultado esperado
+Las operaciones del scheduler deben permanecer disponibles sin bloqueo global.
+
+#### Resultado obtenido
+```text
+counts() respondió correctamente.
+PASS
+```
+
+#### Evidencia
+`EV-016-cleanup-isolation-output.txt`
+
+---
+
+### TC-090 — Finalizar de forma controlada tras fallo de cleanup
+
+**Requisito relacionado:** RNF-09  
+**Tipo:** Robustez / Integración  
+**Prioridad:** Alta  
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el monitor finalice de forma controlada después de aislar un fallo de cleanup.
+
+#### Resultado esperado
+Debe obtenerse un código de salida distinto de cero y conservarse un diagnóstico con la causa original.
+
+#### Resultado obtenido
+```text
+Código de salida: -9
+Diagnóstico: conservado
+PASS
+```
+
+#### Evidencia
+`EV-016-cleanup-isolation-output.txt`
+
+---
+
 # Resumen de ejecución
 
 | Caso | Descripción | Estado | Evidencia |
@@ -2262,11 +2798,31 @@ PASS: execute devuelve un UUID de trabajo.
 | TC-068 | Iniciar jobsy-daemon con un socket personalizado | PASS | EV-011 |
 | TC-069 | Utilizar JOBSY_SOCKET_PATH desde puntos de entrada públicos | PASS | EV-011 |
 | TC-070 | Utilizar JOBSY_SOCKET_PATH desde execute | PASS | EV-011 |
+| TC-071 | Separar stdout y stderr | PASS | EV-012 |
+| TC-072 | Recuperar stdout mayor a 4096 bytes | PASS | EV-012 |
+| TC-073 | Recuperar stderr mayor a 4096 bytes | PASS | EV-012 |
+| TC-074 | Mantener vacío el stream no utilizado | PASS | EV-012 |
+| TC-075 | Devolver código 0 al consultar output correctamente | PASS | EV-012 |
+| TC-076 | Crear cada trabajo en su propio grupo de procesos | PASS | EV-013 |
+| TC-077 | Mantener procesos hijos en el mismo grupo | PASS | EV-013 |
+| TC-078 | Cancelar proceso principal y descendientes | PASS | EV-013 |
+| TC-079 | Mantener daemon operativo después de cancelar un grupo | PASS | EV-013 |
+| TC-080 | Cancelar un trabajo por primera vez | PASS | EV-014 |
+| TC-081 | Rechazar una segunda cancelación con mensaje claro | PASS | EV-014 |
+| TC-082 | Aceptar cancel-grace entero válido | PASS | EV-015 |
+| TC-083 | Aceptar cancel-grace fraccionario válido | PASS | EV-015 |
+| TC-084 | Rechazar cancel-grace igual a cero | PASS | EV-015 |
+| TC-085 | Rechazar cancel-grace negativo | PASS | EV-015 |
+| TC-086 | Rechazar cancel-grace mayor a 60 | PASS | EV-015 |
+| TC-087 | Escalar de SIGTERM a SIGKILL | PASS | EV-015 |
+| TC-088 | Aislar un fallo de cleanup | PASS | EV-016 |
+| TC-089 | Mantener scheduler responsivo durante cleanup fallido | PASS | EV-016 |
+| TC-090 | Finalizar de forma controlada tras fallo de cleanup | PASS | EV-016 |
 
 
 ## Resultado general
 
-Se han ejecutado un total de **70 casos de prueba** sobre los alcances revisados de los PR #101, #102, #104 y #110. Los 70 casos obtuvieron resultado `PASS`.
+Se han ejecutado un total de **90 casos de prueba** sobre los alcances revisados de los PR #101, #102, #104, #110 y #114. Los 90 casos obtuvieron resultado `PASS`.
 
 Para el PR #110 se añadieron **18 casos de prueba**, del `TC-053` al `TC-070`, enfocados en validar la configuración del socket UNIX local, el uso del endpoint predeterminado y personalizado, las validaciones de ruta, el comportamiento de `JOBSY_SOCKET_PATH`, los códigos de salida y los puntos de entrada públicos instalados.
 
@@ -2278,4 +2834,4 @@ No se identificaron defectos bloqueantes dentro del alcance funcional validado d
 
 La implementación validada no incorpora comunicación TCP, host o puerto configurables, por lo que el alcance relacionado con RF-16 continúa siendo parcial.
 
-La demostración explícita de separación entre el proceso del daemon y los procesos de los trabajos mediante comparación directa de PID continúa fuera de los casos ejecutados actualmente.
+La separación entre el proceso del daemon y los procesos de los trabajos quedó cubierta explícitamente mediante los casos `TC-076` a `TC-079`, que verifican PID, PGID, SID y la terminación completa del grupo de procesos.
