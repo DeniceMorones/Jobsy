@@ -18,6 +18,16 @@ from src.daemon.scheduler import QueueFullError
 from src.protocol.endpoint import resolve_socket_path
 from src.daemon.logger import logger
 
+# Función auxiliar para generar respuestas de error consistentes
+def make_error_response(operation, cause, suggestion):
+    """Construye una respuesta de error estandarizada para el cliente (RNF-21)."""
+    return {
+        "status": "error",
+        "operation": operation,
+        "cause": cause,
+        "suggestion": suggestion
+    }
+
 def diagnose(job):
     """Texto de diagnóstico derivado del estado y exit_code; None si no aplica """
     code = job.exit_code
@@ -211,21 +221,41 @@ class DaemonServer:
                 else:
                     operation_status = "rechazada"
                     logger.log("WARNING", f"Acción IPC no válida recibida: {action}")
-                    response = {"status": "error", "message": "Acción no válida"}
+                    # RF-28: Respuesta de error con sugerencia para el cliente
+                    response = make_error_response(
+                        operation=action or "desconocida",
+                        cause=f"La acción '{action}' no es reconocida por el sistema.",
+                        suggestion="Consulte los comandos disponibles ejecutando 'jobsy --help'."
+                    )
 
             except QueueFullError as qfe:
                 operation_status = "rechazada"
                 # RF-23: Rechazo explícito por exceder límites configurados de capacidad
                 logger.log("WARNING", f"Solicitud 'run' rechazada por límite de capacidad: {qfe}")
-                response = {"status": "error", "message": str(qfe)}
+                # RF-28: Respuesta de error con sugerencia para el cliente
+                response = make_error_response(
+                    operation="run",
+                    cause=str(qfe),
+                    suggestion="Espere a que finalicen los trabajos actuales o aumente la capacidad máxima de la cola."
+                )
             except ValueError as ve:
                 operation_status = "rechazada"
                 logger.log("ERROR", f"Error de validación en petición IPC: {ve}")
-                response = {"status": "error", "message": str(ve)}
+                # RF-28: Respuesta de error con sugerencia para el cliente
+                response = make_error_response(
+                    operation=action or "desconocida",
+                    cause=str(ve),
+                    suggestion="Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos."
+                )
             except Exception as e:
                 operation_status = "rechazada"
                 logger.log("ERROR", f"Excepción no controlada procesando cliente: {e}")
-                response = {"status": "error", "message": str(e)}
+                # RF-28: Respuesta de error con sugerencia para el cliente
+                response = make_error_response(
+                    operation=action or "desconocida",
+                    cause=str(e),
+                    suggestion="Consulte la bitácora del sistema (jobsy.log) para más detalles técnicos."
+                )
 
             # RF-28: Intento de envío de respuesta con captura explícita de desconexión del cliente
             try:
