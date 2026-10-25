@@ -38,6 +38,10 @@ def build_parser():
     output_parser = subparsers.add_parser("output", help="Muestra stdout y stderr de un trabajo")
     output_parser.add_argument("job_id", help="ID del trabajo")
 
+    # comando health
+    health_parser = subparsers.add_parser("health", help="Muestra el resumen de salud del servicio y estado de los trabajos")
+
+
     return parser
 
 def send_ipc_request(payload: dict) -> dict:
@@ -107,6 +111,40 @@ def main(argv=None, *, split_command_string=True):
             else:
                 print(f"Error: {res['message']}", file=sys.stderr)
                 sys.exit(1)
+
+        #rf-24: Resumen de salud del servicio y estado de los trabajos
+        elif args.subcommand == "health":
+                res = send_ipc_request({"action": "health"})
+                if res["status"] == "ok":
+                    h = res["health"]
+                    print(f"=== Resumen de Salud de Jobsy ===")
+                    print(f"Servicio Activo: {'Sí' if h['service_active'] else 'No'}")
+                    if h['storage_error']:
+                        print(f"Error de Almacenamiento: {h['storage_error']}")
+                    print(f"\n--- Trabajos en Ejecución ({h['running_count']}) ---")
+                    if not h['running_jobs']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['running_jobs']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Inicio: {j['started_at']}")
+
+                    print(f"\n--- Trabajos en Cola ({h['queued_count']}) ---")
+                    if not h['queued_jobs']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['queued_jobs']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Recibido: {j['received_at']}")
+
+                    print(f"\n--- Errores Recientes ({h['recent_errors_count']}) ---")
+                    if not h['recent_errors']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['recent_errors']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Código: {j['exit_code']} | Fin: {j['finished_at']}")
+                    sys.exit(0)
+                else:
+                    print(f"Error: {res['message']}", file=sys.stderr)
+                    sys.exit(1)
 
         elif args.subcommand == "status":
             res = send_ipc_request({"action": "status", "job_id": args.job_id})

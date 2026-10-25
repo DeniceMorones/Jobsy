@@ -129,6 +129,40 @@ class DaemonServer:
                         ]
                     }
 
+                # RF-24: Resumen de salud del servicio y estado de los trabajos
+                elif action == "health":
+                    health_data = self.manager.get_health_summary()
+                    operation_status = "sin_efecto"
+                    # Función para formatear fechas y horas en UTC
+                    def format_dt(dt):
+                        return dt.strftime("%Y-%m-%d %H:%M:%S UTC") if dt else "-"
+                    # Función para serializar trabajos en el resumen de salud
+                    def serialize_job(j):
+                        return {
+                            "id": j.id,
+                            "status": j.status,
+                            "command": j.command,
+                            "received_at": format_dt(j.received_at),
+                            "started_at": format_dt(j.started_at),
+                            "finished_at": format_dt(j.finished_at),
+                            "exit_code": j.exit_code,
+                            "stderr": j.stderr
+                        }
+
+                    response = {
+                        "status": "ok",
+                        "health": {
+                            "service_active": health_data["service_active"],
+                            "storage_error": health_data["storage_error"],
+                            "running_count": health_data["running_count"],
+                            "running_jobs": [serialize_job(j) for j in health_data["running_jobs"]],
+                            "queued_count": health_data["queued_count"],
+                            "queued_jobs": [serialize_job(j) for j in health_data["queued_jobs"]],
+                            "recent_errors_count": health_data["recent_errors_count"],
+                            "recent_errors": [serialize_job(j) for j in health_data["recent_errors"]]
+                        }
+                    }
+
                 elif action == "status":
                     job_id = request.get("job_id")
                     job = self.manager.snapshot(job_id)
