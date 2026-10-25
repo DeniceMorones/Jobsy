@@ -72,16 +72,13 @@ def _recv_all(sock):
     return b"".join(chunks)
 
 # Función auxiliar para manejar respuestas de error estructuradas
-def handle_error_response(res, operation=None):
-    """Formatea e imprime los errores estructurados cumpliendo con el RNF-21."""
-    op = res.get("operation") or operation or "desconocida"
-    cause = res.get("cause", res.get("message", "Error desconocido"))
-    suggestion = res.get("suggestion", "Verifique la sintaxis o el estado del servicio.")
-    
-    print(f"Error en la operación '{op}':", file=sys.stderr)
-    print(f"  • Causa: {cause}", file=sys.stderr)
-    print(f"  • Acción sugerida: {suggestion}", file=sys.stderr)
+def handle_error_response(res):
+    """Renderiza el error estructurado recibido directamente del servidor (RNF-21)."""
+    print(f"Error en la operación '{res.get('operation', 'desconocida')}':", file=sys.stderr)
+    print(f"  • Causa: {res.get('cause', res.get('message', 'Error desconocido'))}", file=sys.stderr)
+    print(f"  • Acción sugerida: {res.get('suggestion', 'Verifique la sintaxis o el estado del servicio.')}", file=sys.stderr)
     sys.exit(1)
+
 
 def main(argv=None, *, split_command_string=True):
     """Run the CLI; retain legacy single-string parsing unless disabled."""
@@ -107,7 +104,7 @@ def main(argv=None, *, split_command_string=True):
                 print(f"Trabajo creado y enviado a ejecución con ID: {res['job_id']}")
                 sys.exit(0)
             else:
-                handle_error_response(res, operation="run")
+                handle_error_response(res)
 
         elif args.subcommand == "list":
             res = send_ipc_request({"action": "list", "status": args.status})
@@ -120,7 +117,7 @@ def main(argv=None, *, split_command_string=True):
                         print(f"ID: {j['id']} | Estado: {j['status']} | Comando: {' '.join(j['command'])}")
                 sys.exit(0)
             else:
-                handle_error_response(res, operation="list")
+                handle_error_response(res)
 
         #rf-24: Resumen de salud del servicio y estado de los trabajos
         elif args.subcommand == "health":
@@ -153,7 +150,7 @@ def main(argv=None, *, split_command_string=True):
                             print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Código: {j['exit_code']} | Fin: {j['finished_at']}")
                     sys.exit(0)
                 else:
-                    handle_error_response(res, operation="health")
+                    handle_error_response(res)
 
         elif args.subcommand == "status":
             res = send_ipc_request({"action": "status", "job_id": args.job_id})
@@ -170,7 +167,7 @@ def main(argv=None, *, split_command_string=True):
                     print(f"Diagnóstico: {j['diagnostic']}")
                 sys.exit(0)
             else:
-                handle_error_response(res, operation="status")
+                handle_error_response(res)
 
         elif args.subcommand == "cancel":
             res = send_ipc_request({"action": "cancel", "job_id": args.job_id})
@@ -179,7 +176,7 @@ def main(argv=None, *, split_command_string=True):
                 print(f"Estado actual: {res['job_status']}")
                 sys.exit(0)
             else:
-                handle_error_response(res, operation="cancel")
+                handle_error_response(res)
         
         elif args.subcommand == "output":
             res = send_ipc_request({"action": "output", "job_id": args.job_id})
@@ -188,7 +185,7 @@ def main(argv=None, *, split_command_string=True):
                 sys.stderr.write(res["stderr"])
                 sys.exit(0)
             else:
-                handle_error_response(res, operation="output")
+                handle_error_response(res)
 
         else:
             parser.print_help()
