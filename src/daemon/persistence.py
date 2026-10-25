@@ -7,6 +7,7 @@ import uuid
 from .job_repository import JobRepository
 from .process_identity import boot_id
 from .recovery import RecoveryService
+from .logger import logger
 
 
 class PersistenceRuntime:
@@ -21,6 +22,10 @@ class PersistenceRuntime:
     def open(self):
         import fcntl
         self.directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+
+        #se configura la bitacora centralizada (RF-14)
+        logger.setup(self.directory)
+        
         try:
             # Never unlink this inode: all daemon instances must lock the same file.
             descriptor = os.open(self.directory / "daemon.lock", os.O_RDWR | os.O_CREAT, 0o600)
@@ -36,6 +41,7 @@ class PersistenceRuntime:
             self.repository.start_session(session_id,
                 started_at=datetime.now(timezone.utc), boot_id=self.boot_id, daemon_pid=os.getpid())
             self.session_id = session_id
+            logger.log("INFO", f"Iniciando sesión de daemon con ID: {session_id}")
             return self
         except BaseException:
             self.close()
@@ -48,6 +54,8 @@ class PersistenceRuntime:
                     if self.session_id is not None:
                         self.repository.finish_session(self.session_id,
                             finished_at=datetime.now(timezone.utc), clean_shutdown=clean)
+                        logger.log("INFO", f"Finalizando sesión de daemon con ID: {self.session_id} (clean={clean})")
+                        
                 finally:
                     self.repository.close()
         finally:

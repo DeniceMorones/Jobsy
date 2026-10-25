@@ -5,6 +5,9 @@ import subprocess
 import sys
 import threading
 
+from src.daemon import job
+from .logger import logger
+
 ISOLATION_POLL_SECONDS = 1.0
 
 class QueueFullError(ValueError):
@@ -81,9 +84,12 @@ class Scheduler:
         job.process = None
         self.reservations.remove(job.id)
         self._promote_locked()
+
+        status_desc = "exitoso (exit_code=0)" if exit_code == 0 else f"fallido (exit_code={exit_code})"
+        logger.log("INFO", f"Trabajo finalizado con estado {status_desc}", job_id=job.id)
+        
         if exit_code is not None and exit_code < 0 and job.status != "CANCELED":
-            print(f"[Daemon] Trabajo {job.id} terminó por señal {-exit_code}; recursos liberados.",
-                file=sys.stderr)
+            logger.log("WARNING", f"Trabajo terminó por señal {-exit_code}; recursos liberados.", job_id=job.id)
         return True
 
     def _dispatch(self):
@@ -103,8 +109,10 @@ class Scheduler:
                 try:
                     # Serialize the final cancellation check, spawn and publication.
                     # No preexec_fn, communicate, wait, kill or joins in this section.
+                    logger.log("INFO", f"Iniciando ejecución de comando: {' '.join(job.command)}", job_id=job.id)
                     process = self.manager.executor.spawn(job.command)
                 except Exception as error:
+                    logger.log("ERROR", f"Fallo al spawnear proceso: {error}", job_id=job.id)
                     try:
                         self.finish_locked(job, 1, stderr=str(error))
                     except Exception:
@@ -162,7 +170,7 @@ class Scheduler:
 
     def _isolate_failed_cleanup(self, job, process, error):
         diagnostic = f"No se pudo confirmar la terminación del proceso: {error}"
-        print(f"[Daemon] Trabajo {job.id} aislado: {diagnostic}", file=sys.stderr)
+        logger.log("ERROR", f"Trabajo aislado por fallo de limpieza: {diagnostic}", job_id=job.id)
         while True:
             with self.condition:
                 if self.stopping:

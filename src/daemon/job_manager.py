@@ -10,6 +10,7 @@ from .job import Job
 from .scheduler import QueueFullError, Scheduler
 from .process_identity import process_identity
 from ..protocol.validation import validate_command
+from .logger import logger
 
 TERMINAL_STATES = {"SUCCEEDED", "FAILED", "CANCELED"}
 VALID_STATES = TERMINAL_STATES | {"QUEUED", "RUNNING"}
@@ -50,7 +51,7 @@ class JobManager:
     def fail_closed_locked(self, error):
         if self.storage_error is None:
             self.storage_error = str(error)
-            print(f"[Daemon] Ejecución bloqueada: {error}", file=sys.stderr)
+            logger.log("ERROR", f"Ejecución bloqueada (Fail-Closed): {error}")
         self.is_accepting_jobs = False
         self.scheduler.stopping = True
         for job in self.jobs.values():
@@ -106,6 +107,7 @@ class JobManager:
             raise RuntimeError(self.storage_error or "El JobManager no esta aceptando nuevos trabajos.")
         job = Job(id=str(uuid.uuid4()), command=list(command))
         self.jobs[job.id] = job
+        logger.log("INFO", f"Trabajo creado en memoria con comando: {' '.join(command)}", job_id=job.id)
         return job
 
     def create_job(self, command):
@@ -176,6 +178,7 @@ class JobManager:
                 without_process=job.process is None)
             job.cancel_requested.set()
             job.status = "CANCELED"
+            logger.log("INFO", "Trabajo cancelado por el usuario", job_id=job.id)
 
             if job.process is None:
                 job.finished_at = at
