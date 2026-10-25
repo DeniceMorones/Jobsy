@@ -6,6 +6,7 @@ import sys
 import json
 import socket
 import signal
+import uuid
 
 
 #from aiohttp import request
@@ -101,6 +102,7 @@ class DaemonServer:
 
     def _handle_client(self, conn):
         with conn:
+            request_id = str(uuid.uuid4())[:8]
             action = None
             job_id = None
             response = {}
@@ -113,6 +115,9 @@ class DaemonServer:
 
                 request = json.loads(data.decode("utf-8"))
                 action = request.get("action")
+
+                logger.log("INFO", f"Recibida solicitud IPC '{action}' [ReqID: {request_id}]")
+
                 response = {}
 
                 if action == "run":
@@ -230,8 +235,8 @@ class DaemonServer:
 
             except QueueFullError as qfe:
                 operation_status = "rechazada"
-                # RF-23: Rechazo explícito por exceder límites configurados de capacidad
-                logger.log("WARNING", f"Solicitud 'run' rechazada por límite de capacidad: {qfe}")
+                # RF-23 y RNF-22: Correlación incluso ante rechazos por capacidad
+                logger.log("WARNING", f"Solicitud 'run' rechazada por límite de capacidad [ReqID: {request_id}]: {qfe}")
                 # RF-28: Respuesta de error con sugerencia para el cliente
                 response = make_error_response(
                     operation="run",
@@ -240,7 +245,7 @@ class DaemonServer:
                 )
             except ValueError as ve:
                 operation_status = "rechazada"
-                logger.log("ERROR", f"Error de validación en petición IPC: {ve}")
+                logger.log("ERROR", f"Error de validación en petición IPC [ReqID: {request_id}]: {ve}")
                 # RF-28: Respuesta de error con sugerencia para el cliente
                 response = make_error_response(
                     operation=action or "desconocida",
@@ -249,7 +254,7 @@ class DaemonServer:
                 )
             except Exception as e:
                 operation_status = "rechazada"
-                logger.log("ERROR", f"Excepción no controlada procesando cliente: {e}")
+                logger.log("ERROR", f"Excepción no controlada procesando cliente [ReqID: {request_id}]: {e}")
                 # RF-28: Respuesta de error con sugerencia para el cliente
                 response = make_error_response(
                     operation=action or "desconocida",
