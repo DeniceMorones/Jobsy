@@ -1,68 +1,65 @@
 # Jobsy
 
-## Avance 2.1: cola y concurrencia
+Jobsy es una herramienta para Linux que permite administrar la ejecución de tareas mediante una interfaz de línea de comandos (CLI) y un daemon. Ofrece ejecución concurrente, seguimiento de trabajos, consulta de resultados, cancelación, persistencia y recuperación conservadora.
 
-El daemon incorpora una cola FIFO acotada y reservas de ejecución sincronizadas.
-Por defecto admite hasta 3 procesos principales simultáneos y 100 trabajos en
-espera. En una sesión propia sin daemon ni socket existente:
+## 🎯 Propósito
 
-```bash
-jobsy-daemon --max-running 3 --queue-capacity 100
-```
+Desarrollar una herramienta sencilla para:
 
-La forma heredada acepta las mismas opciones:
-`python3 -m src.daemon.server --max-running 3 --queue-capacity 100`.
-No ejecutes ambas simultáneamente. La capacidad de espera puede ser 0; el límite
-de ejecución debe ser al menos 1. La cola llena se rechaza sin registrar trabajos.
-Cancelar no libera una reserva activa hasta confirmar la recolección del proceso.
-Se conservan CLI y protocolo; Avance 2.2 añade persistencia SQLite y recuperación
-conservadora sin reejecución automática.
+- Ejecutar comandos y programas de forma concurrente.
+- Consultar estados y resultados en tiempo real.
+- Cancelar trabajos.
+- Conservar el historial de ejecución y recuperarse de interrupciones.
 
-Detalles operativos y ejemplos en la [guía de usuario](docs/user-guide/README.md)
-y [ADR-004](docs/technical-guide/ADR-004-Cola-y-Limite-de-Concurrencia.md).
+## ✨ Funcionalidades implementadas
 
-## 🎯 Propósito:
-Desarrollar una herramienta sencilla para administrar tareas en el sistema Linux, permitiendo:
-* Agregar comandos o programas.
-* Ejecutarlos de manera simultánea (concurrente).
-* Revisar su progreso en tiempo real.
-* Obtener resultados (salidas y errores).
-* Detener la ejecución cuando sea necesario.
+- **Cola FIFO y concurrencia (Avance 2.1):** hasta 3 procesos principales simultáneos y 100 trabajos en espera por defecto. Límites configurables y rechazo de solicitudes cuando se agota la capacidad.
+- **Persistencia y recuperación (Avance 2.2):** almacenamiento SQLite y recuperación conservadora, sin reejecución automática de trabajos.
+- **Socket Unix configurable (Avance 2.5B):** selección del endpoint mediante `--socket-path` y `JOBSY_SOCKET_PATH`.
+- **Observabilidad:** consulta del estado del daemon mediante `jobsy health` y registro de eventos en bitácoras.
+- **Administración de trabajos:** identificación mediante UUID y estados `QUEUED`, `RUNNING`, `SUCCEEDED`, `FAILED` y `CANCELED`.
+- **Semántica de duplicados (RF-27):** se incorpora el comportamiento definido para identificar y gestionar solicitudes duplicadas, documentado en [`semantica-duplicados.md`](docs/technical-guide/semantica-duplicados.md).
 
-## 👥 Integrantes:
-* **Gomez Rubio Alexia**: alexia.gomez5516@alumnos.udg.mx
-* **Ibarra Bravo Jocelyn Naomi**: jocelyn.ibarra4401@alumnos.udg.mx
-* **Lopez Fletes Benjamin**: benjamin.lopez4157@alumnos.udg.mx
-* **Rico Morones Denice Estefania**: denice.rico4211@alumnos.udg.mx
+## 👥 Integrantes
 
-## 🎭 Asignación de roles:
-* **Arquitectura:** Benjamin Lopez Fletes
-* **Project Management & Backend:** Jocelyn Naomi Ibarra Bravo
-* **Backend Development:** Denice Estefania Rico Morones
-* **QA y Certificación:** Alexia Gomez Rubio
+- **Gomez Rubio Alexia:** alexia.gomez5516@alumnos.udg.mx
+- **Ibarra Bravo Jocelyn Naomi:** jocelyn.ibarra4401@alumnos.udg.mx
+- **Lopez Fletes Benjamin:** benjamin.lopez4157@alumnos.udg.mx
+- **Rico Morones Denice Estefania:** denice.rico4211@alumnos.udg.mx
 
-## 🛠️ Arquitectura y componentes implementados:
-El proyecto está organizado de forma modular dentro del directorio src/
+## 🎭 Asignación de roles
 
-* **src/client/cli.py:** Interfaz de línea de comandos para parsear argumentos y formatear la salida en terminal.
+- **Arquitectura:** Benjamin Lopez Fletes.
+- **Project Management & Backend:** Jocelyn Naomi Ibarra Bravo.
+- **Backend Development:** Denice Estefania Rico Morones.
+- **QA y Certificación:** Alexia Gomez Rubio.
 
-* **src/daemon/executor.py:** Motor de ejecución asíncrona mediante subprocess.Popen e hilos.
+## 🏗️ Arquitectura
 
-* **src/daemon/job_manager.py:** Gestor del ciclo de vida de los trabajos, asignación de UUIDs y control de estados.
+El proyecto está organizado modularmente dentro de `src/`.
 
-* **src/daemon/job.py:** Modelo de datos, estados (QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELED) y metadatos.
+| Componente | Responsabilidad |
+| --- | --- |
+| `src/client/cli.py` | Interfaz de línea de comandos. |
+| `src/daemon/config.py` | Configuración y validación del daemon. |
+| `src/daemon/executor.py` | Ejecución de procesos. |
+| `src/daemon/job_manager.py` | Gestión del ciclo de vida y estados de los trabajos. |
+| `src/daemon/job_repository.py` | Almacenamiento persistente e integridad de los registros de trabajos.|
+| `src/daemon/job.py` | Modelo de datos y metadatos. |
+| `src/daemon/logger.py` | Registro de eventos y errores del sistema. |
+| `src/daemon/persistence.py` | Gestión de persistencia, sesiones y recuperación del daemon. |
+| `src/daemon/process_identity.py` | Identificación y verificación de procesos Linux. |
+| `src/daemon/recovery.py` | Recuperación y reconciliación del estado de los trabajos tras un reinicio. |
+| `src/daemon/scheduler.py` | Planificación de trabajos, gestión de cola y control de ejecuciones concurrentes. |
+| `src/daemon/server.py` | Servicio daemon y apagado controlado. |
+| `src/protocol/endpoint.py` | Validación y resolución de rutas del socket Unix. |
+| `src/protocol/validation.py` | Validación y sanitización de comandos. |
 
-* **src/daemon/server.py:** Guardián del servicio encargado del apagado seguro;
+## 💻 Instalación
 
-* **src/protocol/validation.py:** Módulo para validación y sanitización de comandos.
+**Entorno de referencia:** Ubuntu 26.04.1 LTS sobre WSL2 con Python 3.14.4. Python >=3.10 es el mínimo declarado, pero no se verificó en esta tarea. No se certifican Linux nativo ni otras distribuciones.
 
-## Instalación y ejecución
-
-Referencia de desarrollo: Ubuntu 26.04.1 LTS sobre WSL2 con Python 3.14.4.
-Python >=3.10 es el mínimo declarado, no verificado en esta tarea. No se afirma
-verificación en Linux nativo ni otras distribuciones. Las 105 pruebas anteriores
-en Ubuntu WSL son verificación de desarrollo, no certificación de Alexia.
-Se requieren `venv` y `pip`. Desde la raíz del clon:
+Se requieren `venv` y `pip`. Desde la raíz del repositorio:
 
 ```bash
 python3 -m venv .venv
@@ -70,107 +67,65 @@ source .venv/bin/activate
 python -m pip install -e .
 ```
 
-La instalación editable mantiene los cambios del código disponibles. Para una
-instalación normal, usa `python -m pip install .` en lugar de `-e .`.
-Los comandos `execute`, `jobsy`, `jobsy-daemon`, `list`, `status` y `cancel` están disponibles después de
-instalar y activar el entorno; no se convierten automáticamente en comandos
-globales del sistema. Una vez instalado, puedes usarlos desde otro directorio.
+La instalación editable refleja los cambios del código del clon. Para una instalación normal, utiliza `python -m pip install .`.
 
-Los comandos cortos equivalen a `jobsy list`, `jobsy status` y `jobsy cancel`.
-Por ejemplo: `list --status RUNNING`, `status ID_DEVUELTO` y `cancel ID_DEVUELTO`.
-Los nombres genéricos pueden coincidir con otras herramientas (por ejemplo,
-`cancel` de un sistema de impresión). Comprueba `type -a list status cancel`
-en la shell: la activación antepone `.venv/bin` al PATH, pero los alias y funciones
-de shell pueden tener prioridad. Usa `jobsy list`, `jobsy status` o `jobsy cancel`
-para evitar ambigüedades. Repite `python -m pip install -e .` tras esta actualización.
+## 🚀 Inicio rápido
 
-Si ya existe un daemon, reutilízalo: no inicies otro ni borres su socket.
-En un entorno sin daemon ni socket previo, inicia el servicio en una terminal:
+Antes de iniciar el daemon, comprueba que no exista un servicio o socket previo. Si existe `/tmp/jobsy.sock`, **no inicies otro daemon ni elimines el socket**; consulta con su operador.
+
+En una sesión de prueba autorizada sin daemon ni socket previo, ejecuta:
 
 ```bash
 jobsy-daemon
 ```
 
-En otra terminal activa el mismo entorno y ejecuta:
+En otra terminal, activa el mismo entorno virtual:
 
 ```bash
 execute sleep 20
-execute ls -l /tmp
 jobsy list
-jobsy list --status RUNNING
 jobsy status ID_DEVUELTO
+jobsy output ID_DEVUELTO
+jobsy health
 jobsy cancel ID_DEVUELTO
 ```
 
-Sustituye `ID_DEVUELTO` por el UUID recibido. El daemon permanece en primer plano;
-`Ctrl+C` solicita su apagado habitual. No uses ese apagado si atiende trabajos ajenos.
-El listado recupera el historial al reiniciar con el mismo directorio de datos.
+Sustituye `ID_DEVUELTO` por el UUID del trabajo propio. Para detener tu daemon de prueba, utiliza `Ctrl+C` únicamente si estás autorizado y no atiende trabajos ajenos.
 
-Puede seleccionarse un directorio fuera del repositorio:
+La forma histórica `python3 -m src.daemon.server` también está disponible desde la raíz del repositorio. **No ejecutes ambas formas simultáneamente para la misma instancia.**
 
-```bash
-jobsy-daemon --data-dir "$HOME/.local/state/jobsy" --max-running 3 --queue-capacity 100
-# Alternativa heredada, no simultánea:
-python3 -m src.daemon.server --data-dir "$HOME/.local/state/jobsy"
-```
+## ⚠️ Advertencias importantes
 
-Sin --data-dir se usa $XDG_STATE_HOME/jobsy (si XDG_STATE_HOME es absoluto) o
-~/.local/state/jobsy. Un lock impide dos daemons sobre el mismo directorio.
-Los límites y el directorio se fijan al inicio, sin recarga dinámica. Cambiar
---data-dir selecciona otra base; no migra el historial ni cambia el socket.
-El socket predeterminado sigue siendo /tmp/jobsy.sock. Para una instancia propia
-aislada, usa una ruta absoluta dentro de un directorio privado existente:
+- Una solicitud aceptada no garantiza que el proceso termine correctamente; verifica su estado y resultados.
+- La cancelación activa no libera la reserva hasta confirmar la finalización y recolección del proceso.
+- La recuperación no reejecuta automáticamente trabajos y puede bloquear el arranque ante procesos supervivientes o situaciones inciertas.
+- **No mates procesos solo por su PID registrado ni borres SQLite, journals, `daemon.lock` o sockets para eludir bloqueos de recuperación.**
+- Cambiar `--data-dir` selecciona otra base de datos; no migra el historial ni resuelve de forma segura un bloqueo previo.
+- RF-16 sigue parcial: no hay opciones `--host` ni `--port`. La interfaz TCP requiere aprobación posterior.
+- Los comandos cortos `list`, `status` y `cancel` pueden colisionar con herramientas del sistema. Usa `jobsy list`, `jobsy status` y `jobsy cancel` si existe una ambigüedad.
 
-```bash
-jobsy-daemon --socket-path "$HOME/.local/state/jobsy/control.sock" --data-dir "$HOME/.local/state/jobsy"
-# En otra terminal, con el mismo entorno virtual activado:
-export JOBSY_SOCKET_PATH="$HOME/.local/state/jobsy/control.sock"
-jobsy list
-```
+Consulta la [guía de usuario](docs/user-guide/README.md) antes de realizar operaciones de configuración, recuperación o diagnóstico.
 
-El directorio padre del socket debe existir antes del arranque. El daemon no
-lee JOBSY_SOCKET_PATH; los clientes sí, incluidos execute, list, status y cancel.
-Sin variable, los clientes vuelven a /tmp/jobsy.sock (`unset JOBSY_SOCKET_PATH`).
-No se borran rutas existentes para arrancar. No existen opciones de interfaz TCP ni puerto.
-RF-16 permanece parcial; la decisión de red está pendiente de aprobación.
-Consulta los [contratos públicos](docs/technical-guide/interfaces-publicas.md)
-y [ADR-007](docs/technical-guide/ADR-007-Cancelacion.md).
-Los pendientes anteriores se cancelan; una ejecución interrumpida se marca
-FAILED solo tras descartar procesos supervivientes. La incertidumbre bloquea
-el arranque con diagnóstico. No borres la base, el lock ni el socket para evitarlo.
-Se conservan resultados confirmados, no necesariamente salida parcial durante
-una caída. Consulta [ADR-006](docs/technical-guide/ADR-006-Recuperacion.md).
+## 🧪 Pruebas y verificación
 
-Las invocaciones anteriores siguen disponibles desde la raíz del repositorio
-o desde cualquier directorio si el paquete está instalado en el intérprete usado:
+La verificación local registró **105 pruebas aprobadas en Ubuntu WSL**, sin fallos ni omisiones en esa ejecución. Este resultado corresponde a verificación de desarrollo; no constituye certificación formal de QA ni acredita compatibilidad con todas las plataformas declaradas.
 
-```bash
-python3 -m src.client.cli run -- sleep 20
-python3 -m src.daemon.server
-```
+Las pruebas nuevas permanecen en la copia local excluida del commit descrito. No ejecutes `test_queue_ipc.py` ni el descubrimiento global de pruebas hasta que QA adapte la prueba IPC para utilizar un socket y un directorio de datos temporales.
 
-Pruebas de los puntos de entrada, sin conectar al socket ni iniciar procesos de trabajo:
+La verificación independiente y la evidencia de QA corresponden a Alexia Gomez Rubio. Consulta el [traspaso técnico a Alexia](docs/technical-guide/ADR-006-Recuperacion.md#traspaso-técnico-a-alexia).
 
-```bash
-python -B -m unittest discover -s test -p 'test_entry_points.py' -v
-```
+## 📚 Documentación importante para este segundo avance
 
-Si aparece `command not found`, activa el entorno en esa terminal y comprueba
-`command -v jobsy` y `python -m pip show jobsy`. Si el servicio no responde,
-consulta la [guía de usuario](docs/user-guide/README.md), que incluye instalación,
-argumentos con espacios y resolución de problemas. No elimines `/tmp/jobsy.sock`
-como parte de una comprobación automática.
+- [Guía de usuario](docs/user-guide/README.md): instalación, comandos, configuración y solución de problemas.
+- [Contratos públicos](docs/technical-guide/interfaces-publicas.md): interfaces del sistema.
+- [ADR-004: Cola y límite de concurrencia](docs/technical-guide/ADR-004-Cola-y-Limite-de-Concurrencia.md).
+- [ADR-006: Recuperación](docs/technical-guide/ADR-006-Recuperacion.md).
+- [ADR-007: Cancelación](docs/technical-guide/ADR-007-Cancelacion.md).
+- [Semántica de duplicados (RF-27)](docs/technical-guide/semantica-duplicados.md): definición del comportamiento de Jobsy ante solicitudes duplicadas.
 
-## 🔢 Códigos de Salida
-El cliente CLI utiliza estos códigos para la solicitud, no para el resultado del proceso ejecutado:
-* **0**: Solicitud procesada correctamente.
-* **1**: Error de solicitud, comunicación o servicio.
-* **2**: Error de sintaxis.
 
-## 📊 Estado del proyecto:
-El alcance de Benjamin en 2.2 incorpora persistencia y recuperación conservadora.
-La verificación local de desarrollo registró 105 pruebas aprobadas en Ubuntu WSL,
-sin fallos ni omisiones; no equivale a certificación formal ni al cierre de todo
-Avance 02. Las pruebas nuevas permanecen locales y fuera del commit propuesto.
-Alexia conserva la responsabilidad de verificación independiente y evidencia QA.
-Consultar el [traspaso técnico](docs/technical-guide/ADR-006-Recuperacion.md#traspaso-técnico-a-alexia).
+## 📌 Estado del proyecto
+
+Jobsy incorpora ejecución concurrente, cola acotada, persistencia SQLite, recuperación conservadora y socket Unix configurable. La verificación independiente y la certificación formal de QA siguen pendientes según el estado documentado del proyecto.
+
+Proximo hito: Avance Final
