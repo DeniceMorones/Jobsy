@@ -125,7 +125,7 @@ class DaemonServer:
                     job = self.manager.submit_job(command)
                     job_id = job.id
                     operation_status = "aceptada"
-                    logger.log("INFO", f"Solicitud 'run' procesada con éxito para comando: {' '.join(command)}", job_id=job.id)
+                    logger.log("INFO", f"Solicitud 'run' procesada con éxito para comando: {' '.join(command)} [ReqID: {request_id}]", job_id=job.id)
                     response = {"status": "ok", "job_id": job.id}
 
                 elif action == "list":
@@ -204,7 +204,7 @@ class DaemonServer:
                     job_id = request.get("job_id")
                     job = self.manager.cancel_job(job_id)
                     operation_status = "aceptada"
-                    logger.log("INFO", f"Solicitud 'cancel' procesada", job_id=job.id)
+                    logger.log("INFO", f"Solicitud 'cancel' procesada [ReqID: {request_id}]", job_id=job.id)
                     response = {
                         "status": "ok",
                         "job_id": job.id,
