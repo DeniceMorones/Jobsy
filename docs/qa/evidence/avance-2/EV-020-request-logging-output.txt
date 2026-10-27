@@ -9,8 +9,8 @@ PASS: jobsy.log es un archivo regular.
 TC-115 - FORMATO BASICO DE LA BITACORA
 ============================================================
 Primeras líneas del log:
-[2026-10-27 00:43:16.305 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 0dbbecce-5afe-403d-acfb-2d34ad644937
-[2026-10-27 00:43:16.305 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-logging-ve0d3tt5/jobsy.sock
+[2026-10-27 02:12:29.555 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 3e96ddda-f247-472c-a2cf-fba4b32647aa
+[2026-10-27 02:12:29.555 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-logging-hhe4eeen/jobsy.sock
 PASS: La bitácora utiliza timestamp UTC con milisegundos, nivel y Job ID.
 
 ============================================================
@@ -38,7 +38,7 @@ TC-119 - REQUEST_ID CORRELACIONA EL CICLO DE LA SOLICITUD RUN
 ============================================================
 PASS: La solicitud run para probar correlación es aceptada.
 PASS: La solicitud run registra un ReqID al ser recibida.
-FAIL: El mismo ReqID aparece en más de un evento del ciclo de la solicitud run.
+PASS: El mismo ReqID aparece en más de un evento del ciclo de la solicitud run.
 
 ============================================================
 TC-120 - BITACORA PERSISTE Y DAEMON SIGUE OPERATIVO
@@ -50,4 +50,4 @@ PASS: El daemon continúa respondiendo después de múltiples eventos de logging
 ============================================================
 RESULTADO GENERAL
 ============================================================
-RESULTADO GENERAL: FAIL (1 comprobaciones fallidas)
+RESULTADO GENERAL: PASS
