@@ -1,0 +1,53 @@
+
+============================================================
+TC-114 - JOBSY.LOG SE CREA EN EL DATA-DIR
+============================================================
+PASS: El daemon crea jobsy.log dentro del data-dir configurado.
+PASS: jobsy.log es un archivo regular.
+
+============================================================
+TC-115 - FORMATO BASICO DE LA BITACORA
+============================================================
+Primeras líneas del log:
+[2026-10-27 00:43:16.305 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 0dbbecce-5afe-403d-acfb-2d34ad644937
+[2026-10-27 00:43:16.305 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-logging-ve0d3tt5/jobsy.sock
+PASS: La bitácora utiliza timestamp UTC con milisegundos, nivel y Job ID.
+
+============================================================
+TC-116 - CADA SOLICITUD IPC RECIBE UN REQUEST_ID
+============================================================
+PASS: La solicitud list es procesada correctamente.
+PASS: La recepción de la solicitud IPC registra un ReqID.
+PASS: El ReqID registrado contiene un valor no vacío.
+
+============================================================
+TC-117 - SOLICITUDES DISTINTAS RECIBEN REQUEST_ID DIFERENTE
+============================================================
+PASS: La segunda solicitud list es procesada correctamente.
+PASS: Dos solicitudes IPC distintas reciben ReqID diferentes.
+
+============================================================
+TC-118 - EVENTOS DE TRABAJO INCLUYEN JOB ID
+============================================================
+PASS: El trabajo usado para validar logging es aceptado.
+PASS: Los eventos asociados al trabajo contienen su Job ID.
+PASS: La bitácora registra creación, ejecución y finalización del trabajo.
+
+============================================================
+TC-119 - REQUEST_ID CORRELACIONA EL CICLO DE LA SOLICITUD RUN
+============================================================
+PASS: La solicitud run para probar correlación es aceptada.
+PASS: La solicitud run registra un ReqID al ser recibida.
+FAIL: El mismo ReqID aparece en más de un evento del ciclo de la solicitud run.
+
+============================================================
+TC-120 - BITACORA PERSISTE Y DAEMON SIGUE OPERATIVO
+============================================================
+PASS: La bitácora conserva los eventos previamente registrados.
+PASS: El daemon permanece activo después de generar eventos de bitácora.
+PASS: El daemon continúa respondiendo después de múltiples eventos de logging.
+
+============================================================
+RESULTADO GENERAL
+============================================================
+RESULTADO GENERAL: FAIL (1 comprobaciones fallidas)
