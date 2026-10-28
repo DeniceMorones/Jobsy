@@ -36,29 +36,34 @@ La matriz se mantiene de forma acumulativa e incluye las validaciones ejecutadas
 | RNF-21 | Presentar errores estructurados con causa y sugerencia operativa | TC-107 a TC-113 | `test/test_structured_errors.py` | EV-019 | PASS | RNF-21 / #81 |
 | RNF-22 | Correlacionar solicitudes IPC mediante ReqID | TC-116, TC-117, TC-119, TC-120, TC-122 | `test/test_request_logging.py`, `test/test_queue_observability.py` | EV-020, EV-021 | PASS | RNF-22 / #82 |
 | RNF-23 | Mantener guía de usuario actualizada y optimizada | Validación documental | `docs/user-guide/README.md` | PR #116 | PASS | RNF-23 / #83 |
+| RNF-02 | Construcción e instalación reproducible desde un clon limpio | TC-141, TC-142, TC-145, TC-146 | `test/test_clean_installation.py` | EV-024 | PASS | RNF-02 |
+| RNF-03 | Instalar y operar Jobsy sin privilegios root | TC-143, TC-145, TC-146 | `test/test_clean_installation.py` | EV-024 | PASS | RNF-03 |
+| RNF-19 | Instalación limpia sin warnings ni errores | TC-144 | `test/test_clean_installation.py` | EV-024 | PASS | RNF-19 |
+| RNF-20 | Ejecutar la batería de verificación mediante un único comando | TC-147 a TC-149 | `test/run_qa_suite.py` | EV-025 | PASS | RNF-20 / #80 |
+| RNF-31 | Recuperar y distinguir trabajos pendientes, terminados e interrumpidos | TC-127 a TC-133 | `test/test_recovery_behavior.py` | EV-022 | PASS | RNF-31 / #62 |
+| RNF-33 | Ejecutar estrés y verificar liberación de memoria, procesos, archivos y sockets | TC-134 a TC-140 | `test/test_resource_stress.py` | EV-023 | PASS | RNF-33 / #71 |
 | RNF-25 | Liberar procesos hijos al cerrar el servicio | TC-028 | `test/test_service_shutdown.py` | EV-005 | PASS | RNF-25 / #28 |
 | RNF-30 | Evitar procesos huérfanos tras terminación o falla del servicio | TC-019, TC-028, TC-076 a TC-079, TC-087 | `test/test_cancellation.py`, `test/test_service_shutdown.py`, `test/test_process_group_cancellation.py`, `test/test_cancel_grace.py` | EV-004, EV-005, EV-013, EV-015 | PASS | RNF-30 / #29 |
-| QA-01 | Documentar casos de prueba ejecutados | TC-001 a TC-126 | `docs/qa/test-cases.md` | EV-001 a EV-021 | PASS | QA / #47 |
-| QA-02 | Mantener scripts reproducibles de verificación | TC-001 a TC-126 | `test/*.py` | EV-001 a EV-021 | PASS | QA / #48 |
-| QA-03 | Mantener matriz de trazabilidad requisito → prueba → evidencia | TC-001 a TC-126 | `docs/qa/traceability-matrix.md` | EV-001 a EV-021 | PASS | QA / #49 |
-| QA-04 | Registrar evidencia de la versión demostrada | TC-001 a TC-126 | `docs/qa/evidence/avance-1/`, `docs/qa/evidence/avance-2/` | EV-001 a EV-021 | PASS | QA / #51 |
+| QA-01 | Documentar casos de prueba ejecutados | TC-001 a TC-149 | `docs/qa/test-cases.md` | EV-001 a EV-025 | PASS | QA / #47 |
+| QA-02 | Mantener scripts reproducibles de verificación | TC-001 a TC-149 | `test/*.py` | EV-001 a EV-025 | PASS | QA / #48 |
+| QA-03 | Mantener matriz de trazabilidad requisito → prueba → evidencia | TC-001 a TC-149 | `docs/qa/traceability-matrix.md` | EV-001 a EV-025 | PASS | QA / #49 |
+| QA-04 | Registrar evidencia de la versión demostrada | TC-001 a TC-149 | `docs/qa/evidence/avance-1/`, `docs/qa/evidence/avance-2/`, `docs/qa/technical-review-2.md` | EV-001 a EV-025 | PASS | QA / #51 |
+| QA-INC | Documentar al menos un incidente técnico con síntoma, hipótesis, causa, fix y regresión | TC-119 | `docs/qa/incidents/INC-001-request-id-correlation.md` | EV-020 | PASS | QA / Technical Review 2 |
 | QA-05 | Registrar usos representativos de IA durante el avance | N/A | `docs/technical-guide/Registros_uso_IA.pdf` | `Registros_uso_IA.pdf` | PASS | QA / #50 |
 
 ## Observaciones
 
-- La cobertura acumulada comprende `TC-001` a `TC-126`, con evidencias `EV-001` a `EV-021`.
-- `MVP-03 / RF-04` se considera **PASS**. La separación entre el proceso del daemon y los procesos de los trabajos quedó cubierta explícitamente mediante `TC-076` a `TC-079`, que verifican PID, PGID, SID y la terminación completa del grupo.
-- Los casos `TC-037` a `TC-052` corresponden a la validación funcional del PR #104 y utilizan `EV-007` a `EV-009`.
-- Los casos `TC-053` a `TC-070` corresponden a la validación del PR #110 / Issue #72 y utilizan `EV-010` y `EV-011`.
-- Los casos `TC-071` a `TC-090` corresponden al PR #114 y cubren RF-11, RNF-30, RF-26, RF-30 y RNF-09 mediante `EV-012` a `EV-016`.
+- La cobertura acumulada comprende `TC-001` a `TC-149`, con evidencias `EV-001` a `EV-025`.
+- `MVP-03 / RF-04` se considera **PASS**. La separación entre el daemon y los procesos de trabajo quedó cubierta mediante `TC-076` a `TC-079`.
 - Los casos `TC-091` a `TC-126` corresponden al PR #116 y utilizan `EV-017` a `EV-021`.
-- `TC-091` a `TC-098` validan RF-27 y la semántica de solicitudes duplicadas para `list`, `status`, `output`, `cancel` y `run`.
-- `TC-099` a `TC-106` validan RF-24 mediante el resumen `health`, incluyendo trabajos `RUNNING`, `QUEUED`, errores recientes y el límite de 10 registros.
-- `TC-107` a `TC-113` validan RNF-21 / RF-28 mediante respuestas estructuradas con `operation`, `cause` y `suggestion`.
-- `TC-114` a `TC-120` validan RF-14 / RNF-22 mediante `jobsy.log`, Job ID y correlación de solicitudes con `ReqID`.
-- Durante la primera ejecución de `TC-119` se detectó que el `ReqID` no se propagaba a eventos posteriores. El defecto fue corregido en el PR #116 y la revalidación terminó en `PASS`.
-- `TC-121` a `TC-126` validan observabilidad de cola, registro de rechazos, desconexiones prematuras y continuidad operativa del daemon.
-- RNF-23 se validó como cambio documental mediante la actualización de `docs/user-guide/README.md`; no se añadió un caso funcional específico al no introducir por sí mismo un comportamiento ejecutable nuevo.
-- Durante la regresión del PR #116, las comprobaciones históricas `TC-046` y `TC-047` requirieron reinterpretación porque el contrato de error cambió de `message` a `operation`, `cause` y `suggestion`. El comportamiento actual queda validado formalmente por `TC-107` y `TC-108`.
-- RF-16 continúa **PARCIAL**: las pruebas del PR #110 cubren el endpoint UNIX local configurable, pero no existe comunicación TCP ni configuración de host/puerto dentro del alcance validado.
-- Los Issues #47, #48, #49, #50 y #51 corresponden a entregables de QA y certificación.
+- Los casos `TC-127` a `TC-149` corresponden al cierre de QA para la Technical Review 2 y utilizan `EV-022` a `EV-025`.
+- RNF-31 quedó cubierto mediante `TC-127` a `TC-133`, verificando conservación de terminales, `QUEUED → CANCELED`, ejecución interrumpida → `FAILED`, ausencia de reejecución automática y continuidad del daemon.
+- RNF-33 quedó cubierto mediante `TC-134` a `TC-140`, incluyendo una carga de 120 trabajos, liberación de procesos hijos, descriptores, memoria estable y limpieza del socket UNIX.
+- RNF-02, RNF-03 y RNF-19 quedaron cubiertos mediante `TC-141` a `TC-146`: clon limpio, entorno virtual nuevo, UID no root, instalación sin `sudo`, sin warnings y puntos de entrada operativos.
+- RNF-20 quedó cubierto mediante `TC-147` a `TC-149`; `python test/run_qa_suite.py` ejecutó la batería consolidada con `22 PASS`, `0 FAIL` y `0 TIMEOUT`.
+- Durante la primera ejecución de `TC-119` se detectó un defecto de propagación de `ReqID`. El incidente fue corregido y revalidado; se documenta en `docs/qa/incidents/INC-001-request-id-correlation.md`.
+- La evidencia de la versión demostrada y la batería ejecutada para Technical Review 2 se consolida en `docs/qa/technical-review-2.md`.
+- Las pruebas históricas con contratos anteriores se conservan como evidencia de ejecuciones previas, pero el runner consolidado utiliza únicamente la batería vigente.
+- RNF-23 se validó como cambio documental mediante `docs/user-guide/README.md`.
+- RF-16 continúa **PARCIAL**: el alcance validado cubre socket UNIX local configurable, no comunicación TCP ni configuración de host/puerto.
+- No se identifican defectos bloqueantes abiertos dentro del alcance final validado.
