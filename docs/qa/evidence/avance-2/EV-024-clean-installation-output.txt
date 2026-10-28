@@ -1,0 +1,51 @@
+
+============================================================
+TC-141 - CREAR CLON LIMPIO DEL REPOSITORIO
+============================================================
+PASS: El repositorio puede clonarse desde cero.
+PASS: El clon inicia con working tree limpio.
+Commit probado: 10c7a8e
+
+============================================================
+TC-142 - CREAR ENTORNO VIRTUAL DESDE EL CLON LIMPIO
+============================================================
+PASS: Se crea un entorno virtual nuevo desde el clon limpio.
+PASS: El entorno virtual contiene Python y pip.
+
+============================================================
+TC-143 - INSTALAR JOBSY SIN PRIVILEGIOS ROOT
+============================================================
+UID de ejecución: 1000
+PASS: La prueba se ejecuta como usuario sin privilegios root.
+Exit code instalación: 0
+PASS: Jobsy se instala correctamente desde el clon limpio.
+PASS: La instalación no utiliza sudo.
+PASS: Jobsy queda instalado dentro del entorno virtual.
+Location instalada: /tmp/jobsy-clean-install-4v5kc1ke/Jobsy/.venv-clean/lib/python3.14/site-packages
+PASS: La instalación queda contenida dentro del entorno virtual del usuario.
+
+============================================================
+TC-144 - INSTALACION LIMPIA SIN ADVERTENCIAS
+============================================================
+Advertencias detectadas: 0
+PASS: La instalación finaliza sin warnings ni errores de construcción.
+
+============================================================
+TC-145 - PUNTOS DE ENTRADA SE INSTALAN CORRECTAMENTE
+============================================================
+Puntos de entrada esperados: jobsy, jobsy-daemon, execute, list, status, cancel
+Puntos de entrada faltantes: ninguno
+PASS: Los puntos de entrada públicos quedan instalados.
+
+============================================================
+TC-146 - INSTALACION NUEVA ES OPERATIVA
+============================================================
+PASS: jobsy --help funciona desde la instalación nueva.
+PASS: jobsy-daemon --help funciona desde la instalación nueva.
+PASS: La CLI instalada presenta su ayuda correctamente.
+PASS: El daemon instalado presenta su ayuda correctamente.
+
+============================================================
+RESULTADO GENERAL
+============================================================
+RESULTADO GENERAL: PASS
