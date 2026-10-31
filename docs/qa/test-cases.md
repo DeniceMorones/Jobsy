@@ -1,16 +1,20 @@
 # Casos de prueba — Jobsy
 
-Este documento registra los casos de prueba ejecutados por QA sobre los alcances funcionales revisados de Jobsy en los PR #101, #102, #104, #110 y #114.
+Este documento registra los casos de prueba ejecutados por QA sobre los alcances funcionales revisados de Jobsy en los PR #101, #102, #104, #110, #114 y #116.
 
 La numeración de los casos se mantiene de forma acumulativa para conservar la trazabilidad entre pruebas, requisitos, scripts y evidencias.
 
-Hasta el momento se han documentado y ejecutado los casos **TC-001 a TC-090**.
+Hasta el momento se han documentado y ejecutado los casos **TC-001 a TC-149**.
 
 Las pruebas cubren validación de entradas, ejecución de trabajos, estados y metadatos, cancelación, apagado seguro, comportamiento de la CLI, comunicación IPC mediante sockets UNIX, robustez ante solicitudes inválidas, múltiples trabajos durante una misma sesión y configuración de sockets UNIX personalizados.
 
 Los casos **TC-053 a TC-070** corresponden a la validación del **PR #110**, relacionado con la configuración del socket UNIX local.
 
 Los casos **TC-071 a TC-090** corresponden a la validación del **PR #114**, relacionado con la gestión del ciclo de vida de trabajos, separación de salidas, grupos de procesos, cancelación repetida, período de gracia configurable y aislamiento de fallos de limpieza.
+
+Los casos **TC-091 a TC-126** corresponden a la validación del **PR #116**, relacionado con solicitudes duplicadas, resumen de salud, errores estructurados, bitácora centralizada, correlación mediante `ReqID`, observabilidad de cola y robustez ante desconexiones del cliente.
+
+Los casos **TC-127 a TC-149** corresponden al cierre de QA para la **Technical Review 2**, cubriendo recuperación, estrés y liberación de recursos, instalación limpia, ejecución sin privilegios root, ausencia de warnings y batería de pruebas ejecutable mediante un único comando.
 
 ### Entorno de ejecución del PR #110
 
@@ -28,6 +32,19 @@ Para las pruebas de los puntos de entrada públicos se utilizó un entorno virtu
 ### Entorno de ejecución del PR #114
 
 Las pruebas del PR #114 fueron ejecutadas en:
+
+- Windows 11 como sistema host.
+- Ubuntu 26.04.1 LTS mediante WSL2.
+- Arquitectura x86_64.
+- Linux kernel `6.18.33.2-microsoft-standard-WSL2`.
+- Python 3.14.4.
+- Git 2.53.0.
+- Repositorio ubicado en `/mnt/e/Alexia/Sistemas Avanzados/Jobsy`.
+- Entorno virtual de Python (`.venv`) con Jobsy instalado para las pruebas.
+
+### Entorno de ejecución del PR #116
+
+Las pruebas del PR #116 fueron ejecutadas en:
 
 - Windows 11 como sistema host.
 - Ubuntu 26.04.1 LTS mediante WSL2.
@@ -65,6 +82,15 @@ Cada caso puede encontrarse en uno de los siguientes estados:
 - `EV-014-repeated-cancellation-output.txt`: comportamiento de la primera y segunda solicitud de cancelación sobre un mismo trabajo.
 - `EV-015-cancel-grace-output.txt`: validación de `--cancel-grace`, rechazo de valores fuera de rango y escalamiento de `SIGTERM` a `SIGKILL`.
 - `EV-016-cleanup-isolation-output.txt`: aislamiento de fallos de cleanup sin bloquear el scheduler ni el servicio.
+- `EV-017-duplicate-requests-output.txt`: validación de solicitudes duplicadas y semántica de RF-27.
+- `EV-018-health-summary-output.txt`: validación del resumen de salud `health` de RF-24.
+- `EV-019-structured-errors-output.txt`: validación de errores estructurados y sugerencias operativas de RNF-21 / RF-28.
+- `EV-020-request-logging-output.txt`: validación de bitácora, Job ID y correlación mediante `ReqID` de RF-14 / RNF-22.
+- `EV-021-queue-observability-output.txt`: validación de robustez, observabilidad de cola y desconexiones del cliente.
+- `EV-022-recovery-behavior-output.txt`: validación de recuperación de trabajos terminales, pendientes e interrumpidos.
+- `EV-023-resource-stress-output.txt`: estrés y liberación de memoria, procesos, archivos y sockets.
+- `EV-024-clean-installation-output.txt`: clon limpio, instalación sin root, sin sudo y sin warnings.
+- `EV-025-single-command-suite-output.txt`: batería consolidada de QA ejecutable mediante un único comando.
 
 ### Avance 1
 
@@ -74,6 +100,20 @@ Cada caso puede encontrarse en uno de los siguientes estados:
 
 - `EV-010-socket-config-output.txt`: configuración, validación e integración básica del socket UNIX configurable.
 - `EV-011-socket-cli-contract-output.txt`: contrato público de CLI, variable `JOBSY_SOCKET_PATH`, códigos de salida y puntos de entrada.
+- `EV-012-output-behavior-output.txt`: separación e integridad de stdout/stderr.
+- `EV-013-process-group-cancellation-output.txt`: grupos de procesos y cancelación completa.
+- `EV-014-repeated-cancellation-output.txt`: cancelación repetida.
+- `EV-015-cancel-grace-output.txt`: período de gracia configurable y escalamiento a SIGKILL.
+- `EV-016-cleanup-isolation-output.txt`: aislamiento de fallos de cleanup.
+- `EV-017-duplicate-requests-output.txt`: solicitudes duplicadas.
+- `EV-018-health-summary-output.txt`: resumen de salud.
+- `EV-019-structured-errors-output.txt`: errores estructurados y sugerencias operativas.
+- `EV-020-request-logging-output.txt`: bitácora y correlación mediante ReqID.
+- `EV-021-queue-observability-output.txt`: robustez y observabilidad de cola.
+- `EV-022-recovery-behavior-output.txt`: recuperación de trabajos tras reinicio/interrupción.
+- `EV-023-resource-stress-output.txt`: estrés y liberación de recursos.
+- `EV-024-clean-installation-output.txt`: instalación limpia y sin privilegios root.
+- `EV-025-single-command-suite-output.txt`: batería unificada de QA mediante un único comando.
 
 ---
 
@@ -2216,9 +2256,9 @@ PASS: execute devuelve un UUID de trabajo.
 
 ### TC-071 — Separar stdout y stderr
 
-**Requisito relacionado:** RF-11  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-11
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2246,9 +2286,9 @@ PASS
 
 ### TC-072 — Recuperar stdout mayor a 4096 bytes
 
-**Requisito relacionado:** RF-11  
-**Tipo:** Integración / Robustez  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-11
+**Tipo:** Integración / Robustez
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2271,9 +2311,9 @@ PASS
 
 ### TC-073 — Recuperar stderr mayor a 4096 bytes
 
-**Requisito relacionado:** RF-11  
-**Tipo:** Integración / Robustez  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-11
+**Tipo:** Integración / Robustez
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2296,9 +2336,9 @@ PASS
 
 ### TC-074 — Mantener vacío el stream no utilizado
 
-**Requisito relacionado:** RF-11  
-**Tipo:** Funcional  
-**Prioridad:** Media  
+**Requisito relacionado:** RF-11
+**Tipo:** Funcional
+**Prioridad:** Media
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2319,9 +2359,9 @@ PASS
 
 ### TC-075 — Devolver código 0 al consultar output correctamente
 
-**Requisito relacionado:** RF-11  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Media  
+**Requisito relacionado:** RF-11
+**Tipo:** Funcional / Integración
+**Prioridad:** Media
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2345,9 +2385,9 @@ PASS
 
 ### TC-076 — Crear cada trabajo en su propio grupo de procesos
 
-**Requisito relacionado:** RNF-30  
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RNF-30
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2369,9 +2409,9 @@ PASS
 
 ### TC-077 — Mantener procesos hijos en el mismo grupo
 
-**Requisito relacionado:** RNF-30  
-**Tipo:** Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RNF-30
+**Tipo:** Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2392,9 +2432,9 @@ PASS
 
 ### TC-078 — Cancelar proceso principal y descendientes
 
-**Requisito relacionado:** RNF-30  
-**Tipo:** Integración / Robustez  
-**Prioridad:** Alta  
+**Requisito relacionado:** RNF-30
+**Tipo:** Integración / Robustez
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2418,9 +2458,9 @@ PASS
 
 ### TC-079 — Mantener daemon operativo después de cancelar un grupo
 
-**Requisito relacionado:** RNF-30  
-**Tipo:** Robustez / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RNF-30
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2443,9 +2483,9 @@ PASS
 
 ### TC-080 — Cancelar un trabajo por primera vez
 
-**Requisito relacionado:** RF-26  
-**Tipo:** Funcional / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-26
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2467,9 +2507,9 @@ PASS
 
 ### TC-081 — Rechazar una segunda cancelación con mensaje claro
 
-**Requisito relacionado:** RF-26  
-**Tipo:** Negativa / Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-26
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2494,9 +2534,9 @@ PASS
 
 ### TC-082 — Aceptar cancel-grace entero válido
 
-**Requisito relacionado:** RF-30  
-**Tipo:** Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-30
+**Tipo:** Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2519,9 +2559,9 @@ PASS
 
 ### TC-083 — Aceptar cancel-grace fraccionario válido
 
-**Requisito relacionado:** RF-30  
-**Tipo:** Funcional  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-30
+**Tipo:** Funcional
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2544,9 +2584,9 @@ PASS
 
 ### TC-084 — Rechazar cancel-grace igual a cero
 
-**Requisito relacionado:** RF-30  
-**Tipo:** Negativa  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-30
+**Tipo:** Negativa
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2569,9 +2609,9 @@ PASS
 
 ### TC-085 — Rechazar cancel-grace negativo
 
-**Requisito relacionado:** RF-30  
-**Tipo:** Negativa  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-30
+**Tipo:** Negativa
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2594,9 +2634,9 @@ PASS
 
 ### TC-086 — Rechazar cancel-grace mayor a 60
 
-**Requisito relacionado:** RF-30  
-**Tipo:** Negativa  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-30
+**Tipo:** Negativa
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2619,9 +2659,9 @@ PASS
 
 ### TC-087 — Escalar de SIGTERM a SIGKILL
 
-**Requisito relacionado:** RF-30  
-**Tipo:** Integración / Robustez  
-**Prioridad:** Alta  
+**Requisito relacionado:** RF-30
+**Tipo:** Integración / Robustez
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2654,9 +2694,9 @@ PASS
 
 ### TC-088 — Aislar un fallo de cleanup
 
-**Requisito relacionado:** RNF-09  
-**Tipo:** Robustez / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RNF-09
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2677,9 +2717,9 @@ PASS
 
 ### TC-089 — Mantener scheduler responsivo durante cleanup fallido
 
-**Requisito relacionado:** RNF-09  
-**Tipo:** Robustez  
-**Prioridad:** Alta  
+**Requisito relacionado:** RNF-09
+**Tipo:** Robustez
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2701,9 +2741,9 @@ PASS
 
 ### TC-090 — Finalizar de forma controlada tras fallo de cleanup
 
-**Requisito relacionado:** RNF-09  
-**Tipo:** Robustez / Integración  
-**Prioridad:** Alta  
+**Requisito relacionado:** RNF-09
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
 **Estado:** `PASS`
 
 #### Objetivo
@@ -2721,6 +2761,1324 @@ PASS
 
 #### Evidencia
 `EV-016-cleanup-isolation-output.txt`
+
+---
+
+# Casos de prueba — PR #116
+
+---
+
+## RF-27 — Semántica de solicitudes duplicadas
+
+## TC-091 — List duplicado no altera el estado
+
+**Requisito relacionado:** RF-27
+**Tipo:** Funcional / Integración / Idempotencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que repetir una solicitud IPC `list` no modifique los trabajos ni el estado interno del daemon.
+
+### Resultado esperado
+Dos solicitudes `list` consecutivas deben responder correctamente y devolver el mismo estado cuando no existe ninguna modificación entre ambas.
+
+### Resultado obtenido
+Las dos solicitudes fueron procesadas correctamente y devolvieron el mismo listado sin alterar el estado.
+
+### Evidencia
+`EV-017-duplicate-requests-output.txt`
+
+---
+
+## TC-092 — Status duplicado conserva metadatos
+
+**Requisito relacionado:** RF-27
+**Tipo:** Funcional / Integración / Idempotencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que consultar repetidamente `status` sobre el mismo trabajo no modifique sus metadatos.
+
+### Resultado esperado
+Dos consultas consecutivas deben devolver los mismos datos del trabajo.
+
+### Resultado obtenido
+Las consultas consecutivas conservaron estado, comando, timestamps y demás metadatos.
+
+### Evidencia
+`EV-017-duplicate-requests-output.txt`
+
+---
+
+## TC-093 — Output duplicado conserva stdout y stderr
+
+**Requisito relacionado:** RF-27; RF-11
+**Tipo:** Funcional / Integración / Idempotencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que repetir `output` no modifique las salidas almacenadas de un trabajo.
+
+### Resultado esperado
+Las consultas repetidas deben devolver exactamente el mismo `stdout` y `stderr`.
+
+### Resultado obtenido
+Las dos consultas devolvieron exactamente el contenido original de ambos flujos.
+
+### Evidencia
+`EV-017-duplicate-requests-output.txt`
+
+---
+
+## TC-094 — Cancel duplicado no genera segunda transición
+
+**Requisito relacionado:** RF-27; RF-26
+**Tipo:** Funcional / Negativa / Idempotencia controlada
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que una segunda solicitud de cancelación no genere una nueva transición sobre un trabajo ya cancelado.
+
+### Resultado esperado
+La primera cancelación debe llevar el trabajo a `CANCELED`; la segunda debe rechazarse de forma controlada.
+
+### Resultado obtenido
+La primera solicitud canceló el trabajo y la segunda fue rechazada indicando que la cancelación ya había sido solicitada.
+
+### Evidencia
+`EV-017-duplicate-requests-output.txt`
+
+---
+
+## TC-095 — Cancel duplicado conserva estado y timestamps
+
+**Requisito relacionado:** RF-27; RF-26
+**Tipo:** Integración / Consistencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que una cancelación repetida no modifique nuevamente el estado ni las marcas de tiempo del trabajo.
+
+### Resultado esperado
+El trabajo debe permanecer `CANCELED` y conservar `received_at`, `started_at` y `finished_at`.
+
+### Resultado obtenido
+El estado permaneció `CANCELED` y los timestamps no cambiaron después del segundo intento.
+
+### Evidencia
+`EV-017-duplicate-requests-output.txt`
+
+---
+
+## TC-096 — Run duplicado crea UUID diferentes
+
+**Requisito relacionado:** RF-27
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar la semántica no idempotente de `run`.
+
+### Resultado esperado
+Dos solicitudes `run` con el mismo comando deben crear trabajos distintos con UUIDv4 diferentes.
+
+### Resultado obtenido
+Ambas solicitudes fueron aceptadas y generaron identificadores UUIDv4 válidos y diferentes.
+
+### Evidencia
+`EV-017-duplicate-requests-output.txt`
+
+---
+
+## TC-097 — Run duplicado crea trabajos independientes
+
+**Requisito relacionado:** RF-27
+**Tipo:** Funcional / Integración / Consistencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que dos solicitudes `run` idénticas produzcan entidades independientes.
+
+### Resultado esperado
+Los dos trabajos deben conservar el mismo comando pero tener ciclos de vida independientes.
+
+### Resultado obtenido
+Ambos trabajos pudieron consultarse de forma independiente y cancelar uno no modificó el estado del otro.
+
+### Evidencia
+`EV-017-duplicate-requests-output.txt`
+
+---
+
+## TC-098 — Daemon sigue operativo tras solicitudes duplicadas
+
+**Requisito relacionado:** RF-27
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que las solicitudes repetidas no afecten la disponibilidad del daemon.
+
+### Resultado esperado
+El proceso debe permanecer activo y aceptar solicitudes válidas después de las operaciones duplicadas.
+
+### Resultado obtenido
+El daemon permaneció activo y respondió correctamente a una solicitud `list` posterior.
+
+### Evidencia
+`EV-017-duplicate-requests-output.txt`
+
+---
+
+## RF-24 — Resumen de salud del servicio
+
+## TC-099 — Health responde con estructura esperada
+
+**Requisito relacionado:** RF-24
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la acción `health` responda correctamente e incluya todos los campos definidos.
+
+### Resultado esperado
+Debe incluir `service_active`, `storage_error`, `running_count`, `running_jobs`, `queued_count`, `queued_jobs`, `recent_errors_count` y `recent_errors`.
+
+### Resultado obtenido
+La respuesta fue `ok` y contenía todos los campos esperados.
+
+### Evidencia
+`EV-018-health-summary-output.txt`
+
+---
+
+## TC-100 — Health reporta servicio activo
+
+**Requisito relacionado:** RF-24
+**Tipo:** Funcional
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar los indicadores generales de salud durante una sesión normal.
+
+### Resultado esperado
+`service_active` debe ser verdadero y `storage_error` debe ser nulo.
+
+### Resultado obtenido
+El servicio fue reportado activo y sin errores de almacenamiento.
+
+### Evidencia
+`EV-018-health-summary-output.txt`
+
+---
+
+## TC-101 — Health reporta trabajo RUNNING
+
+**Requisito relacionado:** RF-24
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que `health` contabilice e identifique trabajos `RUNNING`.
+
+### Resultado esperado
+El resumen debe indicar un trabajo en ejecución e incluir su ID.
+
+### Resultado obtenido
+`running_count` fue correcto y el trabajo esperado apareció en `running_jobs`.
+
+### Evidencia
+`EV-018-health-summary-output.txt`
+
+---
+
+## TC-102 — Health reporta trabajo QUEUED
+
+**Requisito relacionado:** RF-24
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que `health` contabilice e identifique trabajos `QUEUED`.
+
+### Resultado esperado
+El resumen debe indicar un trabajo en cola e incluir su ID.
+
+### Resultado obtenido
+`queued_count` fue correcto y el trabajo apareció en `queued_jobs`.
+
+### Evidencia
+`EV-018-health-summary-output.txt`
+
+---
+
+## TC-103 — Health reporta errores recientes
+
+**Requisito relacionado:** RF-24
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que trabajos `FAILED` sean incluidos entre los errores recientes.
+
+### Resultado esperado
+`recent_errors_count` debe aumentar y el trabajo fallido debe aparecer en `recent_errors`.
+
+### Resultado obtenido
+El trabajo `FAILED` fue reportado correctamente entre los errores recientes.
+
+### Evidencia
+`EV-018-health-summary-output.txt`
+
+---
+
+## TC-104 — Health limita errores recientes a 10
+
+**Requisito relacionado:** RF-24
+**Tipo:** Funcional / Límite
+**Prioridad:** Media
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el límite máximo de errores recientes devueltos por `health`.
+
+### Resultado esperado
+El resumen no debe devolver más de 10 errores recientes.
+
+### Resultado obtenido
+`recent_errors_count` y la colección `recent_errors` quedaron limitados a 10 elementos.
+
+### Evidencia
+`EV-018-health-summary-output.txt`
+
+---
+
+## TC-105 — Health es operación de solo lectura
+
+**Requisito relacionado:** RF-24
+**Tipo:** Integración / Consistencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que consultar `health` no modifique el estado del sistema.
+
+### Resultado esperado
+Dos consultas consecutivas, sin cambios externos, deben devolver el mismo estado.
+
+### Resultado obtenido
+Las dos solicitudes fueron procesadas correctamente y el contenido del resumen no cambió.
+
+### Evidencia
+`EV-018-health-summary-output.txt`
+
+---
+
+## TC-106 — Daemon sigue operativo después de health
+
+**Requisito relacionado:** RF-24
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que múltiples consultas `health` no afecten la disponibilidad del daemon.
+
+### Resultado esperado
+El proceso debe continuar activo y aceptar nuevas solicitudes.
+
+### Resultado obtenido
+El daemon permaneció activo y respondió correctamente a `list`.
+
+### Evidencia
+`EV-018-health-summary-output.txt`
+
+---
+
+## RNF-21 / RF-28 — Errores estructurados y sugerencias operativas
+
+## TC-107 — Acción IPC inválida devuelve error estructurado
+
+**Requisito relacionado:** RNF-21; RF-28
+**Tipo:** Negativa / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el contrato estructurado de error ante una acción IPC desconocida.
+
+### Resultado esperado
+La respuesta debe contener `status`, `operation`, `cause` y `suggestion`.
+
+### Resultado obtenido
+El daemon respondió con los cuatro campos y conservó el nombre de la operación inválida.
+
+### Evidencia
+`EV-019-structured-errors-output.txt`
+
+---
+
+## TC-108 — JSON inválido devuelve error estructurado
+
+**Requisito relacionado:** RNF-21; RF-28
+**Tipo:** Negativa / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el manejo controlado de JSON no interpretable.
+
+### Resultado esperado
+Debe devolverse un error estructurado usando la operación `desconocida` y una causa explícita.
+
+### Resultado obtenido
+El daemon devolvió el formato estructurado y conservó la causa del error de parseo.
+
+### Evidencia
+`EV-019-structured-errors-output.txt`
+
+---
+
+## TC-109 — Status de ID inexistente devuelve error estructurado
+
+**Requisito relacionado:** RNF-21; RF-28
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el contrato de error al consultar un ID inexistente.
+
+### Resultado esperado
+La operación debe identificarse como `status` y la causa debe indicar que el trabajo no existe.
+
+### Resultado obtenido
+La respuesta identificó correctamente la operación y la causa.
+
+### Evidencia
+`EV-019-structured-errors-output.txt`
+
+---
+
+## TC-110 — Cancel de ID inexistente devuelve error estructurado
+
+**Requisito relacionado:** RNF-21; RF-28
+**Tipo:** Negativa / Funcional
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el contrato de error al cancelar un ID inexistente.
+
+### Resultado esperado
+La respuesta debe identificar la operación `cancel` y proporcionar causa y sugerencia.
+
+### Resultado obtenido
+El daemon devolvió el error estructurado esperado.
+
+### Evidencia
+`EV-019-structured-errors-output.txt`
+
+---
+
+## TC-111 — Cola llena devuelve causa y sugerencia
+
+**Requisito relacionado:** RF-23; RF-28; RNF-21
+**Tipo:** Negativa / Capacidad / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el tratamiento estructurado de `QueueFullError`.
+
+### Resultado esperado
+Una solicitud `run` que exceda la capacidad debe rechazarse con operación `run`, causa relacionada con cola llena y una sugerencia operativa.
+
+### Resultado obtenido
+La solicitud fue rechazada con el formato y contenido esperados.
+
+### Evidencia
+`EV-019-structured-errors-output.txt`
+
+---
+
+## TC-112 — CLI presenta el error estructurado
+
+**Requisito relacionado:** RNF-21; RF-28
+**Tipo:** Funcional / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que la CLI traduzca correctamente el error estructurado recibido del daemon.
+
+### Resultado esperado
+La CLI debe terminar con código `1` y mostrar operación, causa y acción sugerida en `stderr`.
+
+### Resultado obtenido
+Los tres elementos fueron mostrados correctamente y la CLI terminó con código `1`.
+
+### Evidencia
+`EV-019-structured-errors-output.txt`
+
+---
+
+## TC-113 — Daemon sigue operativo después de errores
+
+**Requisito relacionado:** RNF-21; RF-28
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que solicitudes erróneas no detengan el daemon.
+
+### Resultado esperado
+El daemon debe permanecer activo y aceptar una solicitud válida posterior.
+
+### Resultado obtenido
+El proceso siguió activo y respondió correctamente a una nueva solicitud.
+
+### Evidencia
+`EV-019-structured-errors-output.txt`
+
+---
+
+## RF-14 / RNF-22 — Bitácora y correlación de solicitudes
+
+## TC-114 — jobsy.log se crea en el data-dir
+
+**Requisito relacionado:** RF-14
+**Tipo:** Funcional / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar la creación de la bitácora centralizada en el directorio de datos configurado.
+
+### Resultado esperado
+Debe existir un archivo regular `jobsy.log` dentro del `data-dir`.
+
+### Resultado obtenido
+El archivo fue creado correctamente.
+
+### Evidencia
+`EV-020-request-logging-output.txt`
+
+---
+
+## TC-115 — Formato básico de la bitácora
+
+**Requisito relacionado:** RF-14
+**Tipo:** Funcional / Observabilidad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar el formato de los eventos escritos en la bitácora.
+
+### Resultado esperado
+Las líneas deben incluir timestamp UTC con milisegundos, nivel de log y Job ID.
+
+### Resultado obtenido
+El formato observado cumplió los campos esperados.
+
+### Evidencia
+`EV-020-request-logging-output.txt`
+
+---
+
+## TC-116 — Cada solicitud IPC recibe ReqID
+
+**Requisito relacionado:** RNF-22
+**Tipo:** Observabilidad / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que cada solicitud IPC sea identificada mediante `ReqID`.
+
+### Resultado esperado
+El evento de recepción debe contener un `ReqID` no vacío.
+
+### Resultado obtenido
+La solicitud fue registrada con un `ReqID` válido.
+
+### Evidencia
+`EV-020-request-logging-output.txt`
+
+---
+
+## TC-117 — Solicitudes distintas reciben ReqID diferentes
+
+**Requisito relacionado:** RNF-22
+**Tipo:** Observabilidad / Consistencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que solicitudes IPC diferentes no reutilicen el mismo identificador de correlación.
+
+### Resultado esperado
+Dos solicitudes distintas deben recibir `ReqID` diferentes.
+
+### Resultado obtenido
+Los identificadores registrados fueron diferentes.
+
+### Evidencia
+`EV-020-request-logging-output.txt`
+
+---
+
+## TC-118 — Eventos de trabajo incluyen Job ID
+
+**Requisito relacionado:** RF-14
+**Tipo:** Observabilidad / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que los eventos relacionados con un trabajo permitan identificar el Job correspondiente.
+
+### Resultado esperado
+La bitácora debe registrar el Job ID durante creación, ejecución y finalización.
+
+### Resultado obtenido
+Los eventos incluyeron el Job ID y se registraron las etapas esperadas.
+
+### Evidencia
+`EV-020-request-logging-output.txt`
+
+---
+
+## TC-119 — ReqID correlaciona el ciclo de la solicitud run
+
+**Requisito relacionado:** RNF-22
+**Tipo:** Observabilidad / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que un mismo `ReqID` permita relacionar más de un evento perteneciente a la misma solicitud `run`.
+
+### Resultado esperado
+El `ReqID` asignado al recibir la solicitud debe reaparecer en eventos posteriores relacionados con su procesamiento.
+
+### Resultado obtenido
+Después de la corrección aplicada durante la revisión del PR #116, el mismo `ReqID` apareció en más de un evento del ciclo de la solicitud.
+
+### Evidencia
+`EV-020-request-logging-output.txt`
+
+### Nota de revalidación
+En la primera ejecución este caso obtuvo `FAIL`, ya que el `ReqID` solo aparecía en el evento inicial de recepción. El defecto fue reportado al equipo, corregido y posteriormente revalidado. La ejecución final obtuvo `PASS`.
+
+---
+
+## TC-120 — Bitácora persiste y daemon sigue operativo
+
+**Requisito relacionado:** RF-14; RNF-22
+**Tipo:** Robustez / Observabilidad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que los eventos ya registrados permanezcan en la bitácora y que el logging no afecte la disponibilidad del servicio.
+
+### Resultado esperado
+La bitácora debe conservar eventos anteriores y el daemon debe continuar respondiendo.
+
+### Resultado obtenido
+Los eventos permanecieron registrados y el daemon continuó activo y operativo.
+
+### Evidencia
+`EV-020-request-logging-output.txt`
+
+---
+
+## RF-23 / RF-28 — Robustez y observabilidad de cola
+
+## TC-121 — Cola llena queda registrada en jobsy.log
+
+**Requisito relacionado:** RF-23; RF-14
+**Tipo:** Robustez / Observabilidad / Capacidad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que un rechazo causado por falta de capacidad quede registrado en la bitácora.
+
+### Resultado esperado
+La solicitud adicional debe rechazarse y el evento de cola llena debe aparecer en `jobsy.log`.
+
+### Resultado obtenido
+La tercera solicitud fue rechazada y el evento quedó registrado correctamente.
+
+### Evidencia
+`EV-021-queue-observability-output.txt`
+
+---
+
+## TC-122 — Rechazo por cola llena incluye ReqID
+
+**Requisito relacionado:** RF-23; RNF-22
+**Tipo:** Observabilidad / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que los rechazos por capacidad puedan correlacionarse con su solicitud IPC.
+
+### Resultado esperado
+El evento de rechazo debe contener un `ReqID`.
+
+### Resultado obtenido
+El evento de rechazo por capacidad incluyó el identificador de solicitud.
+
+### Evidencia
+`EV-021-queue-observability-output.txt`
+
+---
+
+## TC-123 — Desconexión prematura del cliente queda registrada
+
+**Requisito relacionado:** RF-28
+**Tipo:** Robustez / IPC
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el servidor maneje y registre una desconexión del cliente antes de recibir la respuesta.
+
+### Resultado esperado
+La desconexión debe registrarse sin provocar la terminación del daemon.
+
+### Resultado obtenido
+La bitácora registró explícitamente la desconexión prematura.
+
+### Evidencia
+`EV-021-queue-observability-output.txt`
+
+---
+
+## TC-124 — Log indica estado de operación tras desconexión
+
+**Requisito relacionado:** RF-28; RF-14
+**Tipo:** Observabilidad / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que el diagnóstico de una desconexión indique si la operación había sido aceptada, rechazada o no había tenido efecto.
+
+### Resultado esperado
+El log debe contener `Estado de la operación` y un estado explícito.
+
+### Resultado obtenido
+La bitácora registró correctamente el estado de la operación.
+
+### Evidencia
+`EV-021-queue-observability-output.txt`
+
+---
+
+## TC-125 — Daemon sobrevive a desconexión del cliente
+
+**Requisito relacionado:** RF-28
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar que una desconexión prematura no detenga el servicio.
+
+### Resultado esperado
+El proceso del daemon debe permanecer activo.
+
+### Resultado obtenido
+El daemon permaneció en ejecución.
+
+### Evidencia
+`EV-021-queue-observability-output.txt`
+
+---
+
+## TC-126 — Solicitud posterior sigue funcionando
+
+**Requisito relacionado:** RF-28
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar la recuperación operativa del daemon después de una desconexión prematura.
+
+### Resultado esperado
+Una nueva solicitud válida debe procesarse correctamente.
+
+### Resultado obtenido
+Una solicitud `list` posterior respondió correctamente y el daemon permaneció activo.
+
+### Evidencia
+`EV-021-queue-observability-output.txt`
+
+---
+
+
+# Casos de prueba — Technical Review 2
+
+## RNF-31 — Recuperación de trabajos
+
+### TC-127 — Conservar trabajo terminal tras reinicio
+
+**Requisito relacionado:** RNF-31
+**Tipo:** Integración / Persistencia / Recuperación
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que un trabajo que terminó correctamente antes del reinicio permanezca disponible y conserve su estado terminal.
+
+#### Resultado esperado
+El trabajo debe seguir disponible después del reinicio y conservar el estado `SUCCEEDED`.
+
+#### Resultado obtenido
+```text
+PASS: El trabajo termina en SUCCEEDED antes del reinicio.
+PASS: El trabajo terminal sigue disponible después del reinicio.
+PASS: El trabajo terminal conserva el estado SUCCEEDED.
+```
+
+#### Evidencia
+`EV-022-recovery-behavior-output.txt`
+
+---
+
+### TC-128 — Conservar stdout y stderr tras reinicio
+
+**Requisito relacionado:** RNF-31
+**Tipo:** Integración / Persistencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que las salidas almacenadas de un trabajo terminal se conserven después de reiniciar el daemon.
+
+#### Resultado esperado
+`stdout` y `stderr` deben coincidir con los valores registrados antes del reinicio.
+
+#### Resultado obtenido
+```text
+PASS: La salida del trabajo puede consultarse después del reinicio.
+PASS: stdout se conserva sin cambios después del reinicio.
+PASS: stderr se conserva sin cambios después del reinicio.
+```
+
+#### Evidencia
+`EV-022-recovery-behavior-output.txt`
+
+---
+
+### TC-129 — Recuperar trabajo pendiente como CANCELED
+
+**Requisito relacionado:** RNF-31
+**Tipo:** Recuperación / Consistencia
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que un trabajo que permanecía `QUEUED` antes de una interrupción no sea reejecutado automáticamente.
+
+#### Resultado esperado
+El trabajo debe permanecer disponible y recuperarse en estado `CANCELED`.
+
+#### Resultado obtenido
+```text
+PASS: El trabajo anteriormente QUEUED sigue disponible.
+PASS: El trabajo pendiente se recupera como CANCELED.
+```
+
+#### Evidencia
+`EV-022-recovery-behavior-output.txt`
+
+---
+
+### TC-130 — Recuperar ejecución interrumpida como FAILED
+
+**Requisito relacionado:** RNF-31
+**Tipo:** Recuperación / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que una ejecución interrumpida cuyo proceso ya no existe se marque como fallida durante la recuperación.
+
+#### Resultado esperado
+El trabajo debe permanecer disponible y recuperarse como `FAILED`.
+
+#### Resultado obtenido
+```text
+PASS: El trabajo interrumpido sigue disponible en el historial.
+PASS: La ejecución interrumpida se recupera como FAILED.
+```
+
+#### Evidencia
+`EV-022-recovery-behavior-output.txt`
+
+---
+
+### TC-131 — No reejecutar automáticamente trabajo interrumpido
+
+**Requisito relacionado:** RNF-31
+**Tipo:** Recuperación / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que una ejecución interrumpida no se vuelva a lanzar automáticamente al reiniciar.
+
+#### Resultado esperado
+El marcador de ejecución debe indicar una sola ejecución.
+
+#### Resultado obtenido
+```text
+PASS: El trabajo interrumpido se inició una sola vez y no fue reejecutado.
+```
+
+#### Evidencia
+`EV-022-recovery-behavior-output.txt`
+
+---
+
+### TC-132 — No ejecutar automáticamente trabajo pendiente al recuperar
+
+**Requisito relacionado:** RNF-31
+**Tipo:** Recuperación / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que un trabajo previamente `QUEUED` no se ejecute de forma automática durante la recuperación.
+
+#### Resultado esperado
+No debe crearse el marcador de ejecución del trabajo pendiente.
+
+#### Resultado obtenido
+```text
+PASS: El trabajo que estaba QUEUED no se ejecuta automáticamente al recuperar.
+```
+
+#### Evidencia
+`EV-022-recovery-behavior-output.txt`
+
+---
+
+### TC-133 — Mantener daemon operativo después de recuperación
+
+**Requisito relacionado:** RNF-31
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el servicio permanezca disponible después de reconciliar el historial.
+
+#### Resultado esperado
+El daemon debe aceptar solicitudes nuevas y permanecer activo.
+
+#### Resultado obtenido
+```text
+PASS: El daemon responde a solicitudes después de la recuperación.
+PASS: El proceso del daemon permanece activo después de recuperar el historial.
+```
+
+#### Evidencia
+`EV-022-recovery-behavior-output.txt`
+
+---
+
+## RNF-33 — Estrés y liberación de recursos
+
+### TC-134 — Aceptar carga de 120 trabajos
+
+**Requisito relacionado:** RNF-33
+**Tipo:** Estrés / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el daemon acepte una carga sostenida de trabajos cortos.
+
+#### Resultado esperado
+Las 120 solicitudes deben ser aceptadas sin rechazos.
+
+#### Resultado obtenido
+```text
+Solicitudes enviadas: 120
+Trabajos aceptados: 120
+Trabajos rechazados: 0
+PASS: Las 120 solicitudes de estrés son aceptadas.
+```
+
+#### Evidencia
+`EV-023-resource-stress-output.txt`
+
+---
+
+### TC-135 — Finalizar todos los trabajos de la carga
+
+**Requisito relacionado:** RNF-33
+**Tipo:** Estrés / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que la carga no deje trabajos en ejecución o cola.
+
+#### Resultado esperado
+Los 120 trabajos deben finalizar y quedar en `SUCCEEDED`.
+
+#### Resultado obtenido
+```text
+PASS: No quedan trabajos RUNNING o QUEUED después de la carga.
+PASS: Los 120 trabajos terminan en SUCCEEDED.
+```
+
+#### Evidencia
+`EV-023-resource-stress-output.txt`
+
+---
+
+### TC-136 — Liberar procesos hijos después de la carga
+
+**Requisito relacionado:** RNF-33
+**Tipo:** Recursos / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que no queden procesos hijos residuales después de terminar la carga.
+
+#### Resultado esperado
+El daemon no debe conservar PIDs hijos.
+
+#### Resultado obtenido
+```text
+Procesos hijos restantes: []
+PASS: El daemon no conserva procesos hijos después de finalizar la carga.
+```
+
+#### Evidencia
+`EV-023-resource-stress-output.txt`
+
+---
+
+### TC-137 — Liberar descriptores de archivo
+
+**Requisito relacionado:** RNF-33
+**Tipo:** Recursos / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que la carga no produzca fuga de descriptores de archivo.
+
+#### Resultado esperado
+La cantidad de FDs debe volver a un nivel equivalente al inicial y no debe haber archivos eliminados aún abiertos.
+
+#### Resultado obtenido
+```text
+FD iniciales: 6
+FD después del estrés: 6
+FD abiertos sobre archivos eliminados: []
+PASS
+```
+
+#### Evidencia
+`EV-023-resource-stress-output.txt`
+
+---
+
+### TC-138 — Estabilizar memoria después del estrés
+
+**Requisito relacionado:** RNF-33
+**Tipo:** Recursos / Memoria / Estrés
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el RSS se estabilice una vez finalizada la carga.
+
+#### Resultado esperado
+Las muestras sucesivas en reposo no deben presentar crecimiento continuo.
+
+#### Resultado obtenido
+```text
+RSS inicial: 26988 KB
+Muestras RSS en reposo: [29588, 29588, 29588, 29588, 29588, 29588, 29588, 29588]
+PASS: La memoria RSS permanece estable una vez finalizada la carga.
+```
+
+#### Evidencia
+`EV-023-resource-stress-output.txt`
+
+---
+
+### TC-139 — Mantener daemon operativo después del estrés
+
+**Requisito relacionado:** RNF-33
+**Tipo:** Robustez / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el servicio continúe disponible después de la carga.
+
+#### Resultado obtenido
+```text
+PASS: El daemon responde correctamente a health después del estrés.
+PASS: El proceso del daemon continúa activo.
+```
+
+#### Evidencia
+`EV-023-resource-stress-output.txt`
+
+---
+
+### TC-140 — Liberar socket al apagar el daemon
+
+**Requisito relacionado:** RNF-33
+**Tipo:** Recursos / Integración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que el socket UNIX no quede residual después del apagado.
+
+#### Resultado obtenido
+```text
+PASS: El socket existe mientras el daemon está activo.
+PASS: El socket UNIX se elimina al apagar el daemon.
+```
+
+#### Evidencia
+`EV-023-resource-stress-output.txt`
+
+---
+
+## RNF-02 / RNF-03 / RNF-19 — Instalación limpia
+
+### TC-141 — Crear clon limpio del repositorio
+
+**Requisito relacionado:** RNF-02
+**Tipo:** Instalación / Reproducibilidad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Resultado obtenido
+```text
+PASS: El repositorio puede clonarse desde cero.
+PASS: El clon inicia con working tree limpio.
+Commit probado: 10c7a8e
+```
+
+#### Evidencia
+`EV-024-clean-installation-output.txt`
+
+---
+
+### TC-142 — Crear entorno virtual nuevo
+
+**Requisito relacionado:** RNF-02
+**Tipo:** Instalación / Reproducibilidad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Resultado obtenido
+```text
+PASS: Se crea un entorno virtual nuevo desde el clon limpio.
+PASS: El entorno virtual contiene Python y pip.
+```
+
+#### Evidencia
+`EV-024-clean-installation-output.txt`
+
+---
+
+### TC-143 — Instalar Jobsy sin privilegios root
+
+**Requisito relacionado:** RNF-03
+**Tipo:** Instalación / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Resultado obtenido
+```text
+UID de ejecución: 1000
+PASS: La prueba se ejecuta como usuario sin privilegios root.
+Exit code instalación: 0
+PASS: Jobsy se instala correctamente desde el clon limpio.
+PASS: La instalación no utiliza sudo.
+PASS: Jobsy queda instalado dentro del entorno virtual.
+```
+
+#### Evidencia
+`EV-024-clean-installation-output.txt`
+
+---
+
+### TC-144 — Instalar sin warnings ni errores
+
+**Requisito relacionado:** RNF-19
+**Tipo:** Instalación / Calidad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Resultado obtenido
+```text
+Advertencias detectadas: 0
+PASS: La instalación finaliza sin warnings ni errores de construcción.
+```
+
+#### Evidencia
+`EV-024-clean-installation-output.txt`
+
+---
+
+### TC-145 — Instalar puntos de entrada públicos
+
+**Requisito relacionado:** RNF-02; RNF-03
+**Tipo:** Instalación / Funcional
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Resultado obtenido
+```text
+Puntos de entrada esperados: jobsy, jobsy-daemon, execute, list, status, cancel
+Puntos de entrada faltantes: ninguno
+PASS: Los puntos de entrada públicos quedan instalados.
+```
+
+#### Evidencia
+`EV-024-clean-installation-output.txt`
+
+---
+
+### TC-146 — Verificar instalación nueva operativa
+
+**Requisito relacionado:** RNF-02; RNF-03
+**Tipo:** Instalación / Funcional
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Resultado obtenido
+```text
+PASS: jobsy --help funciona desde la instalación nueva.
+PASS: jobsy-daemon --help funciona desde la instalación nueva.
+PASS: La CLI instalada presenta su ayuda correctamente.
+PASS: El daemon instalado presenta su ayuda correctamente.
+```
+
+#### Evidencia
+`EV-024-clean-installation-output.txt`
+
+---
+
+## RNF-20 — Batería de QA mediante un único comando
+
+### TC-147 — Batería disponible mediante un único comando
+
+**Requisito relacionado:** RNF-20
+**Tipo:** Automatización / Reproducibilidad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Objetivo
+Verificar que la batería vigente pueda iniciarse mediante un único comando.
+
+#### Resultado obtenido
+```text
+PASS: La batería descubre automáticamente los scripts de prueba disponibles.
+PASS: La batería puede iniciarse mediante 'python test/run_qa_suite.py'.
+```
+
+#### Evidencia
+`EV-025-single-command-suite-output.txt`
+
+---
+
+### TC-148 — Scripts de la batería finalizan correctamente
+
+**Requisito relacionado:** RNF-20
+**Tipo:** Automatización / Regresión
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Resultado obtenido
+```text
+PASS: Los 22 scripts de la batería finalizaron con código 0.
+```
+
+#### Evidencia
+`EV-025-single-command-suite-output.txt`
+
+---
+
+### TC-149 — Resultado agregado de la batería
+
+**Requisito relacionado:** RNF-20
+**Tipo:** Automatización / Regresión
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+#### Resultado obtenido
+```text
+Scripts ejecutados: 22
+PASS: 22
+FAIL: 0
+TIMEOUT: 0
+Duración total: 31.31 s
+RESULTADO GENERAL: PASS
+```
+
+#### Evidencia
+`EV-025-single-command-suite-output.txt`
+
+---
+
+### Automatización QA — Technical Review 2
+
+| Script | Casos | Evidencia |
+|---|---|---|
+| `test/test_recovery_behavior.py` | TC-127 a TC-133 | EV-022 |
+| `test/test_resource_stress.py` | TC-134 a TC-140 | EV-023 |
+| `test/test_clean_installation.py` | TC-141 a TC-146 | EV-024 |
+| `test/run_qa_suite.py` | TC-147 a TC-149 | EV-025 |
+
+---
+
+### Automatización QA — PR #116
+
+| Script | Casos | Evidencia |
+|---|---|---|
+| `test/test_duplicate_requests.py` | TC-091 a TC-098 | EV-017 |
+| `test/test_health_summary.py` | TC-099 a TC-106 | EV-018 |
+| `test/test_structured_errors.py` | TC-107 a TC-113 | EV-019 |
+| `test/test_request_logging.py` | TC-114 a TC-120 | EV-020 |
+| `test/test_queue_observability.py` | TC-121 a TC-126 | EV-021 |
 
 ---
 
@@ -2818,20 +4176,113 @@ PASS
 | TC-088 | Aislar un fallo de cleanup | PASS | EV-016 |
 | TC-089 | Mantener scheduler responsivo durante cleanup fallido | PASS | EV-016 |
 | TC-090 | Finalizar de forma controlada tras fallo de cleanup | PASS | EV-016 |
+| TC-091 | List duplicado no altera el estado | PASS | EV-017 |
+| TC-092 | Status duplicado conserva metadatos | PASS | EV-017 |
+| TC-093 | Output duplicado conserva stdout y stderr | PASS | EV-017 |
+| TC-094 | Cancel duplicado no genera segunda transición | PASS | EV-017 |
+| TC-095 | Cancel duplicado conserva estado y timestamps | PASS | EV-017 |
+| TC-096 | Run duplicado crea UUID diferentes | PASS | EV-017 |
+| TC-097 | Run duplicado crea trabajos independientes | PASS | EV-017 |
+| TC-098 | Daemon sigue operativo tras solicitudes duplicadas | PASS | EV-017 |
+| TC-099 | Health responde con estructura esperada | PASS | EV-018 |
+| TC-100 | Health reporta servicio activo | PASS | EV-018 |
+| TC-101 | Health reporta trabajo RUNNING | PASS | EV-018 |
+| TC-102 | Health reporta trabajo QUEUED | PASS | EV-018 |
+| TC-103 | Health reporta errores recientes | PASS | EV-018 |
+| TC-104 | Health limita errores recientes a 10 | PASS | EV-018 |
+| TC-105 | Health es operación de solo lectura | PASS | EV-018 |
+| TC-106 | Daemon sigue operativo después de health | PASS | EV-018 |
+| TC-107 | Acción IPC inválida devuelve error estructurado | PASS | EV-019 |
+| TC-108 | JSON inválido devuelve error estructurado | PASS | EV-019 |
+| TC-109 | Status de ID inexistente devuelve error estructurado | PASS | EV-019 |
+| TC-110 | Cancel de ID inexistente devuelve error estructurado | PASS | EV-019 |
+| TC-111 | Cola llena devuelve causa y sugerencia | PASS | EV-019 |
+| TC-112 | CLI presenta el error estructurado | PASS | EV-019 |
+| TC-113 | Daemon sigue operativo después de errores | PASS | EV-019 |
+| TC-114 | jobsy.log se crea en el data-dir | PASS | EV-020 |
+| TC-115 | Formato básico de la bitácora | PASS | EV-020 |
+| TC-116 | Cada solicitud IPC recibe ReqID | PASS | EV-020 |
+| TC-117 | Solicitudes distintas reciben ReqID diferentes | PASS | EV-020 |
+| TC-118 | Eventos de trabajo incluyen Job ID | PASS | EV-020 |
+| TC-119 | ReqID correlaciona el ciclo de la solicitud run | PASS | EV-020 |
+| TC-120 | Bitácora persiste y daemon sigue operativo | PASS | EV-020 |
+| TC-121 | Cola llena queda registrada en jobsy.log | PASS | EV-021 |
+| TC-122 | Rechazo por cola llena incluye ReqID | PASS | EV-021 |
+| TC-123 | Desconexión prematura del cliente queda registrada | PASS | EV-021 |
+| TC-124 | Log indica estado de operación tras desconexión | PASS | EV-021 |
+| TC-125 | Daemon sobrevive a desconexión del cliente | PASS | EV-021 |
+| TC-126 | Solicitud posterior sigue funcionando | PASS | EV-021 |
+| TC-127 | Conservar trabajo terminal tras reinicio | PASS | EV-022 |
+| TC-128 | Conservar stdout y stderr tras reinicio | PASS | EV-022 |
+| TC-129 | Recuperar trabajo pendiente como CANCELED | PASS | EV-022 |
+| TC-130 | Recuperar ejecución interrumpida como FAILED | PASS | EV-022 |
+| TC-131 | No reejecutar automáticamente trabajo interrumpido | PASS | EV-022 |
+| TC-132 | No ejecutar automáticamente trabajo pendiente | PASS | EV-022 |
+| TC-133 | Mantener daemon operativo después de recuperación | PASS | EV-022 |
+| TC-134 | Aceptar carga de 120 trabajos | PASS | EV-023 |
+| TC-135 | Finalizar todos los trabajos de la carga | PASS | EV-023 |
+| TC-136 | Liberar procesos hijos después de la carga | PASS | EV-023 |
+| TC-137 | Liberar descriptores de archivo | PASS | EV-023 |
+| TC-138 | Estabilizar memoria después del estrés | PASS | EV-023 |
+| TC-139 | Mantener daemon operativo después del estrés | PASS | EV-023 |
+| TC-140 | Liberar socket al apagar el daemon | PASS | EV-023 |
+| TC-141 | Crear clon limpio del repositorio | PASS | EV-024 |
+| TC-142 | Crear entorno virtual nuevo | PASS | EV-024 |
+| TC-143 | Instalar Jobsy sin privilegios root | PASS | EV-024 |
+| TC-144 | Instalar sin warnings ni errores | PASS | EV-024 |
+| TC-145 | Instalar puntos de entrada públicos | PASS | EV-024 |
+| TC-146 | Verificar instalación nueva operativa | PASS | EV-024 |
+| TC-147 | Batería disponible mediante un único comando | PASS | EV-025 |
+| TC-148 | Scripts de la batería finalizan correctamente | PASS | EV-025 |
+| TC-149 | Resultado agregado de la batería | PASS | EV-025 |
 
 
 ## Resultado general
 
-Se han ejecutado un total de **90 casos de prueba** sobre los alcances revisados de los PR #101, #102, #104, #110 y #114. Los 90 casos obtuvieron resultado `PASS`.
+Se han ejecutado un total acumulado de **149 casos de prueba** sobre los alcances revisados de Jobsy.
 
-Para el PR #110 se añadieron **18 casos de prueba**, del `TC-053` al `TC-070`, enfocados en validar la configuración del socket UNIX local, el uso del endpoint predeterminado y personalizado, las validaciones de ruta, el comportamiento de `JOBSY_SOCKET_PATH`, los códigos de salida y los puntos de entrada públicos instalados.
+Los **149 casos cuentan con resultado final `PASS`**.
 
-Las pruebas confirmaron que `/tmp/jobsy.sock` continúa siendo el endpoint predeterminado, que el daemon puede utilizar `--socket-path`, que los clientes pueden seleccionar el endpoint mediante `JOBSY_SOCKET_PATH`, que el daemon no toma su configuración desde esa variable, y que las rutas inválidas se rechazan de forma controlada.
+Para el PR #116 se añadieron **36 casos de prueba**, del `TC-091` al `TC-126`, con resultado:
 
-También se verificó que una ruta existente no sea sobrescrita, que una variable vacía sea rechazada, que una configuración inválida del daemon devuelva código `2`, que un error de endpoint del cliente devuelva código `1`, que `~` se expanda correctamente y que los comandos públicos `jobsy-daemon`, `jobsy`, `execute`, `list`, `status` y `cancel` funcionen utilizando un socket personalizado.
+**36 PASS / 0 FAIL**
 
-No se identificaron defectos bloqueantes dentro del alcance funcional validado del PR #110.
+Para el cierre de QA de la Technical Review 2 se añadieron **23 casos de prueba**, del `TC-127` al `TC-149`, con resultado:
 
-La implementación validada no incorpora comunicación TCP, host o puerto configurables, por lo que el alcance relacionado con RF-16 continúa siendo parcial.
+**23 PASS / 0 FAIL**
 
-La separación entre el proceso del daemon y los procesos de los trabajos quedó cubierta explícitamente mediante los casos `TC-076` a `TC-079`, que verifican PID, PGID, SID y la terminación completa del grupo de procesos.
+La cobertura adicional de la Technical Review 2 incluyó:
+
+- RNF-31 — recuperación de trabajos terminados, pendientes e interrumpidos.
+- RNF-33 — estrés y liberación de memoria, procesos, archivos y sockets.
+- RNF-02 — instalación reproducible desde un clon limpio.
+- RNF-03 — instalación y operación sin privilegios root.
+- RNF-19 — instalación limpia sin warnings ni errores.
+- RNF-20 — batería de QA ejecutable mediante un único comando.
+
+La batería consolidada final ejecutó:
+
+```text
+22 scripts
+22 PASS
+0 FAIL
+0 TIMEOUT
+Duración total: 31.31 s
+```
+
+Durante la primera validación de RNF-22 se detectó un defecto real mediante `TC-119`: el `ReqID` se generaba correctamente al recibir una solicitud, pero no se propagaba a eventos posteriores del mismo ciclo. El problema fue corregido y revalidado correctamente. El incidente se documenta en `docs/qa/incidents/INC-001-request-id-correlation.md`.
+
+También se documentó la evidencia de versión demostrada y batería ejecutada en `docs/qa/technical-review-2.md`.
+
+### Observaciones QA — cierre Technical Review 2
+
+- La cobertura acumulada comprende `TC-001` a `TC-149`.
+- Las evidencias acumuladas comprenden `EV-001` a `EV-025`.
+- RNF-31 quedó cubierto mediante `TC-127` a `TC-133` / `EV-022`.
+- RNF-33 quedó cubierto mediante `TC-134` a `TC-140` / `EV-023`.
+- RNF-02, RNF-03 y RNF-19 quedaron cubiertos mediante `TC-141` a `TC-146` / `EV-024`.
+- RNF-20 quedó cubierto mediante `TC-147` a `TC-149` / `EV-025`.
+- La instalación limpia se ejecutó con UID `1000`, sin `sudo`, con código de salida `0` y `0` warnings detectados.
+- La prueba de estrés procesó `120` trabajos, liberó todos los procesos hijos, conservó `6` descriptores de archivo antes y después de la carga y eliminó correctamente el socket al finalizar.
+- La batería consolidada excluye pruebas históricas cuyas expectativas pertenecen a contratos anteriores del sistema; las funcionalidades actuales correspondientes cuentan con cobertura posterior vigente.
+- No se identifican defectos bloqueantes abiertos dentro del alcance final validado.

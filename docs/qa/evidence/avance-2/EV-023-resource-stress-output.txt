@@ -1,0 +1,64 @@
+
+============================================================
+RECURSOS BASE
+============================================================
+PID daemon: 2782
+RSS inicial: 26920 KB
+FD iniciales: 6
+
+============================================================
+TC-134 - DAEMON ACEPTA CARGA DE 120 TRABAJOS
+============================================================
+Solicitudes enviadas: 120
+Trabajos aceptados: 120
+Trabajos rechazados: 0
+PASS: Las 120 solicitudes de estrés son aceptadas.
+
+============================================================
+TC-135 - TODOS LOS TRABAJOS TERMINAN
+============================================================
+SUCCEEDED: 120
+Pendientes al finalizar: 0
+PASS: No quedan trabajos RUNNING o QUEUED después de la carga.
+PASS: Los 120 trabajos terminan en SUCCEEDED.
+
+============================================================
+TC-136 - PROCESOS HIJOS SON LIBERADOS
+============================================================
+Procesos hijos restantes: []
+PASS: El daemon no conserva procesos hijos después de finalizar la carga.
+
+============================================================
+TC-137 - DESCRIPTORES DE ARCHIVO SE LIBERAN
+============================================================
+FD iniciales: 6
+FD después del estrés: 6
+Diferencia: 0
+PASS: La cantidad de descriptores vuelve a un nivel equivalente al inicial.
+FD abiertos sobre archivos eliminados: []
+PASS: No quedan archivos eliminados retenidos mediante descriptores abiertos.
+
+============================================================
+TC-138 - MEMORIA SE ESTABILIZA DESPUES DEL ESTRES
+============================================================
+RSS inicial: 26920 KB
+Muestras RSS en reposo: [29460, 29460, 29460, 29460, 29460, 29460, 29460, 29460]
+Variación durante reposo: 0 KB
+PASS: La memoria RSS permanece estable una vez finalizada la carga.
+
+============================================================
+TC-139 - DAEMON SIGUE OPERATIVO TRAS EL ESTRES
+============================================================
+PASS: El daemon responde correctamente a health después del estrés.
+PASS: El proceso del daemon continúa activo.
+
+============================================================
+TC-140 - SOCKET SE LIBERA AL APAGAR EL DAEMON
+============================================================
+PASS: El socket existe mientras el daemon está activo.
+PASS: El socket UNIX se elimina al apagar el daemon.
+
+============================================================
+RESULTADO GENERAL
+============================================================
+RESULTADO GENERAL: PASS
