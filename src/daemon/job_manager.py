@@ -10,6 +10,7 @@ from .job import Job
 from .scheduler import QueueFullError, Scheduler
 from .process_identity import process_identity
 from ..protocol.validation import validate_command
+from .logger import logger
 
 TERMINAL_STATES = {"SUCCEEDED", "FAILED", "CANCELED"}
 VALID_STATES = TERMINAL_STATES | {"QUEUED", "RUNNING"}
@@ -29,6 +30,40 @@ class JobManager:
         self.versions = {}
         self.storage_error = None
         self.admission_sequence = 0
+
+    #rf-24: Resumen de salud del servicio y estado de los trabajos
+    def get_health_summary(self):
+            with self.condition:
+                running_jobs = [
+                    replace(j, command=list(j.command), process=None)
+                    for j in self.jobs.values() if j.status == "RUNNING"
+                ]
+                queued_jobs = [
+                    replace(j, command=list(j.command), process=None)
+                    for j in self.jobs.values() if j.status == "QUEUED"
+                ]
+                # Filtramos los trabajos que terminaron con error recientemente (FAILED)
+                recent_errors = [
+                    replace(j, command=list(j.command), process=None)
+                    for j in self.jobs.values() if j.status == "FAILED"
+                ]
+                #Ordenar/limitar los errores recientes
+                recent_errors = sorted(
+                    recent_errors, 
+                    key=lambda x: x.finished_at or x.received_at, 
+                    reverse=True
+                )[:10]
+
+                return {
+                    "service_active": self.is_accepting_jobs and self.storage_error is None,
+                    "storage_error": self.storage_error,
+                    "running_count": len(running_jobs),
+                    "running_jobs": running_jobs,
+                    "queued_count": len(queued_jobs),
+                    "queued_jobs": queued_jobs,
+                    "recent_errors_count": len(recent_errors),
+                    "recent_errors": recent_errors
+                }
 
     def enable_persistence(self, runtime):
         with self.condition:
@@ -50,7 +85,7 @@ class JobManager:
     def fail_closed_locked(self, error):
         if self.storage_error is None:
             self.storage_error = str(error)
-            print(f"[Daemon] Ejecución bloqueada: {error}", file=sys.stderr)
+            logger.log("ERROR", f"Ejecución bloqueada (Fail-Closed): {error}")
         self.is_accepting_jobs = False
         self.scheduler.stopping = True
         for job in self.jobs.values():
@@ -106,6 +141,7 @@ class JobManager:
             raise RuntimeError(self.storage_error or "El JobManager no esta aceptando nuevos trabajos.")
         job = Job(id=str(uuid.uuid4()), command=list(command))
         self.jobs[job.id] = job
+        logger.log("INFO", f"Trabajo creado en memoria con comando: {' '.join(command)}", job_id=job.id)
         return job
 
     def create_job(self, command):
@@ -176,6 +212,7 @@ class JobManager:
                 without_process=job.process is None)
             job.cancel_requested.set()
             job.status = "CANCELED"
+            logger.log("INFO", "Trabajo cancelado por el usuario", job_id=job.id)
 
             if job.process is None:
                 job.finished_at = at

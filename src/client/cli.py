@@ -38,6 +38,10 @@ def build_parser():
     output_parser = subparsers.add_parser("output", help="Muestra stdout y stderr de un trabajo")
     output_parser.add_argument("job_id", help="ID del trabajo")
 
+    # comando health
+    health_parser = subparsers.add_parser("health", help="Muestra el resumen de salud del servicio y estado de los trabajos")
+
+
     return parser
 
 def send_ipc_request(payload: dict) -> dict:
@@ -67,6 +71,15 @@ def _recv_all(sock):
             continue
     return b"".join(chunks)
 
+# Función auxiliar para manejar respuestas de error estructuradas
+def handle_error_response(res):
+    """Renderiza el error estructurado recibido directamente del servidor (RNF-21)."""
+    print(f"Error en la operación '{res.get('operation', 'desconocida')}':", file=sys.stderr)
+    print(f"  • Causa: {res.get('cause', res.get('message', 'Error desconocido'))}", file=sys.stderr)
+    print(f"  • Acción sugerida: {res.get('suggestion', 'Verifique la sintaxis o el estado del servicio.')}", file=sys.stderr)
+    sys.exit(1)
+
+
 def main(argv=None, *, split_command_string=True):
     """Run the CLI; retain legacy single-string parsing unless disabled."""
     argv = list(sys.argv[1:] if argv is None else argv)
@@ -91,8 +104,7 @@ def main(argv=None, *, split_command_string=True):
                 print(f"Trabajo creado y enviado a ejecución con ID: {res['job_id']}")
                 sys.exit(0)
             else:
-                print(f"Error de validación: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
 
         elif args.subcommand == "list":
             res = send_ipc_request({"action": "list", "status": args.status})
@@ -105,8 +117,40 @@ def main(argv=None, *, split_command_string=True):
                         print(f"ID: {j['id']} | Estado: {j['status']} | Comando: {' '.join(j['command'])}")
                 sys.exit(0)
             else:
-                print(f"Error: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
+
+        #rf-24: Resumen de salud del servicio y estado de los trabajos
+        elif args.subcommand == "health":
+                res = send_ipc_request({"action": "health"})
+                if res["status"] == "ok":
+                    h = res["health"]
+                    print(f"=== Resumen de Salud de Jobsy ===")
+                    print(f"Servicio Activo: {'Sí' if h['service_active'] else 'No'}")
+                    if h['storage_error']:
+                        print(f"Error de Almacenamiento: {h['storage_error']}")
+                    print(f"\n--- Trabajos en Ejecución ({h['running_count']}) ---")
+                    if not h['running_jobs']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['running_jobs']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Inicio: {j['started_at']}")
+
+                    print(f"\n--- Trabajos en Cola ({h['queued_count']}) ---")
+                    if not h['queued_jobs']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['queued_jobs']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Recibido: {j['received_at']}")
+
+                    print(f"\n--- Errores Recientes ({h['recent_errors_count']}) ---")
+                    if not h['recent_errors']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['recent_errors']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Código: {j['exit_code']} | Fin: {j['finished_at']}")
+                    sys.exit(0)
+                else:
+                    handle_error_response(res)
 
         elif args.subcommand == "status":
             res = send_ipc_request({"action": "status", "job_id": args.job_id})
@@ -123,8 +167,7 @@ def main(argv=None, *, split_command_string=True):
                     print(f"Diagnóstico: {j['diagnostic']}")
                 sys.exit(0)
             else:
-                print(f"Error de validación: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
 
         elif args.subcommand == "cancel":
             res = send_ipc_request({"action": "cancel", "job_id": args.job_id})
@@ -133,8 +176,7 @@ def main(argv=None, *, split_command_string=True):
                 print(f"Estado actual: {res['job_status']}")
                 sys.exit(0)
             else:
-                print(f"Error de validación: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
         
         elif args.subcommand == "output":
             res = send_ipc_request({"action": "output", "job_id": args.job_id})
@@ -143,8 +185,7 @@ def main(argv=None, *, split_command_string=True):
                 sys.stderr.write(res["stderr"])
                 sys.exit(0)
             else:
-                print(f"Error de validación: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
 
         else:
             parser.print_help()

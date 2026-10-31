@@ -6,6 +6,8 @@ import sys
 import json
 import socket
 import signal
+import uuid
+
 
 #from aiohttp import request
 
@@ -13,7 +15,19 @@ from src.daemon.job_manager import JobManager
 from src.daemon.executor import Executor
 from src.daemon.config import parse_config
 from src.daemon.persistence import PersistenceRuntime
+from src.daemon.scheduler import QueueFullError
 from src.protocol.endpoint import resolve_socket_path
+from src.daemon.logger import logger
+
+# Función auxiliar para generar respuestas de error consistentes
+def make_error_response(operation, cause, suggestion):
+    """Construye una respuesta de error estandarizada para el cliente (RNF-21)."""
+    return {
+        "status": "error",
+        "operation": operation,
+        "cause": cause,
+        "suggestion": suggestion
+    }
 
 def diagnose(job):
     """Texto de diagnóstico derivado del estado y exit_code; None si no aplica """
@@ -52,7 +66,7 @@ class DaemonServer:
         signal.signal(signal.SIGTERM, self._handle_shutdown_signal)
 
     def _handle_shutdown_signal(self, signum, frame):
-        print("\n[Daemon] Señal de apagado recibida...")
+        logger.log("WARNING", "Señal de apagado recibida (SIGINT/SIGTERM).")
         self.is_running = False
 
     def start(self):
@@ -70,11 +84,11 @@ class DaemonServer:
             self._socket_identity = (info.st_dev, info.st_ino)
             self.server_socket.listen(5)
             self.server_socket.settimeout(0.2)
-            print(f"[Daemon] Servidor Jobsy activo escuchando en {self.socket_path}...")
+            logger.log("INFO", f"Servidor Jobsy activo escuchando en {self.socket_path}")
             for record in self.persistence.records:
                 reason = record["execution"]["recovery_reason"]
                 if reason:
-                    print(f"[Daemon] Historial recuperado {record['id']}: {reason}", file=sys.stderr)
+                    logger.log("WARNING", f"Historial recuperado: {reason}", job_id=record['id'])
             while self.is_running:
                 try:
                     conn, _ = self.server_socket.accept()
@@ -88,6 +102,12 @@ class DaemonServer:
 
     def _handle_client(self, conn):
         with conn:
+            request_id = str(uuid.uuid4())[:8]
+            action = None
+            job_id = None
+            response = {}
+            operation_status = "sin_efecto"
+            
             try:
                 data = conn.recv(4096)
                 if not data:
@@ -95,16 +115,23 @@ class DaemonServer:
 
                 request = json.loads(data.decode("utf-8"))
                 action = request.get("action")
+
+                logger.log("INFO", f"Recibida solicitud IPC '{action}' [ReqID: {request_id}]")
+
                 response = {}
 
                 if action == "run":
                     command = request.get("command")
                     job = self.manager.submit_job(command)
+                    job_id = job.id
+                    operation_status = "aceptada"
+                    logger.log("INFO", f"Solicitud 'run' procesada con éxito para comando: {' '.join(command)} [ReqID: {request_id}]", job_id=job.id)
                     response = {"status": "ok", "job_id": job.id}
 
                 elif action == "list":
                     status_filter = request.get("status")
                     jobs = self.manager.list_jobs(status=status_filter)
+                    operation_status = "sin_efecto"
                     response = {
                         "status": "ok",
                         "jobs": [
@@ -117,9 +144,44 @@ class DaemonServer:
                         ]
                     }
 
+                # RF-24: Resumen de salud del servicio y estado de los trabajos
+                elif action == "health":
+                    health_data = self.manager.get_health_summary()
+                    operation_status = "sin_efecto"
+                    # Función para formatear fechas y horas en UTC
+                    def format_dt(dt):
+                        return dt.strftime("%Y-%m-%d %H:%M:%S UTC") if dt else "-"
+                    # Función para serializar trabajos en el resumen de salud
+                    def serialize_job(j):
+                        return {
+                            "id": j.id,
+                            "status": j.status,
+                            "command": j.command,
+                            "received_at": format_dt(j.received_at),
+                            "started_at": format_dt(j.started_at),
+                            "finished_at": format_dt(j.finished_at),
+                            "exit_code": j.exit_code,
+                            "stderr": j.stderr
+                        }
+
+                    response = {
+                        "status": "ok",
+                        "health": {
+                            "service_active": health_data["service_active"],
+                            "storage_error": health_data["storage_error"],
+                            "running_count": health_data["running_count"],
+                            "running_jobs": [serialize_job(j) for j in health_data["running_jobs"]],
+                            "queued_count": health_data["queued_count"],
+                            "queued_jobs": [serialize_job(j) for j in health_data["queued_jobs"]],
+                            "recent_errors_count": health_data["recent_errors_count"],
+                            "recent_errors": [serialize_job(j) for j in health_data["recent_errors"]]
+                        }
+                    }
+
                 elif action == "status":
                     job_id = request.get("job_id")
                     job = self.manager.snapshot(job_id)
+                    operation_status = "sin_efecto"
                     
                     def format_dt(dt):
                         return dt.strftime("%Y-%m-%d %H:%M:%S UTC") if dt else "-"
@@ -141,6 +203,8 @@ class DaemonServer:
                 elif action == "cancel":
                     job_id = request.get("job_id")
                     job = self.manager.cancel_job(job_id)
+                    operation_status = "aceptada"
+                    logger.log("INFO", f"Solicitud 'cancel' procesada [ReqID: {request_id}]", job_id=job.id)
                     response = {
                         "status": "ok",
                         "job_id": job.id,
@@ -148,7 +212,9 @@ class DaemonServer:
                     }
                 
                 elif action == "output":
+                    job_id = request.get("job_id")
                     job = self.manager.snapshot(request.get("job_id"))
+                    operation_status = "sin_efecto"
                     response = {
                         "status": "ok",
                         "job_id": job.id,
@@ -158,18 +224,58 @@ class DaemonServer:
                     }
 
                 else:
-                    response = {"status": "error", "message": "Acción no válida"}
+                    operation_status = "rechazada"
+                    logger.log("WARNING", f"Acción IPC no válida recibida: {action}")
+                    # RF-28: Respuesta de error con sugerencia para el cliente
+                    response = make_error_response(
+                        operation=action or "desconocida",
+                        cause=f"La acción '{action}' no es reconocida por el sistema.",
+                        suggestion="Consulte los comandos disponibles ejecutando 'jobsy --help'."
+                    )
 
+            except QueueFullError as qfe:
+                operation_status = "rechazada"
+                # RF-23 y RNF-22: Correlación incluso ante rechazos por capacidad
+                logger.log("WARNING", f"Solicitud 'run' rechazada por límite de capacidad [ReqID: {request_id}]: {qfe}")
+                # RF-28: Respuesta de error con sugerencia para el cliente
+                response = make_error_response(
+                    operation="run",
+                    cause=str(qfe),
+                    suggestion="Espere a que finalicen los trabajos actuales o aumente la capacidad máxima de la cola."
+                )
             except ValueError as ve:
-                response = {"status": "error", "message": str(ve)}
+                operation_status = "rechazada"
+                logger.log("ERROR", f"Error de validación en petición IPC [ReqID: {request_id}]: {ve}")
+                # RF-28: Respuesta de error con sugerencia para el cliente
+                response = make_error_response(
+                    operation=action or "desconocida",
+                    cause=str(ve),
+                    suggestion="Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos."
+                )
             except Exception as e:
-                response = {"status": "error", "message": str(e)}
+                operation_status = "rechazada"
+                logger.log("ERROR", f"Excepción no controlada procesando cliente [ReqID: {request_id}]: {e}")
+                # RF-28: Respuesta de error con sugerencia para el cliente
+                response = make_error_response(
+                    operation=action or "desconocida",
+                    cause=str(e),
+                    suggestion="Consulte la bitácora del sistema (jobsy.log) para más detalles técnicos."
+                )
 
-            conn.sendall(json.dumps(response).encode("utf-8"))
+            # RF-28: Intento de envío de respuesta con captura explícita de desconexión del cliente
+            try:
+                conn.sendall(json.dumps(response).encode("utf-8"))
+            except (BrokenPipeError, ConnectionResetError, socket.error) as conn_err:
+                logger.log(
+                    "WARNING",
+                    f"Cliente desconectado prematuramente durante la solicitud '{action}'. "
+                    f"Estado de la operación: {operation_status.upper()} (socket cerrado: {conn_err})",
+                    job_id=job_id
+                )
 
     def stop(self):
         self.is_running = False
-        print("[Daemon] Deteniendo recepción de trabajos y finalizando procesos activos...")
+        logger.log("INFO", "Deteniendo recepción de trabajos y finalizando procesos activos...")
         
         if self.server_socket:
             self.server_socket.close()
@@ -192,7 +298,7 @@ class DaemonServer:
                     if info is not None and (info.st_dev, info.st_ino) == self._socket_identity:
                         os.remove(self.socket_path)
                     self._owns_socket = False
-        print("[Daemon] Servicio detenido.")
+        logger.log("INFO", "Servicio detenido completamente.")
 
 def main(argv=None):
     """Start the daemon with its existing signal handlers and lifecycle."""
