@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jobsy"
+version = "0.1.0"
+description = "Linux job runner with a local Unix-socket daemon"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+jobsy = "src.client.cli:main"
+execute = "src.client.cli:execute_main"
+jobsy-daemon = "src.daemon.server:main"
+list = "src.client.cli:list_main"
+status = "src.client.cli:status_main"
+cancel = "src.client.cli:cancel_main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src", "src.*"]

@@ -19,6 +19,23 @@ Para el MVP local se utilizarán principalmente herramientas de la biblioteca es
 - `subprocess` para ejecutar y controlar procesos.
 - `threading` para evitar bloquear el servicio mientras se ejecutan trabajos.
 - `dataclasses` para representar los trabajos y sus metadatos.
+- `socket` con AF_UNIX y JSON para IPC local.
+- `sqlite3` para persistencia transaccional sin servidor externo (ADR-005).
+- `fcntl.flock` y `/proc` para exclusividad e identidad Linux (ADR-006).
+
+Setuptools>=64 es una dependencia de construcción para generar los console
+scripts, no de ejecución. Jobsy no declara dependencias externas de ejecución.
+
+## Plataforma y verificación
+
+Referencia de desarrollo: Ubuntu 26.04.1 LTS sobre WSL2, Python 3.14.4.
+Las 105 pruebas anteriores de Avance 2.2 se registraron en Ubuntu WSL como
+verificación de desarrollo, no certificación formal de QA. En 2.5A se revisan
+por separado empaquetado e importaciones en el entorno identificado.
+Python >=3.10 es el mínimo declarado, no una versión verificada en esta tarea.
+Tampoco se certifican Linux nativo, otras distribuciones ni Windows nativo.
+La recuperación requiere almacenamiento Linux local, visibilidad de /proc y
+el mismo namespace de procesos.
 
 ## Alternativas consideradas
 

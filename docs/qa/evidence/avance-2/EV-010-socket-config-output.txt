@@ -1,0 +1,96 @@
+=== PR #110 - SOCKET UNIX LOCAL ===
+
+=== test_socket_config.py ===
+========================================
+TC-053 - SOCKET PREDETERMINADO
+========================================
+Exit code: 0
+STDOUT: '/tmp/jobsy.sock'
+STDERR: ''
+PASS: La configuracion puede cargarse correctamente.
+PASS: El socket predeterminado es /tmp/jobsy.sock.
+
+========================================
+TC-054 - SOCKET PERSONALIZADO ABSOLUTO
+========================================
+Exit code: 0
+STDOUT: '/tmp/tmp4hfyf_28/control.sock'
+STDERR: ''
+PASS: Se acepta una ruta absoluta valida.
+PASS: La configuracion conserva la ruta personalizada.
+
+========================================
+TC-057 - RECHAZAR RUTA RELATIVA
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: 'Traceback (most recent call last):\n  File "<string>", line 1, in <module>\n    from src.protocol.endpoint import resolve_socket_path; resolve_socket_path(\'socket.sock\')\n                                                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File "/home/alexia/JobsyQA/Jobsy/src/protocol/endpoint.py", line 17, in resolve_socket_path\n    raise ValueError("La ruta del socket debe ser absoluta y nombrar un archivo.")\nValueError: La ruta del socket debe ser absoluta y nombrar un archivo.'
+PASS: Una ruta relativa es rechazada.
+PASS: El error indica que la ruta debe ser absoluta.
+
+========================================
+TC-058 - RECHAZAR DIRECTORIO PADRE INEXISTENTE
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: 'Traceback (most recent call last):\n  File "/home/alexia/JobsyQA/Jobsy/src/protocol/endpoint.py", line 22, in resolve_socket_path\n    parent = candidate.parent.resolve(strict=True)\n  File "/usr/lib/python3.14/pathlib/__init__.py", line 939, in resolve\n    return self.with_segments(os.path.realpath(self, strict=strict))\n                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\n  File "<frozen posixpath>", line 457, in realpath\nFileNotFoundError: [Errno 2] No such file or directory: \'/tmp/jobsy-directorio-que-no-existe-qa\'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File "<string>", line 1, in <module>\n    from src.protocol.endpoint import resolve_socket_path; resolve_socket_path(\'/tmp/jobsy-directorio-que-no-existe-qa/control.sock\')\n                                                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/alexia/JobsyQA/Jobsy/src/protocol/endpoint.py", line 24, in resolve_socket_path\n    raise ValueError("El directorio padre del socket debe existir y ser accesible.") from error\nValueError: El directorio padre del socket debe existir y ser accesible.'
+PASS: Se rechaza una ruta cuyo directorio padre no existe.
+PASS: El error indica que el directorio padre debe existir.
+
+========================================
+TC-059 - RECHAZAR ENLACE SIMBOLICO
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: 'Traceback (most recent call last):\n  File "<string>", line 1, in <module>\n    from src.protocol.endpoint import resolve_socket_path; resolve_socket_path(\'/tmp/tmpscfsh7eq/control.sock\')\n                                                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/alexia/JobsyQA/Jobsy/src/protocol/endpoint.py", line 31, in resolve_socket_path\n    raise ValueError("La ruta final del socket no puede ser un enlace simbólico.")\nValueError: La ruta final del socket no puede ser un enlace simbólico.'
+PASS: La ruta final como enlace simbolico es rechazada.
+PASS: El error informa que no se permite un enlace simbolico.
+
+========================================
+TC-060 - RECHAZAR RUTA MAYOR A 107 BYTES
+========================================
+Longitud bytes: 122
+Exit code: 1
+STDOUT: ''
+STDERR: 'Traceback (most recent call last):\n  File "<string>", line 1, in <module>\n    from src.protocol.endpoint import resolve_socket_path; resolve_socket_path(\'/tmp/tmp1ipgl163/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.sock\')\n                                                           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File "/home/alexia/JobsyQA/Jobsy/src/protocol/endpoint.py", line 29, in resolve_socket_path\n    raise ValueError("La ruta del socket excede 107 bytes en Linux.")\nValueError: La ruta del socket excede 107 bytes en Linux.'
+PASS: Se rechaza una ruta mayor a 107 bytes.
+PASS: El error informa el limite maximo permitido.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.
+
+=== test_socket_integration.py ===
+========================================
+TC-055 / TC-056 - SOCKET PERSONALIZADO
+========================================
+PASS: El daemon crea el socket personalizado.
+Exit code: 0
+STDOUT: 'No se encontraron trabajos.'
+STDERR: ''
+PASS: La CLI puede conectarse usando JOBSY_SOCKET_PATH.
+PASS: La operacion list no devuelve error.
+PASS: El socket personalizado se elimina al detener el daemon.
+
+========================================
+TC-061 - NO SOBRESCRIBIR RUTA EXISTENTE
+========================================
+Exit code: 1
+STDOUT: ''
+STDERR: 'Traceback (most recent call last):\n  File "<frozen runpy>", line 198, in _run_module_as_main\n  File "<frozen runpy>", line 88, in _run_code\n  File "/home/alexia/JobsyQA/Jobsy/src/daemon/server.py", line 177, in <module>\n    main()\n    ~~~~^^\n  File "/home/alexia/JobsyQA/Jobsy/src/daemon/server.py", line 173, in main\n    server.start()\n    ~~~~~~~~~~~~^^\n  File "/home/alexia/JobsyQA/Jobsy/src/daemon/server.py", line 44, in start\n    raise FileExistsError("El socket ya existe; compruebe si hay un daemon activo.")\nFileExistsError: El socket ya existe; compruebe si hay un daemon activo.'
+PASS: El daemon no inicia si la ruta ya existe.
+PASS: La ruta existente no es eliminada.
+PASS: El contenido existente permanece intacto.
+
+========================================
+TC-062 - FALLBACK AL SOCKET PREDETERMINADO
+========================================
+Exit code: 0
+STDOUT: '/tmp/jobsy.sock'
+STDERR: ''
+PASS: La resolucion del socket funciona sin variable de entorno.
+PASS: Sin JOBSY_SOCKET_PATH se usa /tmp/jobsy.sock.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.

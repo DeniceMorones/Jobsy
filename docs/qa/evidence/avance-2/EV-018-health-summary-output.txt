@@ -1,0 +1,59 @@
+
+============================================================
+TC-099 - HEALTH RESPONDE CON ESTRUCTURA ESPERADA
+============================================================
+PASS: La operación health responde con status ok.
+PASS: health contiene todos los campos esperados.
+
+============================================================
+TC-100 - HEALTH REPORTA SERVICIO ACTIVO
+============================================================
+PASS: health reporta el daemon como servicio activo.
+PASS: health no reporta error de almacenamiento en una sesión normal.
+
+============================================================
+TC-101 - HEALTH REPORTA TRABAJO RUNNING
+============================================================
+PASS: El trabajo RUNNING de prueba es aceptado.
+PASS: El trabajo alcanza el estado RUNNING.
+PASS: health reporta exactamente un trabajo RUNNING.
+PASS: health incluye el trabajo RUNNING esperado.
+
+============================================================
+TC-102 - HEALTH REPORTA TRABAJO QUEUED
+============================================================
+PASS: El segundo trabajo es aceptado para quedar en cola.
+PASS: El segundo trabajo permanece en estado QUEUED.
+PASS: health reporta exactamente un trabajo QUEUED.
+PASS: health incluye el trabajo QUEUED esperado.
+
+============================================================
+TC-103 - HEALTH REPORTA ERRORES RECIENTES
+============================================================
+PASS: El trabajo destinado a FAILED es aceptado.
+PASS: El trabajo termina en estado FAILED.
+PASS: health reporta al menos un error reciente.
+PASS: health incluye el trabajo FAILED entre los errores recientes.
+
+============================================================
+TC-104 - HEALTH LIMITA ERRORES RECIENTES A 10
+============================================================
+PASS: health limita los errores recientes a un máximo de 10.
+PASS: La colección recent_errors contiene exactamente 10 elementos.
+
+============================================================
+TC-105 - HEALTH ES UNA OPERACION DE SOLO LECTURA
+============================================================
+PASS: Dos solicitudes health consecutivas son procesadas correctamente.
+PASS: Consultar health repetidamente no modifica el estado observado.
+
+============================================================
+TC-106 - DAEMON SIGUE OPERATIVO DESPUES DE HEALTH
+============================================================
+PASS: El proceso del daemon continúa activo.
+PASS: El daemon sigue respondiendo después de múltiples consultas health.
+
+============================================================
+RESULTADO GENERAL
+============================================================
+RESULTADO GENERAL: PASS

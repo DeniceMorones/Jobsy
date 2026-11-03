@@ -1,0 +1,52 @@
+
+========================================
+TC-071 - SEPARAR STDOUT Y STDERR
+========================================
+Exit code execute: 0
+STDOUT execute: 'Trabajo creado y enviado a ejecución con ID: f4b9d821-707e-4aa0-992c-2fa3acae8c9e\n'
+STDERR execute: ''
+PASS: El trabajo con stdout y stderr es aceptado por el daemon.
+Job ID: f4b9d821-707e-4aa0-992c-2fa3acae8c9e
+ID: f4b9d821-707e-4aa0-992c-2fa3acae8c9e
+Estado: SUCCEEDED
+Comando: sh -c echo SALIDA_STDOUT; echo SALIDA_STDERR >&2
+Recibido: 2026-10-23 01:50:08 UTC
+Inicio: 2026-10-23 01:50:08 UTC
+Fin: 2026-10-23 01:50:08 UTC
+Código de salida: 0
+STDOUT output: 'SALIDA_STDOUT\n'
+STDERR output: 'SALIDA_STDERR\n'
+PASS: stdout contiene únicamente la salida estándar del trabajo.
+PASS: stderr contiene únicamente la salida de error del trabajo.
+
+========================================
+TC-072 - RECIBIR STDOUT MAYOR A 4096 BYTES
+========================================
+Job ID: 604bb72a-2f1d-4e36-9a34-85f241215f18
+Longitud stdout: 10001
+Longitud stderr: 0
+PASS: stdout mayor a 4096 bytes se recibe completo.
+PASS: El contenido completo de stdout conserva integridad.
+
+========================================
+TC-073 - RECIBIR STDERR MAYOR A 4096 BYTES
+========================================
+Job ID: 30e07809-3f58-4fbd-97aa-63244cb56fd6
+Longitud stdout: 0
+Longitud stderr: 10001
+PASS: stderr mayor a 4096 bytes se recibe completo.
+PASS: El contenido completo de stderr conserva integridad.
+
+========================================
+TC-074 - MANTENER VACIO EL STREAM NO UTILIZADO
+========================================
+PASS: stdout permanece vacío cuando el trabajo solo escribe en stderr.
+
+========================================
+TC-075 - OUTPUT TERMINA CON CODIGO 0
+========================================
+PASS: El comando jobsy output termina con código 0.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.

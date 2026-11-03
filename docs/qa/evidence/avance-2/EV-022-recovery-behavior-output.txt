@@ -1,0 +1,50 @@
+
+============================================================
+TC-127 - TRABAJO TERMINADO SE CONSERVA TRAS REINICIO
+============================================================
+PASS: El trabajo termina en SUCCEEDED antes del reinicio.
+PASS: El trabajo terminal sigue disponible después del reinicio.
+PASS: El trabajo terminal conserva el estado SUCCEEDED.
+
+============================================================
+TC-128 - RESULTADOS TERMINALES PERSISTEN TRAS REINICIO
+============================================================
+PASS: La salida del trabajo puede consultarse después del reinicio.
+PASS: stdout se conserva sin cambios después del reinicio.
+PASS: stderr se conserva sin cambios después del reinicio.
+PASS: El trabajo destinado a interrupción alcanza RUNNING.
+PASS: El proceso RUNNING registra su PID de prueba.
+PASS: El segundo trabajo permanece pendiente en QUEUED.
+
+============================================================
+TC-129 - TRABAJO PENDIENTE SE RECUPERA COMO CANCELED
+============================================================
+PASS: El trabajo anteriormente QUEUED sigue disponible.
+PASS: El trabajo pendiente se recupera como CANCELED.
+
+============================================================
+TC-130 - EJECUCION INTERRUMPIDA SE RECUPERA COMO FAILED
+============================================================
+PASS: El trabajo interrumpido sigue disponible en el historial.
+PASS: La ejecución interrumpida se recupera como FAILED.
+
+============================================================
+TC-131 - TRABAJO INTERRUMPIDO NO SE REEJECUTA
+============================================================
+PASS: El trabajo interrumpido se inició una sola vez y no fue reejecutado.
+
+============================================================
+TC-132 - TRABAJO PENDIENTE NO SE EJECUTA AL RECUPERAR
+============================================================
+PASS: El trabajo que estaba QUEUED no se ejecuta automáticamente al recuperar.
+
+============================================================
+TC-133 - DAEMON QUEDA OPERATIVO DESPUES DE RECUPERACION
+============================================================
+PASS: El daemon responde a solicitudes después de la recuperación.
+PASS: El proceso del daemon permanece activo después de recuperar el historial.
+
+============================================================
+RESULTADO GENERAL
+============================================================
+RESULTADO GENERAL: PASS

@@ -8,7 +8,7 @@ import shlex
 import socket
 import argparse
 
-SOCKET_PATH = "/tmp/jobsy.sock"
+from src.protocol.endpoint import client_socket_path
 
 def build_parser():
     parser = argparse.ArgumentParser(
@@ -33,34 +33,68 @@ def build_parser():
     # comando cancel
     cancel_parser = subparsers.add_parser("cancel", help="Cancela un trabajo")
     cancel_parser.add_argument("job_id", help="ID del trabajo")
+    
+    # comando output
+    output_parser = subparsers.add_parser("output", help="Muestra stdout y stderr de un trabajo")
+    output_parser.add_argument("job_id", help="ID del trabajo")
+
+    # comando health
+    health_parser = subparsers.add_parser("health", help="Muestra el resumen de salud del servicio y estado de los trabajos")
+
 
     return parser
 
 def send_ipc_request(payload: dict) -> dict:
     """Envía la petición en JSON al socket UNIX y retorna la respuesta."""
-    if not os.path.exists(SOCKET_PATH):
+    socket_path = client_socket_path()
+    if not os.path.exists(socket_path):
         print("Error: El servicio Jobsy no está en ejecución.", file=sys.stderr)
         sys.exit(1)
 
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client_socket:
-        client_socket.connect(SOCKET_PATH)
+        client_socket.connect(socket_path)
         client_socket.sendall(json.dumps(payload).encode("utf-8"))
-        response_data = client_socket.recv(4096)
+        response_data = _recv_all(client_socket)
         return json.loads(response_data.decode("utf-8"))
+    
+def _recv_all(sock):
+    chunks = []
+    while True:
+        chunk = sock.recv(65536)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        try:
+            json.loads(b"".join(chunks).decode("utf-8"))
+            break
+        except (ValueError, UnicodeDecodeError):
+            continue
+    return b"".join(chunks)
 
-def main():
+# Función auxiliar para manejar respuestas de error estructuradas
+def handle_error_response(res):
+    """Renderiza el error estructurado recibido directamente del servidor (RNF-21)."""
+    print(f"Error en la operación '{res.get('operation', 'desconocida')}':", file=sys.stderr)
+    print(f"  • Causa: {res.get('cause', res.get('message', 'Error desconocido'))}", file=sys.stderr)
+    print(f"  • Acción sugerida: {res.get('suggestion', 'Verifique la sintaxis o el estado del servicio.')}", file=sys.stderr)
+    sys.exit(1)
+
+
+def main(argv=None, *, split_command_string=True):
+    """Run the CLI; retain legacy single-string parsing unless disabled."""
+    argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
 
-    if len(sys.argv) == 1:
+    if not argv:
         parser.print_help()
         sys.exit(2)  # código de salida 2 indica error de sintaxis
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     try:
         if args.subcommand == "run":
             raw_command = args.command
-            if len(raw_command) == 1 and " " in raw_command[0]:
+            if split_command_string and len(raw_command) == 1 and " " in raw_command[0]:
                 command_list = shlex.split(raw_command[0])
             else:
                 command_list = raw_command
@@ -70,8 +104,7 @@ def main():
                 print(f"Trabajo creado y enviado a ejecución con ID: {res['job_id']}")
                 sys.exit(0)
             else:
-                print(f"Error de validación: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
 
         elif args.subcommand == "list":
             res = send_ipc_request({"action": "list", "status": args.status})
@@ -84,8 +117,40 @@ def main():
                         print(f"ID: {j['id']} | Estado: {j['status']} | Comando: {' '.join(j['command'])}")
                 sys.exit(0)
             else:
-                print(f"Error: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
+
+        #rf-24: Resumen de salud del servicio y estado de los trabajos
+        elif args.subcommand == "health":
+                res = send_ipc_request({"action": "health"})
+                if res["status"] == "ok":
+                    h = res["health"]
+                    print(f"=== Resumen de Salud de Jobsy ===")
+                    print(f"Servicio Activo: {'Sí' if h['service_active'] else 'No'}")
+                    if h['storage_error']:
+                        print(f"Error de Almacenamiento: {h['storage_error']}")
+                    print(f"\n--- Trabajos en Ejecución ({h['running_count']}) ---")
+                    if not h['running_jobs']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['running_jobs']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Inicio: {j['started_at']}")
+
+                    print(f"\n--- Trabajos en Cola ({h['queued_count']}) ---")
+                    if not h['queued_jobs']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['queued_jobs']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Recibido: {j['received_at']}")
+
+                    print(f"\n--- Errores Recientes ({h['recent_errors_count']}) ---")
+                    if not h['recent_errors']:
+                        print("  Ninguno")
+                    else:
+                        for j in h['recent_errors']:
+                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Código: {j['exit_code']} | Fin: {j['finished_at']}")
+                    sys.exit(0)
+                else:
+                    handle_error_response(res)
 
         elif args.subcommand == "status":
             res = send_ipc_request({"action": "status", "job_id": args.job_id})
@@ -98,10 +163,11 @@ def main():
                 print(f"Inicio: {j['started_at']}")
                 print(f"Fin: {j['finished_at']}")
                 print(f"Código de salida: {j['exit_code'] if j['exit_code'] is not None else '-'}")
+                if j.get("diagnostic"):
+                    print(f"Diagnóstico: {j['diagnostic']}")
                 sys.exit(0)
             else:
-                print(f"Error de validación: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
 
         elif args.subcommand == "cancel":
             res = send_ipc_request({"action": "cancel", "job_id": args.job_id})
@@ -110,8 +176,16 @@ def main():
                 print(f"Estado actual: {res['job_status']}")
                 sys.exit(0)
             else:
-                print(f"Error de validación: {res['message']}", file=sys.stderr)
-                sys.exit(1)
+                handle_error_response(res)
+        
+        elif args.subcommand == "output":
+            res = send_ipc_request({"action": "output", "job_id": args.job_id})
+            if res["status"] == "ok":
+                sys.stdout.write(res["stdout"])
+                sys.stderr.write(res["stderr"])
+                sys.exit(0)
+            else:
+                handle_error_response(res)
 
         else:
             parser.print_help()
@@ -120,6 +194,27 @@ def main():
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
+def execute_main(argv=None):
+    """Submit literal command arguments through the existing run action."""
+    argv = list(sys.argv[1:] if argv is None else argv)
+    return main(["run", "--", *argv], split_command_string=False)
+
+
+def list_main(argv=None):
+    """Delegate the short list command to the existing CLI."""
+    return main(["list", *(sys.argv[1:] if argv is None else argv)])
+
+
+def status_main(argv=None):
+    """Delegate the short status command to the existing CLI."""
+    return main(["status", *(sys.argv[1:] if argv is None else argv)])
+
+
+def cancel_main(argv=None):
+    """Delegate the short cancel command to the existing CLI."""
+    return main(["cancel", *(sys.argv[1:] if argv is None else argv)])
+
 
 if __name__ == "__main__":
     main()

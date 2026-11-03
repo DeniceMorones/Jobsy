@@ -1,0 +1,64 @@
+
+============================================================
+TC-107 - ACCION IPC INVALIDA DEVUELVE ERROR ESTRUCTURADO
+============================================================
+Respuesta: {'status': 'error', 'operation': 'accion_invalida', 'cause': "La acción 'accion_invalida' no es reconocida por el sistema.", 'suggestion': "Consulte los comandos disponibles ejecutando 'jobsy --help'."}
+PASS: Una acción inválida devuelve status, operation, cause y suggestion.
+PASS: El error conserva el nombre de la operación inválida.
+PASS: La causa explica que la acción no es reconocida.
+
+============================================================
+TC-108 - JSON INVALIDO DEVUELVE ERROR ESTRUCTURADO
+============================================================
+Respuesta: {'status': 'error', 'operation': 'desconocida', 'cause': 'Expecting property name enclosed in double quotes: line 1 column 2 (char 1)', 'suggestion': "Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos."}
+PASS: Un JSON inválido devuelve un error estructurado.
+PASS: Un JSON no interpretable utiliza la operación desconocida.
+PASS: La respuesta conserva la causa del error de JSON.
+
+============================================================
+TC-109 - STATUS DE ID INEXISTENTE DEVUELVE ERROR ESTRUCTURADO
+============================================================
+Respuesta: {'status': 'error', 'operation': 'status', 'cause': "No existe un trabajo con el ID '6bb5fa9e-5524-4060-99bc-ec62efe432cb'.", 'suggestion': "Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos."}
+PASS: Consultar un ID inexistente devuelve un error estructurado.
+PASS: El error identifica correctamente la operación status.
+PASS: La causa informa que el trabajo solicitado no existe.
+
+============================================================
+TC-110 - CANCEL DE ID INEXISTENTE DEVUELVE ERROR ESTRUCTURADO
+============================================================
+Respuesta: {'status': 'error', 'operation': 'cancel', 'cause': "No existe un trabajo con el ID '6bb5fa9e-5524-4060-99bc-ec62efe432cb'.", 'suggestion': "Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos."}
+PASS: Cancelar un ID inexistente devuelve un error estructurado.
+PASS: El error identifica correctamente la operación cancel.
+
+============================================================
+TC-111 - COLA LLENA DEVUELVE CAUSA Y SUGERENCIA
+============================================================
+PASS: El primer trabajo ocupa la única reserva de ejecución.
+PASS: El segundo trabajo ocupa la única posición de la cola.
+Respuesta: {'status': 'error', 'operation': 'run', 'cause': 'Cola llena: no hay capacidad disponible.', 'suggestion': 'Espere a que finalicen los trabajos actuales o aumente la capacidad máxima de la cola.'}
+PASS: La cola llena devuelve un error estructurado.
+PASS: El rechazo por capacidad identifica la operación run.
+PASS: La causa del rechazo está relacionada con la capacidad de la cola.
+PASS: El rechazo por cola llena incluye una acción sugerida útil.
+
+============================================================
+TC-112 - CLI PRESENTA EL ERROR ESTRUCTURADO
+============================================================
+Código CLI: 1
+stdout: ''
+stderr: "Error en la operación 'status':\n  • Causa: No existe un trabajo con el ID 'c6b221a4-b756-4572-b743-9e57a8aa103f'.\n  • Acción sugerida: Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos.\n"
+PASS: La CLI devuelve código 1 ante un error del servidor.
+PASS: La CLI muestra la operación que produjo el error.
+PASS: La CLI muestra la causa del error.
+PASS: La CLI muestra una acción sugerida.
+
+============================================================
+TC-113 - DAEMON SIGUE OPERATIVO DESPUES DE ERRORES
+============================================================
+PASS: El proceso del daemon continúa activo después de solicitudes erróneas.
+PASS: El daemon continúa procesando solicitudes válidas después de errores.
+
+============================================================
+RESULTADO GENERAL
+============================================================
+RESULTADO GENERAL: PASS

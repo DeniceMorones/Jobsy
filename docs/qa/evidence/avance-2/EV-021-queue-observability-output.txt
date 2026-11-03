@@ -1,0 +1,40 @@
+
+============================================================
+TC-121 - COLA LLENA QUEDA REGISTRADA EN JOBSY.LOG
+============================================================
+PASS: El primer trabajo ocupa la reserva de ejecución.
+PASS: El segundo trabajo ocupa la cola.
+PASS: La tercera solicitud es rechazada por falta de capacidad.
+PASS: El rechazo por cola llena queda registrado en jobsy.log.
+
+============================================================
+TC-122 - RECHAZO POR COLA LLENA INCLUYE REQID
+============================================================
+PASS: El evento de rechazo por capacidad contiene un ReqID.
+
+============================================================
+TC-123 - DESCONEXION PREMATURA DEL CLIENTE QUEDA REGISTRADA
+============================================================
+PASS: La desconexión prematura del cliente queda registrada.
+
+============================================================
+TC-124 - LOG INDICA ESTADO DE OPERACION TRAS DESCONEXION
+============================================================
+PASS: El log indica el estado de la operación cuando el cliente se desconecta.
+PASS: El estado registrado de la operación es explícito.
+
+============================================================
+TC-125 - DAEMON SOBREVIVE A DESCONEXION DEL CLIENTE
+============================================================
+PASS: El proceso del daemon continúa activo después de la desconexión.
+
+============================================================
+TC-126 - SOLICITUD POSTERIOR SIGUE FUNCIONANDO
+============================================================
+PASS: El daemon procesa una solicitud válida después de la desconexión.
+PASS: El daemon permanece operativo al finalizar la prueba.
+
+============================================================
+RESULTADO GENERAL
+============================================================
+RESULTADO GENERAL: PASS

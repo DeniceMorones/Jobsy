@@ -1,0 +1,33 @@
+[Daemon] Trabajo qa-rnf09-isolated-job aislado: No se pudo confirmar la terminación del proceso: fallo de cleanup provocado por QA
+
+========================================
+TC-088 - AISLAR FALLO DE CLEANUP DE UN TRABAJO
+========================================
+Worker de aislamiento activo: True
+Intentos de wait: 2
+PASS: El trabajo con fallo de cleanup permanece aislado mientras su proceso sigue vivo.
+PASS: El scheduler intenta confirmar periódicamente la terminación del proceso.
+
+========================================
+TC-089 - EL SCHEDULER SIGUE OPERATIVO DURANTE EL AISLAMIENTO
+========================================
+Reservas: 1
+Pendientes: 1
+Tiempo de respuesta counts(): 0.000006 s
+PASS: El scheduler puede consultar su estado mientras otro trabajo está aislado.
+PASS: El fallo de cleanup de un trabajo no bloquea las operaciones del scheduler.
+PASS: El cleanup continúa aislado sin bloquear al resto del scheduler.
+
+========================================
+TC-090 - FINALIZAR DE FORMA CONTROLADA EL TRABAJO AISLADO
+========================================
+Worker activo después de liberar proceso: False
+Return code simulado: -9
+Resultado de aislamiento: (-9, '', 'No se pudo confirmar la terminación del proceso: fallo de cleanup provocado por QA')
+PASS: El aislamiento termina cuando se confirma que el proceso finalizó.
+PASS: El scheduler devuelve código de salida y diagnóstico controlados.
+PASS: El diagnóstico conserva la causa original del fallo de cleanup.
+
+========================================
+RESULTADO GENERAL: PASS
+Todas las comprobaciones fueron exitosas.

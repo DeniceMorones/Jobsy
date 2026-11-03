@@ -1,5 +1,6 @@
 #trabajo y metadatos
 import subprocess
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -19,4 +20,5 @@ class Job:
     exit_code: int | None = None
 
     #guarda la referencia al subproceso activo  (esto me ayuda para la cancelacion)(no se serializa)
-    process: subprocess.Popen | None = field(default=None, repr=False) 
+    process: subprocess.Popen | None = field(default=None, repr=False)
+    cancel_requested: threading.Event = field(default_factory=threading.Event, repr=False, compare=False)

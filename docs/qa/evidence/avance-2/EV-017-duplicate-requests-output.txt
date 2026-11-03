@@ -1,0 +1,60 @@
+
+============================================================
+TC-091 - LIST DUPLICADO NO ALTERA EL ESTADO
+============================================================
+PASS: Las dos solicitudes list son procesadas correctamente.
+PASS: Repetir list devuelve el mismo estado sin modificar trabajos.
+
+============================================================
+TC-092 - STATUS DUPLICADO CONSERVA METADATOS
+============================================================
+PASS: El trabajo usado para probar status es aceptado.
+PASS: El trabajo termina correctamente antes de consultar status repetido.
+PASS: Dos consultas status consecutivas conservan todos los metadatos.
+
+============================================================
+TC-093 - OUTPUT DUPLICADO CONSERVA STDOUT Y STDERR
+============================================================
+PASS: El trabajo usado para probar output es aceptado.
+PASS: Repetir output conserva exactamente stdout y stderr.
+PASS: La salida recuperada conserva el contenido original.
+
+============================================================
+TC-094 - CANCEL DUPLICADO NO GENERA SEGUNDA TRANSICION
+============================================================
+PASS: El trabajo de larga duración es aceptado.
+PASS: La primera solicitud cancel cambia el trabajo a CANCELED.
+PASS: La segunda cancelación es rechazada de forma controlada.
+PASS: La segunda cancelación informa que la cancelación ya fue solicitada.
+
+============================================================
+TC-095 - CANCEL DUPLICADO CONSERVA ESTADO Y TIMESTAMPS
+============================================================
+PASS: El estado permanece CANCELED después del segundo cancel.
+PASS: La cancelación duplicada no modifica los timestamps del trabajo.
+
+============================================================
+TC-096 - RUN DUPLICADO CREA UUID DIFERENTES
+============================================================
+PASS: Las dos solicitudes run idénticas son aceptadas.
+PASS: Dos solicitudes run idénticas generan identificadores diferentes.
+PASS: Los dos identificadores generados son UUIDv4 válidos.
+
+============================================================
+TC-097 - RUN DUPLICADO CREA TRABAJOS INDEPENDIENTES
+============================================================
+PASS: Ambos trabajos creados pueden consultarse independientemente.
+PASS: Ambos trabajos conservan el mismo comando solicitado.
+PASS: Cancelar el primer trabajo duplicado afecta únicamente a ese trabajo.
+PASS: El segundo trabajo duplicado permanece independiente.
+
+============================================================
+TC-098 - DAEMON SIGUE OPERATIVO TRAS SOLICITUDES DUPLICADAS
+============================================================
+PASS: El proceso del daemon continúa activo.
+PASS: El daemon continúa respondiendo después de solicitudes duplicadas.
+
+============================================================
+RESULTADO GENERAL
+============================================================
+RESULTADO GENERAL: PASS
