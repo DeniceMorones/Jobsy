@@ -79,5 +79,8 @@ Los escenarios negativos y de integración se transfieren en la política y el
 modelo de amenazas. No se han ejecutado pruebas funcionales de seguridad ni
 se han modificado los documentos formales de QA. Backend implementa la propuesta
 aprobada; Alexia verifica las cuatro condiciones de alcance y genera evidencia.
-El Change Request y análisis de impacto integral de #125 quedan para el bloque
-3.6; este ADR aporta decisiones y riesgos, no declara ese entregable completado.
+El [CR-001](CR-001-Migracion-Arquitectura-Red.md) del bloque 3.6 registra
+impacto, riesgos, reversión y aprobaciones pendientes para #125.
+[ADR-010](ADR-010-Concurrencia-Clientes-Remotos.md) especifica concurrencia
+de conexiones y cierre sin alterar reservas. Estos documentos completan
+la propuesta para revisión; no registran aprobación, implementación o QA.

@@ -4,6 +4,11 @@ Estado: implementado; verificación técnica ejecutada por Benjamin en Ubuntu WS
 Alcance: Avance 2.1, RF-03 (#52), RF-05 (#23), RNF-07 (#26).
 Complementa ADR-002 y conserva el protocolo de ADR-003.
 
+Para la migración remota, [ADR-010](ADR-010-Concurrencia-Clientes-Remotos.md)
+propone compartir este mismo Scheduler entre clientes locales/remotos.
+Los cupos de conexión no son reservas de ejecución; esa integración todavía
+no está implementada. Impacto: [CR-001](CR-001-Migracion-Arquitectura-Red.md).
+
 ## Contexto y decisión
 
 La creación de un hilo por solicitud no limita los procesos simultáneos.

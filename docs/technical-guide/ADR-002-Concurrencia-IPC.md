@@ -5,8 +5,13 @@ actual usa sockets Unix (ADR-003) y la planificación acotada se define en
 [ADR-004](ADR-004-Cola-y-Limite-de-Concurrencia.md), que sustituye la decisión
 de concurrencia sin límite. La ausencia de IPC descrita abajo ya no aplica.
 
-**Estado:** Aceptado  
+**Estado:** histórico; aceptado para el MVP y parcialmente sustituido por ADR-003/004.
 **Issue relacionado:** #46
+
+La concurrencia entre clientes remotos se propone en
+[ADR-010](ADR-010-Concurrencia-Clientes-Remotos.md). Mantiene la planificación
+acotada vigente; no convierte la decisión inicial en un clúster ni en
+concurrencia de red implementada. Ver [índice y vigencia de ADRs](indice-adrs.md).
 
 ## Contexto
 

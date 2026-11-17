@@ -26,6 +26,9 @@ run sigue siendo una nueva orden. No se introduce ejecución exactamente una vez
 
 La capa de red reutilizará un único gestor y su Scheduler por instancia.
 La concurrencia entre clientes no equivale a ejecución distribuida entre nodos.
+[ADR-010](ADR-010-Concurrencia-Clientes-Remotos.md) concreta workers acotados,
+núcleo compartido y cierre coordinado; el alcance requiere revisión según
+[CR-001](CR-001-Migracion-Arquitectura-Red.md).
 Los UUID durables se conservan; la CLI puede presentar prefijos y el gestor
 debe rechazar ambigüedades. La autorización no se deduce del conocimiento del ID.
 

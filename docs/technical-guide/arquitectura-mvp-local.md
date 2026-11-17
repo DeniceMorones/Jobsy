@@ -162,6 +162,24 @@ ampliar la separación de privilegios requiere decisión arquitectónica.
 La implementación de Backend y la certificación independiente de Alexia
 siguen pendientes; esta documentación no sustituye esos entregables.
 
+## Control de decisiones y migración: Avance 3.6
+
+El [índice de ADRs](indice-adrs.md) distingue decisiones históricas, vigentes
+y propuestas para #123. [ADR-010](ADR-010-Concurrencia-Clientes-Remotos.md)
+define la concurrencia propuesta entre clientes en distintos equipos: un
+único núcleo, workers de conexión acotados y operaciones secuenciales por
+conexión. No se diseña un clúster de ejecutores; ese alcance debe confirmarse.
+
+El [CR-001](CR-001-Migracion-Arquitectura-Red.md) cubre #125 con línea base,
+archivos afectados, compatibilidad, riesgos, escenarios de verificación,
+secuencia y reversión operativa. La nueva capa debe cerrar sus workers antes
+de cerrar el gestor/repositorio. No modifica el esquema, los estados ni la
+recuperación. Las aprobaciones y la implementación de red siguen pendientes.
+
+Estos aportes de Benjamin no sustituyen el registro de riesgos, cronograma,
+guías finales, matriz de trazabilidad ni evidencia de las otras responsables.
+No se realizan pruebas de red como parte de la revisión documental.
+
 ## Referencia histórica: diseño del Avance 01
 
 El contenido siguiente documenta el diseño inicial, no el estado vigente.
