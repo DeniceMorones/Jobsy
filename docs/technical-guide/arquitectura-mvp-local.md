@@ -1,6 +1,6 @@
-# Arquitectura de Jobsy: Avances 2.1 y 2.2 y referencia del MVP local
+# Arquitectura local de Jobsy y transición propuesta a Avance 3
 
-## Arquitectura vigente: Avances 2.1 y 2.2
+## Arquitectura vigente: Avance 2 integrado
 
 Esta sección sustituye las descripciones del MVP histórico que siguen abajo.
 Requisitos: RF-03 (#52), RF-05 (#23), RNF-07 (#26).
@@ -13,6 +13,8 @@ La respuesta de admisión devuelve el ID, no espera al fin de la ejecución.
 
 - config.py: configuración inmutable validada y argumentos del daemon.
 - protocol/endpoint.py: ruta Unix compartida, validación y variable del cliente.
+- protocol/job_ids.py: presentación corta y resolución inequívoca de UUID.
+- daemon/logger.py: bitácora centralizada y correlación de solicitudes/trabajos.
 - job_manager.py: vista en RAM, commits coordinados, admisión, snapshots y cancelación.
 - scheduler.py: FIFO acotada, reservas, despachador y supervisores.
 - executor.py: Popen, captura separada, terminación y recolección.
@@ -29,7 +31,8 @@ Una reserva cubre desde la admisión directa o promoción hasta la recolección,
 incluso si el estado público ya es CANCELED y hay un proceso en limpieza.
 El fallo de lanzamiento o la cancelación antes de crear el proceso libera
 la reserva sin recolección. Si la limpieza de un proceso no se confirma, se
-conserva su reserva para impedir exceso de procesos.
+conserva su reserva y se aísla ese trabajo; las demás reservas pueden continuar.
+Un fallo de persistencia sí bloquea globalmente admisión y despacho.
 
 pending es la cola FIFO de espera acotada; ready es la cola de reservas listas
 para lanzar. Un despachador único procesa ready y publica Popen bajo el lock.
@@ -43,7 +46,9 @@ Las opciones --max-running y --queue-capacity se aplican al arranque, tanto
 con jobsy-daemon como con python3 -m src.daemon.server.
 Se añade --data-dir con predeterminado XDG_STATE_HOME/jobsy o ~/.local/state/jobsy.
 El arranque valida SQLite y reconcilia registros bajo un lock exclusivo antes
-de escuchar. No se añade control de descendientes ni un nuevo protocolo.
+de escuchar. Executor usa una sesión/grupo propio para señalar descendientes
+que permanezcan en ese grupo; no hay control universal de árboles de procesos.
+El IPC ofrece run, list, status, cancel, output y health.
 La recepción IPC sigue siendo secuencial; el gestor sí sincroniza
 llamadas concurrentes desde varios hilos.
 
@@ -62,8 +67,9 @@ reprograma el historial. Ver [ADR-005](ADR-005-Persistencia-SQLite.md) y
 El apagado cancela pendientes y concede cinco segundos de gracia a los activos;
 después solicita su terminación y une los hilos fuera del lock. No se garantiza
 un tiempo total de apagado de cinco segundos. La política de escalamiento
-permanece encapsulada en Executor.terminate_and_reap para integración con el
-trabajo de Backend, sin introducir nuevos estados ni mensajes IPC.
+permanece encapsulada en Executor.terminate_and_reap, con gracia configurable
+mediante --cancel-grace y señales al grupo propio cuando se confirma su propiedad.
+No introduce nuevos estados públicos; véase ADR-007.
 
 La [nota técnica de ADR-004](ADR-004-Cola-y-Limite-de-Concurrencia.md#nota-técnica-de-verificación-de-benjamin)
 registra las 46 pruebas aprobadas por Benjamin en Ubuntu WSL. No reemplaza
@@ -114,6 +120,20 @@ existente y de confianza; no se eliminan sockets para arrancar. El cierre
 comprueba el inode propio con lstat. La exclusividad de datos sigue separada
 de la selección del socket. No cambian contratos JSON, reservas ni recuperación.
 RF-16 permanece parcial: no hay interfaz IP ni puerto TCP configurables.
+
+## Identificadores cortos y contrato de red: Avance 3.2
+
+La CLI presenta prefijos de ocho caracteres; list --full-id conserva acceso al
+UUID completo. JobManager resuelve el ID bajo su Condition antes de consultar
+o cancelar, incluyendo historial terminal, y rechaza prefijos ambiguos. No hay
+migración de SQLite, alias persistidos ni cambios de generación de UUID.
+
+El [contrato v1](protocolo-red-v1.md) y [ADR-008](ADR-008-Protocolo-de-Red-Versionado.md)
+son propuestas pendientes de implementación: longitud binaria + JSON UTF-8,
+versión, correlación y varias solicitudes secuenciales por conexión. Una futura
+capa de red debe reutilizar el mismo gestor y sus reservas, sin I/O de socket
+bajo la Condition. No se implementa un clúster ni cambia la política de recuperación.
+La configuración y autorización LAN/VPN se diseñarán en 3.4 antes de habilitar TCP.
 
 ## Referencia histórica: diseño del Avance 01
 

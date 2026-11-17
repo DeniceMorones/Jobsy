@@ -2,8 +2,8 @@
 
 Estado: documentación de la implementación existente; no introduce cambios.
 Alcance: RNF-18 (#78), coordinación con concurrencia y persistencia de 2.1/2.2.
-La certificación formal y el trabajo adicional de escalamiento del equipo son
-independientes de este registro de arquitectura.
+Actualizado para describir el escalamiento y aislamiento integrados por Backend.
+La certificación formal de QA es independiente de este registro de arquitectura.
 
 ## Decisión implementada
 
@@ -34,9 +34,15 @@ un Popen o commit lento pueda retrasar otras solicitudes.
 Executor.collect consulta cancel_requested entre intentos de communicate con
 timeout de 0,1 s. terminate_and_reap realiza:
 
-1. Si poll indica proceso activo, terminate envía SIGTERM en Linux.
-2. wait espera hasta 2 s.
-3. Si vence, kill envía SIGKILL y wait espera hasta otros 2 s.
+1. spawn utiliza start_new_session=True. Marca el grupo como propio si su
+   identificador coincide con el PID del hijo y es distinto al grupo del daemon.
+2. Si poll indica proceso activo, envía SIGTERM mediante killpg al grupo propio;
+   si no se confirmó grupo propio, utiliza terminate sobre el proceso directo.
+3. wait espera --cancel-grace (2 s predeterminados; >0 y <=60).
+4. Si vence, envía SIGKILL al grupo propio o usa kill sobre el proceso directo,
+   y espera hasta otros 2 s por el proceso principal.
+5. Si el proceso principal termina dentro de la gracia y tiene grupo propio,
+   también envía SIGKILL al grupo para retirar descendientes restantes.
 
 ProcessLookupError al señalar se tolera porque el proceso pudo terminar en la
 carrera. Después, collect intenta capturar ambas salidas con communicate
@@ -50,9 +56,12 @@ y limpieza en una transacción antes de retirar la reserva y promover FIFO.
 El estado sigue CANCELED aunque el proceso salga con 0. finish_locked ignora una
 segunda finalización sin reserva, evitando liberar capacidad dos veces.
 
-Si falla persistencia o limpieza, se conserva la reserva, se bloquean admisión
-y despacho y se informa del error. Nunca se concede capacidad basándose solo
-en CANCELED. La solicitud inicial puede esperar lock/commit, pero no espera
+Si falla persistencia, se conserva la reserva y se bloquean admisión y despacho.
+Un fallo de limpieza se aísla por trabajo: conserva su reserva y espera al proceso
+en intervalos de 1 s mientras el servicio continúa con las otras reservas. Si
+confirma la terminación, guarda el diagnóstico y finaliza; si llega el apagado
+sin confirmación, conserva la reserva y shutdown informa error. Nunca se concede
+capacidad basándose solo en CANCELED. La solicitud inicial puede esperar lock/commit, pero no espera
 deliberadamente toda la terminación del proceso.
 
 ## Apagado y recuperación
@@ -71,8 +80,10 @@ proceso sigue vivo. Señalar desde el manejador IPC bloquearía solicitudes y
 duplicaría la propiedad de limpieza; se conserva el monitor como supervisor.
 Un estado público adicional requeriría cambiar contratos sin necesidad actual.
 
-La política no envía SIGINT al trabajo, no controla grupos de procesos ni todos
-los descendientes y no garantiza apagado acotado. Los descendientes pueden
-conservar pipes. No se amplía aquí la política de escalamiento ni se altera el
-trabajo de Backend o QA. La implementación está en job_manager.py, scheduler.py
-y executor.py; los contratos de consumo están en interfaces-publicas.md.
+La política no envía SIGINT al trabajo ni garantiza apagado acotado. Señala
+el grupo propio, pero no alcanza necesariamente descendientes que cambien de
+sesión/grupo ni recolecta todos los descendientes como hijos directos. Estos
+pueden conservar pipes. El límite del Scheduler sigue contando procesos
+principales. Esta actualización describe el código integrado, sin modificar
+el escalamiento implementado por Backend ni los archivos de QA. La implementación
+está en job_manager.py, scheduler.py y executor.py; los contratos de consumo están en interfaces-publicas.md.

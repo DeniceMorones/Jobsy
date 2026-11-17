@@ -21,8 +21,8 @@ protocolo JSON por socket Unix y los seis ejecutables existentes.
 Una Condition con RLock protege registro, estados, colas y reservas.
 La admisión asigna una reserva libre o agrega al final de la cola; si ambas
 capacidades están ocupadas, QueueFullError produce el sobre IPC existente
-(status=error, message), sin dejar un trabajo registrado. La cola cuenta solo
-trabajos sin reserva; queue_capacity=0 permite admisión solo con reserva libre.
+(status=error, operation, cause, suggestion), sin dejar un trabajo registrado.
+La cola cuenta solo trabajos sin reserva; queue_capacity=0 permite admisión solo con reserva libre.
 El lanzamiento sigue siendo asíncrono: disponer de reserva no significa que
 Popen ya se haya ejecutado.
 
@@ -58,16 +58,17 @@ una reserva; finished_at se asigna después de recolectarlo.
 Un fallo de Popen produce QUEUED -> FAILED y libera la reserva.
 Si no se puede confirmar la limpieza, se retiene capacidad por seguridad
 y shutdown informa del error; no se presume que el proceso desapareció.
+En la implementación integrada de Backend, un fallo de limpieza se aísla en su
+monitor mientras espera al proceso, sin bloquear otras reservas disponibles.
+Un fallo de persistencia conserva el bloqueo global de admisión/despacho.
 
 El apagado cierra admisión, cancela trabajos no iniciados, permite hasta cinco
 segundos a los activos y solicita cancelación de los restantes. Después une
-los supervisores fuera del lock. El Executor conserva la secuencia de
-terminación, espera de dos segundos y escalamiento, y espera también tras kill.
-La política de terminación está aislada en terminate_and_reap para coordinar
-el trabajo de escalamiento asignado por separado. En Linux la secuencia actual
-es SIGTERM -> espera de hasta 2 s -> SIGKILL -> espera de hasta 2 s; no incluye
-SIGINT. Los cinco segundos son el periodo de gracia del servidor, no un límite
-total de apagado: los joins no tienen timeout.
+los supervisores fuera del lock. Executor.terminate_and_reap aplica SIGTERM,
+espera --cancel-grace (2 s por defecto, >0 y <=60) y escala a SIGKILL si vence,
+con espera posterior de hasta 2 s. También limpia el grupo propio tras terminar
+el proceso principal; véase ADR-007. No incluye SIGINT. Los cinco segundos son
+el periodo de gracia del servidor, no un límite total de apagado: los joins no tienen timeout.
 
 Cancelar un trabajo reservado pero todavía sin proceso libera su reserva sin
 esperar recolección. Si falla la creación o el arranque del hilo supervisor,
