@@ -133,7 +133,34 @@ son propuestas pendientes de implementación: longitud binaria + JSON UTF-8,
 versión, correlación y varias solicitudes secuenciales por conexión. Una futura
 capa de red debe reutilizar el mismo gestor y sus reservas, sin I/O de socket
 bajo la Condition. No se implementa un clúster ni cambia la política de recuperación.
-La configuración y autorización LAN/VPN se diseñarán en 3.4 antes de habilitar TCP.
+La configuración y autorización LAN/VPN se proponen en el bloque 3.4 siguiente;
+requieren revisión e implementación antes de habilitar TCP.
+
+## Seguridad y acceso LAN/VPN: propuesta de Avance 3.4
+
+La [política de seguridad](seguridad-lan-vpn.md), [ADR-009](ADR-009-Seguridad-LAN-VPN.md)
+y el [modelo de amenazas](modelo-amenazas-lan-vpn.md) cubren el diseño de
+RF-20, RNF-12, RNF-13 y RNF-16. No hay transporte remoto ni controles TLS
+implementados. La propuesta mantiene Unix y desactiva la red por defecto.
+
+Flujo remoto propuesto: IP/CIDR permitida y cupo de conexión -> TLS mutuo
+y certificado autorizado -> framing/validación v1 -> despacho -> gestor
+existente. La configuración es inmutable; protocol/security.py se propone
+como módulo de política sin dependencias de JobManager o SQLite. Backend
+compondrá esa política con el transporte; no se crea ese módulo en esta fase.
+
+Los cupos de conexiones incluyen handshakes y son independientes de las
+reservas del Scheduler. TLS y socket I/O permanecen fuera de la Condition;
+desconectar un cliente no cancela un trabajo ya admitido. No se cambian
+estados, recolección, atomicidad ni recuperación de Avance 2.
+
+El modelo propuesto confía en operadores con acceso compartido a todos los
+trabajos. La cuenta de servicio sin root limita privilegios, pero los hijos
+comparten su UID y pueden acceder a sus archivos, incluida una futura clave
+TLS. No hay sandbox ni aislamiento entre operadores; aceptar ese límite o
+ampliar la separación de privilegios requiere decisión arquitectónica.
+La implementación de Backend y la certificación independiente de Alexia
+siguen pendientes; esta documentación no sustituye esos entregables.
 
 ## Referencia histórica: diseño del Avance 01
 

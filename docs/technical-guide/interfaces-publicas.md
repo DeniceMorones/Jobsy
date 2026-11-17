@@ -103,6 +103,20 @@ dispositivo/inode con lstat, sin seguir enlaces finales. No hay limpieza automá
 de sockets obsoletos. La exclusividad del directorio de datos permanece independiente.
 RF-16 (#72) permanece parcial: interfaz TCP y puerto requieren aprobación futura.
 
+## Seguridad de red propuesta: Avance 3.4
+
+La [política LAN/VPN](seguridad-lan-vpn.md) y [ADR-009](ADR-009-Seguridad-LAN-VPN.md)
+describen campos futuros, todavía no disponibles en argparse ni como API
+Python. Proponen filtro IP/CIDR, TLS mutuo, certificados autorizados y cupos
+de conexiones antes del contrato v1. No añaden operaciones JSON ni cambian
+los argumentos o códigos de salida de los ejecutables actuales.
+
+El acceso remoto propuesto concede a operadores de confianza acceso a todo
+el historial de la instancia, sin permisos por propietario. UUID/prefijos
+y request_id no son credenciales. El socket Unix sigue protegido por los
+permisos del entorno local, sin autenticación TLS. Backend debe implementar
+la propuesta aprobada antes de ofrecerla; QA deberá verificarla aparte.
+
 ## Contrato IPC actual
 
 AF_UNIX/SOCK_STREAM, JSON UTF-8, una solicitud/respuesta por conexión. El cliente

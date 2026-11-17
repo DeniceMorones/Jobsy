@@ -54,10 +54,13 @@ respuestas que superen 1 MiB se rechazan sin truncarlas; paginación/transferenc
 de salidas grandes requiere una extensión acordada. No hay promesa de memoria
 acotada de toda la captura del proceso por el límite de una trama.
 
-Quedan para Avance 3.4 la interfaz de escucha, puerto, límite de conexiones,
-lista de redes autorizadas, autenticación, protección del canal y amenazas.
-Ninguna decisión de este ADR habilita exposición pública. No se cambia la
-persistencia, recuperación, cancelación ni el límite de procesos de Avance 2.
+La [política 3.4](seguridad-lan-vpn.md) y [ADR-009](ADR-009-Seguridad-LAN-VPN.md)
+proponen escucha, puerto, cupos de conexiones, redes autorizadas, TLS mutuo
+y modelo de amenazas. El framing v1 se procesa después del filtro de IP y
+la autenticación/autorización del canal; no se añade una operación login.
+Estas decisiones siguen pendientes de aprobación e implementación. No se
+habilita exposición pública ni se cambia persistencia, recuperación,
+cancelación o el límite de procesos de Avance 2.
 
 Los escenarios de conformidad están en el contrato; son requisitos para pruebas
 futuras, no resultados ejecutados ni certificación de QA.

@@ -32,7 +32,9 @@ RF-16 (#72) sigue parcial: existen --data-dir, --max-running y --queue-capacity,
 pero no interfaz IP ni puerto configurables. Una ruta Unix no equivale a ambos.
 No hay transporte TCP, autenticación remota ni exposición LAN implementados.
 La definición del transporte se propone en Avance 3.2; las decisiones de
-seguridad LAN/VPN corresponden al bloque 3.4 antes de activar acceso remoto.
+seguridad LAN/VPN se proponen en [ADR-009](ADR-009-Seguridad-LAN-VPN.md)
+y la [política de acceso](seguridad-lan-vpn.md), pendientes de aprobación
+e implementación antes de activar acceso remoto.
 
 ## Configuración local: Avance 2.5B
 
@@ -67,7 +69,10 @@ La comunicación remota deberá reutilizar las mismas operaciones principales de
 La separación entre IPC y gestión conserva el funcionamiento local sin añadir
 red ni modificar las garantías de concurrencia y persistencia.
 
-Más adelante será necesario definir el formato de mensajes, manejo de errores, conexiones parciales y restricciones de acceso para la operación remota.
+El contrato 3.2 propone formato, errores y conexiones parciales; la política
+3.4 propone restricciones LAN/VPN, autenticación y mínimo privilegio. Ambos
+requieren revisión, implementación y verificación independiente. El diseño
+documental no convierte esos controles en comportamiento disponible.
 
 ## Verificación de desarrollo de 2.5B
 

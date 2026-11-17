@@ -123,8 +123,11 @@ Toda respuesta contiene version=1, request_id y status. Para errores previos a
 poder validar el sobre, request_id es null y operation es "desconocida"; no se
 reflejan datos arbitrarios de una solicitud corrupta. El error añade code,
 operation, cause y suggestion, todos cadenas. Las causas públicas no incluyen
-tracebacks, SQL, secretos ni rutas privadas del servidor. La política de acceso
-a los propios resultados se definirá en Avance 3.4.
+tracebacks, SQL, secretos ni rutas privadas del servidor. La [política 3.4](seguridad-lan-vpn.md)
+propone que operadores autenticados compartan acceso a todos los resultados
+de su instancia; no incorpora ownership por trabajo. Estos errores JSON se
+aplican después de autorizar el canal: un rechazo previo de IP o TLS cierra
+la conexión sin emitir una respuesta JSON en texto claro.
 
 | code | Tratamiento propuesto |
 | --- | --- |
@@ -176,11 +179,17 @@ validación del sobre, despacho de operaciones y transporte; las funciones de
 framing deben aceptar un stream inyectable para pruebas sin una red real.
 No se propone reemplazar JobManager, Scheduler, Executor ni SQLite.
 
-Antes de habilitar un listener remoto se debe acordar Avance 3.4: interfaz y
-puerto configurables, límites de clientes, lista LAN/VPN autorizada, mínimo
-privilegio, autenticación y protección del canal. El framing y request_id no
-autentican a nadie. No se debe exponer el servicio públicamente ni presentar
-este documento como implementación de seguridad.
+La [política de Avance 3.4](seguridad-lan-vpn.md) y [ADR-009](ADR-009-Seguridad-LAN-VPN.md)
+proponen red desactivada por defecto, bind explícito, lista LAN/VPN, cupos
+de conexiones y TLS mutuo con operadores autorizados. El filtro del origen
+real y la autenticación se realizan antes de procesar v1; el handshake tiene
+un plazo propio, separado de los plazos de mensajes de este contrato.
+Framing, request_id y Job ID no autentican a nadie; no se añade login ni
+una credencial al JSON. Las seis operaciones permanecen sin cambios.
+
+Se requiere aprobar e implementar ambas propuestas antes de habilitar red.
+No se debe exponer el servicio públicamente ni presentar estos documentos
+como implementación o certificación de seguridad.
 
 ## 7. Escenarios de verificación del contrato
 
