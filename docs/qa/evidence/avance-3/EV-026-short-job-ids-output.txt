@@ -1,0 +1,185 @@
+
+========================================================================
+PR #133 - IDS CORTOS DE TRABAJOS
+========================================================================
+[PASS] El daemon inició correctamente.
+
+========================================================================
+TC-150 - RUN MUESTRA ID CORTO DE 8 CARACTERES
+========================================================================
+Exit code: 0
+STDOUT: 'Trabajo creado y enviado a ejecución con ID: 43790e86\n'
+STDERR: ''
+[PASS] jobsy run muestra un ID corto de 8 caracteres.
+ID corto obtenido: 43790e86
+
+========================================================================
+TC-151 - LIST MUESTRA IDS CORTOS POR DEFECTO
+========================================================================
+Exit code: 0
+ID: 43790e86 | Estado: SUCCEEDED | Comando: python -c print('QA SHORT ID')
+
+[PASS] jobsy list muestra IDs cortos por defecto.
+
+========================================================================
+TC-152 - LIST --FULL-ID MUESTRA UUID COMPLETO
+========================================================================
+Exit code: 0
+ID: 43790e86-ab21-4462-a8d5-12831225c044 | Estado: SUCCEEDED | Comando: python -c print('QA SHORT ID')
+
+[PASS] jobsy list --full-id muestra el UUID completo.
+UUID completo: 43790e86-ab21-4462-a8d5-12831225c044
+[PASS] El UUID completo corresponde al ID corto creado.
+
+========================================================================
+TC-153 - STATUS ACEPTA ID CORTO
+========================================================================
+Exit code: 0
+ID: 43790e86
+Estado: SUCCEEDED
+Comando: python -c print('QA SHORT ID')
+Recibido: 2026-11-19 01:19:21 UTC
+Inicio: 2026-11-19 01:19:21 UTC
+Fin: 2026-11-19 01:19:21 UTC
+Código de salida: 0
+
+[PASS] status acepta correctamente el ID corto.
+
+========================================================================
+TC-154 - OUTPUT ACEPTA ID CORTO
+========================================================================
+Estado terminal: SUCCEEDED
+Exit code: 0
+STDOUT: 'QA SHORT ID\n'
+STDERR: ''
+[PASS] output obtiene la salida usando el ID corto.
+
+========================================================================
+TC-155 - CANCEL ACEPTA ID CORTO
+========================================================================
+RUN: Trabajo creado y enviado a ejecución con ID: 28a4f6f3
+
+Estado antes de cancelar: RUNNING
+Exit code: 0
+Cancelando trabajo con ID: 28a4f6f3
+Estado actual: CANCELED
+
+[PASS] cancel acepta correctamente un ID corto.
+
+========================================================================
+TC-156 - STATUS SIGUE ACEPTANDO UUID COMPLETO
+========================================================================
+Exit code: 0
+ID: 43790e86
+Estado: SUCCEEDED
+Comando: python -c print('QA SHORT ID')
+Recibido: 2026-11-19 01:19:21 UTC
+Inicio: 2026-11-19 01:19:21 UTC
+Fin: 2026-11-19 01:19:21 UTC
+Código de salida: 0
+
+[PASS] status conserva compatibilidad con UUID completo.
+
+========================================================================
+TC-157 - PREFIJO DE MAS DE 8 CARACTERES FUNCIONA
+========================================================================
+Prefijo utilizado: 43790e86ab21
+Exit code: 0
+ID: 43790e86
+Estado: SUCCEEDED
+Comando: python -c print('QA SHORT ID')
+Recibido: 2026-11-19 01:19:21 UTC
+Inicio: 2026-11-19 01:19:21 UTC
+Fin: 2026-11-19 01:19:21 UTC
+Código de salida: 0
+
+[PASS] Un prefijo hexadecimal de 12 caracteres se resuelve correctamente.
+
+========================================================================
+TC-158 - PREFIJO EN MAYUSCULAS FUNCIONA
+========================================================================
+Prefijo utilizado: 43790E86
+Exit code: 0
+ID: 43790e86
+Estado: SUCCEEDED
+Comando: python -c print('QA SHORT ID')
+Recibido: 2026-11-19 01:19:21 UTC
+Inicio: 2026-11-19 01:19:21 UTC
+Fin: 2026-11-19 01:19:21 UTC
+Código de salida: 0
+
+[PASS] El ID corto también se acepta en mayúsculas.
+
+========================================================================
+TC-159 - ID INEXISTENTE DEVUELVE ERROR
+========================================================================
+Exit code: 1
+STDOUT: ''
+STDERR: "Error en la operación 'status':\n  • Causa: No existe un trabajo con el ID 'ffffffff'.\n  • Acción sugerida: Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos.\n"
+[PASS] Un ID inexistente devuelve un error controlado.
+
+========================================================================
+TC-160 - PREFIJO MENOR A 8 CARACTERES ES RECHAZADO
+========================================================================
+Exit code: 1
+STDOUT: ''
+STDERR: "Error en la operación 'status':\n  • Causa: Use un UUID completo o un prefijo de 8 a 32 caracteres hexadecimales sin guiones; consulte 'jobsy list --full-id'.\n  • Acción sugerida: Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos.\n"
+[PASS] Un prefijo menor a 8 caracteres es rechazado.
+
+========================================================================
+TC-161 - CARACTERES NO HEXADECIMALES SON RECHAZADOS
+========================================================================
+Exit code: 1
+STDOUT: ''
+STDERR: "Error en la operación 'status':\n  • Causa: Use un UUID completo o un prefijo de 8 a 32 caracteres hexadecimales sin guiones; consulte 'jobsy list --full-id'.\n  • Acción sugerida: Verifique los parámetros ingresados o utilice 'jobsy list' para consultar los IDs válidos.\n"
+[PASS] Los IDs con caracteres no hexadecimales son rechazados.
+
+========================================================================
+TC-162 - PREFIJO AMBIGUO ES RECHAZADO
+========================================================================
+Mensaje: El ID corto 'aaaaaaaa' es ambiguo. Use más caracteres o el UUID completo; consulte 'jobsy list --full-id'.
+[PASS] Un prefijo ambiguo es rechazado sin seleccionar arbitrariamente un trabajo.
+
+========================================================================
+TC-163 - ID CORTO FUNCIONA CON TRABAJO TERMINAL
+========================================================================
+Exit code: 0
+ID: 43790e86
+Estado: SUCCEEDED
+Comando: python -c print('QA SHORT ID')
+Recibido: 2026-11-19 01:19:21 UTC
+Inicio: 2026-11-19 01:19:21 UTC
+Fin: 2026-11-19 01:19:21 UTC
+Código de salida: 0
+
+[PASS] Un trabajo terminal sigue siendo localizable mediante ID corto.
+
+========================================================================
+TC-164 - HEALTH MUESTRA IDS CORTOS
+========================================================================
+RUN: Trabajo creado y enviado a ejecución con ID: 6fcf7874
+
+Estado: RUNNING
+Exit code: 0
+=== Resumen de Salud de Jobsy ===
+Servicio Activo: Sí
+
+--- Trabajos en Ejecución (1) ---
+  ID: 6fcf7874 | Comando: python -c import time; time.sleep(5) | Inicio: 2026-11-19 01:19:23 UTC
+
+--- Trabajos en Cola (0) ---
+  Ninguno
+
+--- Errores Recientes (0) ---
+  Ninguno
+
+[PASS] health muestra IDs cortos en sus trabajos.
+
+========================================================================
+RESULTADO FINAL
+========================================================================
+Checks ejecutados: 17
+PASS: 17
+FAIL: 0
+
+RESULTADO GENERAL: PASS

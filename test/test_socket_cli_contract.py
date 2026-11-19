@@ -85,13 +85,9 @@ def show_result(code, stdout, stderr):
     print("STDERR:", repr(stderr))
 
 
-def extract_uuid(text):
+def extract_job_id(text):
     match = re.search(
-        r"\b[0-9a-fA-F]{8}-"
-        r"[0-9a-fA-F]{4}-"
-        r"[0-9a-fA-F]{4}-"
-        r"[0-9a-fA-F]{4}-"
-        r"[0-9a-fA-F]{12}\b",
+        r"\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F-]{28})?\b",
         text,
     )
 
@@ -395,13 +391,13 @@ def main():
                 "execute utiliza JOBSY_SOCKET_PATH."
             )
 
-            job_id = extract_uuid(
+            job_id = extract_job_id(
                 stdout + "\n" + stderr
             )
 
             failures += check(
                 job_id is not None,
-                "execute devuelve un UUID de trabajo."
+                "execute devuelve un identificador de trabajo válido."
             )
 
             # jobsy list
