@@ -4235,13 +4235,28 @@ RESULTADO GENERAL: PASS
 | TC-147 | Batería disponible mediante un único comando | PASS | EV-025 |
 | TC-148 | Scripts de la batería finalizan correctamente | PASS | EV-025 |
 | TC-149 | Resultado agregado de la batería | PASS | EV-025 |
+| TC-150 | Run muestra ID corto de 8 caracteres | PASS | EV-026 |
+| TC-151 | List muestra IDs cortos por defecto | PASS | EV-026 |
+| TC-152 | List --full-id muestra UUID completo | PASS | EV-026 |
+| TC-153 | Status acepta ID corto válido | PASS | EV-026 |
+| TC-154 | Output acepta ID corto válido | PASS | EV-026 |
+| TC-155 | Cancel acepta ID corto válido | PASS | EV-026 |
+| TC-156 | Status conserva compatibilidad con UUID completo | PASS | EV-026 |
+| TC-157 | Resolver prefijo hexadecimal de más de 8 caracteres | PASS | EV-026 |
+| TC-158 | Resolver ID corto escrito en mayúsculas | PASS | EV-026 |
+| TC-159 | Rechazar ID corto inexistente de forma controlada | PASS | EV-026 |
+| TC-160 | Rechazar prefijo menor a 8 caracteres | PASS | EV-026 |
+| TC-161 | Rechazar ID con caracteres no hexadecimales | PASS | EV-026 |
+| TC-162 | Rechazar prefijo ambiguo sin elegir arbitrariamente | PASS | EV-026 |
+| TC-163 | Resolver ID corto de un trabajo terminal | PASS | EV-026 |
+| TC-164 | Health muestra IDs cortos | PASS | EV-026 |
 
 
 ## Resultado general
 
-Se han ejecutado un total acumulado de **149 casos de prueba** sobre los alcances revisados de Jobsy.
+Se han ejecutado un total acumulado de **164 casos de prueba** sobre los alcances revisados de Jobsy.
 
-Los **149 casos cuentan con resultado final `PASS`**.
+Los **164 casos cuentan con resultado final `PASS`**.
 
 Para el PR #116 se añadieron **36 casos de prueba**, del `TC-091` al `TC-126`, con resultado:
 
@@ -4250,6 +4265,29 @@ Para el PR #116 se añadieron **36 casos de prueba**, del `TC-091` al `TC-126`, 
 Para el cierre de QA de la Technical Review 2 se añadieron **23 casos de prueba**, del `TC-127` al `TC-149`, con resultado:
 
 **23 PASS / 0 FAIL**
+
+Para el PR #133 se añadieron **15 casos de prueba**, del `TC-150` al `TC-164`, con resultado:
+
+**15 PASS / 0 FAIL**
+
+La cobertura del PR #133 incluyó:
+
+- visualización de IDs cortos de 8 caracteres;
+- recuperación del UUID completo mediante `list --full-id`;
+- uso de IDs cortos en `status`, `output` y `cancel`;
+- compatibilidad con UUID completos y prefijos de más de 8 caracteres;
+- validación de IDs inexistentes, inválidos y ambiguos;
+- visualización de IDs cortos en `health`;
+- regresión completa de la batería vigente mediante `EV-027`.
+
+La batería consolidada posterior al PR #133 finalizó con:
+
+```text
+23 scripts
+23 PASS
+0 FAIL
+0 TIMEOUT
+```
 
 La cobertura adicional de la Technical Review 2 incluyó:
 
@@ -4276,12 +4314,14 @@ También se documentó la evidencia de versión demostrada y batería ejecutada 
 
 ### Observaciones QA — cierre Technical Review 2
 
-- La cobertura acumulada comprende `TC-001` a `TC-149`.
-- Las evidencias acumuladas comprenden `EV-001` a `EV-025`.
+- La cobertura acumulada comprende `TC-001` a `TC-164`.
+- Las evidencias acumuladas comprenden `EV-001` a `EV-027`.
 - RNF-31 quedó cubierto mediante `TC-127` a `TC-133` / `EV-022`.
 - RNF-33 quedó cubierto mediante `TC-134` a `TC-140` / `EV-023`.
 - RNF-02, RNF-03 y RNF-19 quedaron cubiertos mediante `TC-141` a `TC-146` / `EV-024`.
 - RNF-20 quedó cubierto mediante `TC-147` a `TC-149` / `EV-025`.
+- El PR #133 quedó cubierto mediante `TC-150` a `TC-164` / `EV-026`, validando IDs cortos, UUID completos, resolución de prefijos y manejo de errores.
+- La regresión posterior al PR #133 quedó documentada en `EV-027`, con la batería vigente completa en `PASS`.
 - La instalación limpia se ejecutó con UID `1000`, sin `sudo`, con código de salida `0` y `0` warnings detectados.
 - La prueba de estrés procesó `120` trabajos, liberó todos los procesos hijos, conservó `6` descriptores de archivo antes y después de la carga y eliminó correctamente el socket al finalizar.
 - La batería consolidada excluye pruebas históricas cuyas expectativas pertenecen a contratos anteriores del sistema; las funcionalidades actuales correspondientes cuentan con cobertura posterior vigente.
