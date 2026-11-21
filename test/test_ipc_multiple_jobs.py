@@ -30,6 +30,7 @@ def check(condition, description):
 def get_test_env():
     # Configuramos PYTHONPATH para que Python encuentre src
     env = os.environ.copy()
+    env["JOBSY_SOCKET_PATH"] = SOCKET_PATH
 
     current_pythonpath = env.get("PYTHONPATH", "")
 
@@ -71,7 +72,7 @@ def run_cli(*arguments):
 def extract_job_id(output):
     # Obtenemos el UUID devuelto por el comando run
     match = re.search(
-        r"ID:\s*([0-9a-fA-F-]{36})",
+        r"ID:\s*([0-9a-fA-F]{8}(?:-[0-9a-fA-F-]{28})?)\b",
         output
     )
 

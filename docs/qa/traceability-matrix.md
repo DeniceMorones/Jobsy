@@ -2,7 +2,7 @@
 
 Esta matriz relaciona las funcionalidades requeridas del MVP, los requisitos formales y los entregables de QA con sus casos de prueba, scripts, artefactos y evidencias.
 
-La matriz se mantiene de forma acumulativa e incluye las validaciones ejecutadas por QA sobre los PR #101, #102, #104, #110, #114 y #116.
+La matriz se mantiene de forma acumulativa e incluye las validaciones ejecutadas por QA sobre los PR #101, #102, #104, #110, #114, #116 y #133.
 
 | ID | Requisito / funcionalidad | Caso(s) de prueba | Automatización / artefacto | Evidencia | Estado | Requisito formal / Issue |
 |---|---|---|---|---|---|---|
@@ -36,6 +36,7 @@ La matriz se mantiene de forma acumulativa e incluye las validaciones ejecutadas
 | RNF-21 | Presentar errores estructurados con causa y sugerencia operativa | TC-107 a TC-113 | `test/test_structured_errors.py` | EV-019 | PASS | RNF-21 / #81 |
 | RNF-22 | Correlacionar solicitudes IPC mediante ReqID | TC-116, TC-117, TC-119, TC-120, TC-122 | `test/test_request_logging.py`, `test/test_queue_observability.py` | EV-020, EV-021 | PASS | RNF-22 / #82 |
 | RNF-23 | Mantener guía de usuario actualizada y optimizada | Validación documental | `docs/user-guide/README.md` | PR #116 | PASS | RNF-23 / #83 |
+| PR133-ID | Mostrar y resolver referencias cortas de trabajos sin modificar su UUID persistente | TC-150 a TC-164 | `test/test_short_job_ids.py` | EV-026, EV-027 | PASS | PR #133 |
 | RNF-02 | Construcción e instalación reproducible desde un clon limpio | TC-141, TC-142, TC-145, TC-146 | `test/test_clean_installation.py` | EV-024 | PASS | RNF-02 |
 | RNF-03 | Instalar y operar Jobsy sin privilegios root | TC-143, TC-145, TC-146 | `test/test_clean_installation.py` | EV-024 | PASS | RNF-03 |
 | RNF-19 | Instalación limpia sin warnings ni errores | TC-144 | `test/test_clean_installation.py` | EV-024 | PASS | RNF-19 |
@@ -44,23 +45,25 @@ La matriz se mantiene de forma acumulativa e incluye las validaciones ejecutadas
 | RNF-33 | Ejecutar estrés y verificar liberación de memoria, procesos, archivos y sockets | TC-134 a TC-140 | `test/test_resource_stress.py` | EV-023 | PASS | RNF-33 / #71 |
 | RNF-25 | Liberar procesos hijos al cerrar el servicio | TC-028 | `test/test_service_shutdown.py` | EV-005 | PASS | RNF-25 / #28 |
 | RNF-30 | Evitar procesos huérfanos tras terminación o falla del servicio | TC-019, TC-028, TC-076 a TC-079, TC-087 | `test/test_cancellation.py`, `test/test_service_shutdown.py`, `test/test_process_group_cancellation.py`, `test/test_cancel_grace.py` | EV-004, EV-005, EV-013, EV-015 | PASS | RNF-30 / #29 |
-| QA-01 | Documentar casos de prueba ejecutados | TC-001 a TC-149 | `docs/qa/test-cases.md` | EV-001 a EV-025 | PASS | QA / #47 |
-| QA-02 | Mantener scripts reproducibles de verificación | TC-001 a TC-149 | `test/*.py` | EV-001 a EV-025 | PASS | QA / #48 |
-| QA-03 | Mantener matriz de trazabilidad requisito → prueba → evidencia | TC-001 a TC-149 | `docs/qa/traceability-matrix.md` | EV-001 a EV-025 | PASS | QA / #49 |
-| QA-04 | Registrar evidencia de la versión demostrada | TC-001 a TC-149 | `docs/qa/evidence/avance-1/`, `docs/qa/evidence/avance-2/`, `docs/qa/technical-review-2.md` | EV-001 a EV-025 | PASS | QA / #51 |
+| QA-01 | Documentar casos de prueba ejecutados | TC-001 a TC-164 | `docs/qa/test-cases.md` | EV-001 a EV-027 | PASS | QA / #47 |
+| QA-02 | Mantener scripts reproducibles de verificación | TC-001 a TC-164 | `test/*.py` | EV-001 a EV-027 | PASS | QA / #48 |
+| QA-03 | Mantener matriz de trazabilidad requisito → prueba → evidencia | TC-001 a TC-164 | `docs/qa/traceability-matrix.md` | EV-001 a EV-027 | PASS | QA / #49 |
+| QA-04 | Registrar evidencia de la versión demostrada | TC-001 a TC-164 | `docs/qa/evidence/avance-1/`, `docs/qa/evidence/avance-2/`, `docs/qa/evidence/avance-3/`, `docs/qa/technical-review-2.md` | EV-001 a EV-027 | PASS | QA / #51 |
 | QA-INC | Documentar al menos un incidente técnico con síntoma, hipótesis, causa, fix y regresión | TC-119 | `docs/qa/incidents/INC-001-request-id-correlation.md` | EV-020 | PASS | QA / Technical Review 2 |
 | QA-05 | Registrar usos representativos de IA durante el avance | N/A | `docs/technical-guide/Registros_uso_IA.pdf` | `Registros_uso_IA.pdf` | PASS | QA / #50 |
 
 ## Observaciones
 
-- La cobertura acumulada comprende `TC-001` a `TC-149`, con evidencias `EV-001` a `EV-025`.
+- La cobertura acumulada comprende `TC-001` a `TC-164`, con evidencias `EV-001` a `EV-027`.
 - `MVP-03 / RF-04` se considera **PASS**. La separación entre el daemon y los procesos de trabajo quedó cubierta mediante `TC-076` a `TC-079`.
 - Los casos `TC-091` a `TC-126` corresponden al PR #116 y utilizan `EV-017` a `EV-021`.
 - Los casos `TC-127` a `TC-149` corresponden al cierre de QA para la Technical Review 2 y utilizan `EV-022` a `EV-025`.
+- Los casos `TC-150` a `TC-164` corresponden al PR #133 y validan presentación y resolución de IDs cortos mediante `EV-026`.
+- `EV-027` documenta la regresión completa posterior al PR #133, con la batería vigente finalizando en `PASS`.
 - RNF-31 quedó cubierto mediante `TC-127` a `TC-133`, verificando conservación de terminales, `QUEUED → CANCELED`, ejecución interrumpida → `FAILED`, ausencia de reejecución automática y continuidad del daemon.
 - RNF-33 quedó cubierto mediante `TC-134` a `TC-140`, incluyendo una carga de 120 trabajos, liberación de procesos hijos, descriptores, memoria estable y limpieza del socket UNIX.
 - RNF-02, RNF-03 y RNF-19 quedaron cubiertos mediante `TC-141` a `TC-146`: clon limpio, entorno virtual nuevo, UID no root, instalación sin `sudo`, sin warnings y puntos de entrada operativos.
-- RNF-20 quedó cubierto mediante `TC-147` a `TC-149`; `python test/run_qa_suite.py` ejecutó la batería consolidada con `22 PASS`, `0 FAIL` y `0 TIMEOUT`.
+- RNF-20 quedó cubierto mediante `TC-147` a `TC-149`. Tras incorporar el PR #133, `python test/run_qa_suite.py` ejecutó la batería vigente con `23 PASS`, `0 FAIL` y `0 TIMEOUT`.
 - Durante la primera ejecución de `TC-119` se detectó un defecto de propagación de `ReqID`. El incidente fue corregido y revalidado; se documenta en `docs/qa/incidents/INC-001-request-id-correlation.md`.
 - La evidencia de la versión demostrada y la batería ejecutada para Technical Review 2 se consolida en `docs/qa/technical-review-2.md`.
 - Las pruebas históricas con contratos anteriores se conservan como evidencia de ejecuciones previas, pero el runner consolidado utiliza únicamente la batería vigente.

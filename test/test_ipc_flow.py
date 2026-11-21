@@ -24,6 +24,7 @@ CLI_MODULE = "src.client.cli"
 def get_test_env():
     # Creamos un entorno para que Python pueda encontrar el paquete src
     env = os.environ.copy()
+    env["JOBSY_SOCKET_PATH"] = SOCKET_PATH
 
     current_pythonpath = env.get("PYTHONPATH", "")
 
@@ -108,7 +109,7 @@ def run_cli(*arguments):
 def extract_job_id(output):
     # Buscamos el UUID que devuelve la CLI cuando se crea un trabajo
     match = re.search(
-        r"ID:\s*([0-9a-fA-F-]{36})",
+        r"ID:\s*([0-9a-fA-F]{8}(?:-[0-9a-fA-F-]{28})?)\b",
         output
     )
 
@@ -381,8 +382,12 @@ def main():
         )
 
         failures += check(
-            "No existe un trabajo" in stderr,
-            "La CLI informa de forma controlada que el trabajo no existe."
+            (
+                "No existe un trabajo" in stderr
+                or "8 a 32 caracteres" in stderr
+                or "hexadecimales" in stderr
+            ),
+            "La CLI informa de forma controlada que el ID no es válido o no existe."
         )
 
     finally:

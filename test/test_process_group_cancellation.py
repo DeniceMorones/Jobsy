@@ -41,7 +41,10 @@ def run(command, *, env=None, timeout=15):
 
 
 def extract_job_id(stdout):
-    match = re.search(r"ID:\s*([0-9a-fA-F-]{36})", stdout)
+    match = re.search(
+        r"ID:\s*([0-9a-fA-F]{8}(?:-[0-9a-fA-F-]{28})?)\b",
+        stdout,
+    )
 
     if not match:
         raise RuntimeError(
