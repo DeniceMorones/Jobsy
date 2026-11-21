@@ -1,6 +1,6 @@
-# Arquitectura de Jobsy: Avances 2.1 y 2.2 y referencia del MVP local
+# Arquitectura local de Jobsy y transición propuesta a Avance 3
 
-## Arquitectura vigente: Avances 2.1 y 2.2
+## Arquitectura vigente: Avance 2 integrado
 
 Esta sección sustituye las descripciones del MVP histórico que siguen abajo.
 Requisitos: RF-03 (#52), RF-05 (#23), RNF-07 (#26).
@@ -13,6 +13,8 @@ La respuesta de admisión devuelve el ID, no espera al fin de la ejecución.
 
 - config.py: configuración inmutable validada y argumentos del daemon.
 - protocol/endpoint.py: ruta Unix compartida, validación y variable del cliente.
+- protocol/job_ids.py: presentación corta y resolución inequívoca de UUID.
+- daemon/logger.py: bitácora centralizada y correlación de solicitudes/trabajos.
 - job_manager.py: vista en RAM, commits coordinados, admisión, snapshots y cancelación.
 - scheduler.py: FIFO acotada, reservas, despachador y supervisores.
 - executor.py: Popen, captura separada, terminación y recolección.
@@ -29,7 +31,8 @@ Una reserva cubre desde la admisión directa o promoción hasta la recolección,
 incluso si el estado público ya es CANCELED y hay un proceso en limpieza.
 El fallo de lanzamiento o la cancelación antes de crear el proceso libera
 la reserva sin recolección. Si la limpieza de un proceso no se confirma, se
-conserva su reserva para impedir exceso de procesos.
+conserva su reserva y se aísla ese trabajo; las demás reservas pueden continuar.
+Un fallo de persistencia sí bloquea globalmente admisión y despacho.
 
 pending es la cola FIFO de espera acotada; ready es la cola de reservas listas
 para lanzar. Un despachador único procesa ready y publica Popen bajo el lock.
@@ -43,7 +46,9 @@ Las opciones --max-running y --queue-capacity se aplican al arranque, tanto
 con jobsy-daemon como con python3 -m src.daemon.server.
 Se añade --data-dir con predeterminado XDG_STATE_HOME/jobsy o ~/.local/state/jobsy.
 El arranque valida SQLite y reconcilia registros bajo un lock exclusivo antes
-de escuchar. No se añade control de descendientes ni un nuevo protocolo.
+de escuchar. Executor usa una sesión/grupo propio para señalar descendientes
+que permanezcan en ese grupo; no hay control universal de árboles de procesos.
+El IPC ofrece run, list, status, cancel, output y health.
 La recepción IPC sigue siendo secuencial; el gestor sí sincroniza
 llamadas concurrentes desde varios hilos.
 
@@ -62,8 +67,9 @@ reprograma el historial. Ver [ADR-005](ADR-005-Persistencia-SQLite.md) y
 El apagado cancela pendientes y concede cinco segundos de gracia a los activos;
 después solicita su terminación y une los hilos fuera del lock. No se garantiza
 un tiempo total de apagado de cinco segundos. La política de escalamiento
-permanece encapsulada en Executor.terminate_and_reap para integración con el
-trabajo de Backend, sin introducir nuevos estados ni mensajes IPC.
+permanece encapsulada en Executor.terminate_and_reap, con gracia configurable
+mediante --cancel-grace y señales al grupo propio cuando se confirma su propiedad.
+No introduce nuevos estados públicos; véase ADR-007.
 
 La [nota técnica de ADR-004](ADR-004-Cola-y-Limite-de-Concurrencia.md#nota-técnica-de-verificación-de-benjamin)
 registra las 46 pruebas aprobadas por Benjamin en Ubuntu WSL. No reemplaza
@@ -114,6 +120,65 @@ existente y de confianza; no se eliminan sockets para arrancar. El cierre
 comprueba el inode propio con lstat. La exclusividad de datos sigue separada
 de la selección del socket. No cambian contratos JSON, reservas ni recuperación.
 RF-16 permanece parcial: no hay interfaz IP ni puerto TCP configurables.
+
+## Identificadores cortos y contrato de red: Avance 3.2
+
+La CLI presenta prefijos de ocho caracteres; list --full-id conserva acceso al
+UUID completo. JobManager resuelve el ID bajo su Condition antes de consultar
+o cancelar, incluyendo historial terminal, y rechaza prefijos ambiguos. No hay
+migración de SQLite, alias persistidos ni cambios de generación de UUID.
+
+El [contrato v1](protocolo-red-v1.md) y [ADR-008](ADR-008-Protocolo-de-Red-Versionado.md)
+son propuestas pendientes de implementación: longitud binaria + JSON UTF-8,
+versión, correlación y varias solicitudes secuenciales por conexión. Una futura
+capa de red debe reutilizar el mismo gestor y sus reservas, sin I/O de socket
+bajo la Condition. No se implementa un clúster ni cambia la política de recuperación.
+La configuración y autorización LAN/VPN se proponen en el bloque 3.4 siguiente;
+requieren revisión e implementación antes de habilitar TCP.
+
+## Seguridad y acceso LAN/VPN: propuesta de Avance 3.4
+
+La [política de seguridad](seguridad-lan-vpn.md), [ADR-009](ADR-009-Seguridad-LAN-VPN.md)
+y el [modelo de amenazas](modelo-amenazas-lan-vpn.md) cubren el diseño de
+RF-20, RNF-12, RNF-13 y RNF-16. No hay transporte remoto ni controles TLS
+implementados. La propuesta mantiene Unix y desactiva la red por defecto.
+
+Flujo remoto propuesto: IP/CIDR permitida y cupo de conexión -> TLS mutuo
+y certificado autorizado -> framing/validación v1 -> despacho -> gestor
+existente. La configuración es inmutable; protocol/security.py se propone
+como módulo de política sin dependencias de JobManager o SQLite. Backend
+compondrá esa política con el transporte; no se crea ese módulo en esta fase.
+
+Los cupos de conexiones incluyen handshakes y son independientes de las
+reservas del Scheduler. TLS y socket I/O permanecen fuera de la Condition;
+desconectar un cliente no cancela un trabajo ya admitido. No se cambian
+estados, recolección, atomicidad ni recuperación de Avance 2.
+
+El modelo propuesto confía en operadores con acceso compartido a todos los
+trabajos. La cuenta de servicio sin root limita privilegios, pero los hijos
+comparten su UID y pueden acceder a sus archivos, incluida una futura clave
+TLS. No hay sandbox ni aislamiento entre operadores; aceptar ese límite o
+ampliar la separación de privilegios requiere decisión arquitectónica.
+La implementación de Backend y la certificación independiente de Alexia
+siguen pendientes; esta documentación no sustituye esos entregables.
+
+## Control de decisiones y migración: Avance 3.6
+
+El [índice de ADRs](indice-adrs.md) distingue decisiones históricas, vigentes
+y propuestas para #123. [ADR-010](ADR-010-Concurrencia-Clientes-Remotos.md)
+define la concurrencia propuesta entre clientes en distintos equipos: un
+único núcleo, workers de conexión acotados y operaciones secuenciales por
+conexión. No se diseña un clúster de ejecutores; ese alcance debe confirmarse.
+
+El [CR-001](CR-001-Migracion-Arquitectura-Red.md) cubre #125 con línea base,
+archivos afectados, compatibilidad, riesgos, escenarios de verificación,
+secuencia y reversión operativa. La nueva capa debe cerrar sus workers antes
+de cerrar el gestor/repositorio. No modifica el esquema, los estados ni la
+recuperación. Las aprobaciones y la implementación de red siguen pendientes.
+
+Estos aportes de Benjamin no sustituyen el registro de riesgos, cronograma,
+guías finales, matriz de trazabilidad ni evidencia de las otras responsables.
+No se realizan pruebas de red como parte de la revisión documental.
 
 ## Referencia histórica: diseño del Avance 01
 

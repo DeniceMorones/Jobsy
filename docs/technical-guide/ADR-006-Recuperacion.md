@@ -36,7 +36,8 @@ Una caída entre trabajos deja registros individualmente coherentes; el siguient
 arranque continúa sin reejecutar. Se preservan received_at, started_at y salidas
 disponibles. No se inventa la hora real de terminación: finished_at puede quedar
 nulo en FAILED; recovered_at registra cuándo se reconoció la interrupción.
-El servidor muestra IDs y motivos recuperados en stderr.
+El servidor registra IDs y motivos recuperados mediante logger en la bitácora
+y en la salida de consola del daemon.
 
 ## Identidad y procesos supervivientes
 
@@ -92,8 +93,9 @@ cierre limpio; un error detectado puede registrar fin con clean_shutdown=0.
 
 Se mantienen FIFO, reservas y límite de procesos principales de 2.1. El historial
 recuperado no ocupa slots y ningún ID histórico se vuelve a programar.
-No cambia el protocolo JSON, ni los seis ejecutables instalados. La CLI sigue
-sin ofrecer lectura de stdout/stderr: los resultados se conservan en SQLite.
+No cambia el protocolo JSON ni los seis ejecutables instalados. La versión
+integrada ofrece jobsy output JOB_ID para consultar stdout/stderr conservados
+en SQLite. Los subcomandos output y health no son ejecutables adicionales.
 
 Solo se garantizan resultados que llegaron a un commit. Las salidas aún en RAM
 o en pipes pueden perderse al caer el daemon. Un commit de admisión seguido de

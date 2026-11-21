@@ -10,6 +10,7 @@ from .job import Job
 from .scheduler import QueueFullError, Scheduler
 from .process_identity import process_identity
 from ..protocol.validation import validate_command
+from ..protocol.job_ids import resolve_job_id
 from .logger import logger
 
 TERMINAL_STATES = {"SUCCEEDED", "FAILED", "CANCELED"}
@@ -178,9 +179,7 @@ class JobManager:
                 raise
 
     def _get_locked(self, job_id):
-        if job_id not in self.jobs:
-            raise ValueError(f"No existe un trabajo con el ID '{job_id}'.")
-        return self.jobs[job_id]
+        return self.jobs[resolve_job_id(job_id, self.jobs)]
 
     def get_job(self, job_id):
         with self.condition:

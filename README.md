@@ -17,7 +17,7 @@ Desarrollar una herramienta sencilla para:
 - **Persistencia y recuperación (Avance 2.2):** almacenamiento SQLite y recuperación conservadora, sin reejecución automática de trabajos.
 - **Socket Unix configurable (Avance 2.5B):** selección del endpoint mediante `--socket-path` y `JOBSY_SOCKET_PATH`.
 - **Observabilidad:** consulta del estado del daemon mediante `jobsy health` y registro de eventos en bitácoras.
-- **Administración de trabajos:** identificación mediante UUID y estados `QUEUED`, `RUNNING`, `SUCCEEDED`, `FAILED` y `CANCELED`.
+- **Administración de trabajos:** UUID persistente e IDs cortos en la CLI, con estados `QUEUED`, `RUNNING`, `SUCCEEDED`, `FAILED` y `CANCELED`.
 - **Semántica de duplicados (RF-27):** se incorpora el comportamiento definido para identificar y gestionar solicitudes duplicadas, documentado en [`semantica-duplicados.md`](docs/technical-guide/semantica-duplicados.md).
 
 ## 👥 Integrantes
@@ -53,7 +53,8 @@ El proyecto está organizado modularmente dentro de `src/`.
 | `src/daemon/scheduler.py` | Planificación de trabajos, gestión de cola y control de ejecuciones concurrentes. |
 | `src/daemon/server.py` | Servicio daemon y apagado controlado. |
 | `src/protocol/endpoint.py` | Validación y resolución de rutas del socket Unix. |
-| `src/protocol/validation.py` | Validación y sanitización de comandos. |
+| `src/protocol/validation.py` | Validación estructural de argumentos, sin autorización ni sanitización de shell. |
+| `src/protocol/job_ids.py` | Presentación de IDs cortos y resolución de prefijos únicos. |
 
 ## 💻 Instalación
 
@@ -90,9 +91,23 @@ jobsy health
 jobsy cancel ID_DEVUELTO
 ```
 
-Sustituye `ID_DEVUELTO` por el UUID del trabajo propio. Para detener tu daemon de prueba, utiliza `Ctrl+C` únicamente si estás autorizado y no atiende trabajos ajenos.
+Sustituye `ID_DEVUELTO` por el ID corto del trabajo propio; también se acepta el UUID completo. Para detener tu daemon de prueba, utiliza `Ctrl+C` únicamente si estás autorizado y no atiende trabajos ajenos.
 
 La forma histórica `python3 -m src.daemon.server` también está disponible desde la raíz del repositorio. **No ejecutes ambas formas simultáneamente para la misma instancia.**
+
+## Identificadores de trabajos
+
+La CLI muestra IDs de ocho caracteres, por ejemplo `a1b2c3d4`. Se pueden usar en
+`status a1b2c3d4`, `cancel a1b2c3d4` y `jobsy output a1b2c3d4` para un trabajo
+propio. SQLite, IPC y bitácoras conservan el UUID completo.
+
+Si un prefijo coincide con más de un trabajo, se rechaza sin actuar. Usa
+`jobsy list --full-id` (también `list --full-id`) y copia el UUID completo o un
+prefijo más largo sin guiones. Los scripts deben conservar UUID completos;
+las pruebas que extraían UUID de la salida abreviada requieren adaptación de QA.
+La búsqueda incluye el historial recuperado, sin migrar sus registros.
+Para usar prefijos se necesita el daemon actualizado; coordina su reinicio con
+el operador. Actualizar una instalación editable no recarga un daemon ya activo.
 
 ## ⚠️ Advertencias importantes
 
@@ -108,16 +123,17 @@ Consulta la [guía de usuario](docs/user-guide/README.md) antes de realizar oper
 
 ## 🧪 Pruebas y verificación
 
-La verificación local registró **105 pruebas aprobadas en Ubuntu WSL**, sin fallos ni omisiones en esa ejecución. Este resultado corresponde a verificación de desarrollo; no constituye certificación formal de QA ni acredita compatibilidad con todas las plataformas declaradas.
+Durante Avance 2.2, la verificación local registró **105 pruebas aprobadas en Ubuntu WSL**, sin fallos ni omisiones en esa ejecución. Este resultado corresponde a verificación de desarrollo; no constituye certificación formal de QA ni acredita compatibilidad con todas las plataformas declaradas.
 
-Las pruebas nuevas permanecen en la copia local excluida del commit descrito. No ejecutes `test_queue_ipc.py` ni el descubrimiento global de pruebas hasta que QA adapte la prueba IPC para utilizar un socket y un directorio de datos temporales.
+Las pruebas nuevas de aquella verificación de desarrollo permanecen en la copia local excluida del commit descrito. No ejecutes `test_queue_ipc.py` ni el descubrimiento global de pruebas hasta que QA adapte la prueba IPC para utilizar un socket y un directorio de datos temporales.
 
-La verificación independiente y la evidencia de QA corresponden a Alexia Gomez Rubio. Consulta el [traspaso técnico a Alexia](docs/technical-guide/ADR-006-Recuperacion.md#traspaso-técnico-a-alexia).
+La verificación independiente y la evidencia de QA corresponden a Alexia Gomez Rubio. El [reporte de Technical Review 2](docs/qa/technical-review-2.md) registra 149 casos PASS para su referencia `10c7a8e`; ese resultado histórico no certifica los nuevos IDs cortos. La [nota técnica actual](docs/technical-guide/interfaces-publicas.md#verificación-técnica-de-ids-cortos) registra las 75 pruebas de desarrollo de este cambio.
 
 ## 📚 Documentación importante para este segundo avance
 
 - [Guía de usuario](docs/user-guide/README.md): instalación, comandos, configuración y solución de problemas.
 - [Contratos públicos](docs/technical-guide/interfaces-publicas.md): interfaces del sistema.
+- [Protocolo de red v1](docs/technical-guide/protocolo-red-v1.md) y [ADR-008](docs/technical-guide/ADR-008-Protocolo-de-Red-Versionado.md): propuesta de Avance 3.2, todavía sin transporte TCP implementado.
 - [ADR-004: Cola y límite de concurrencia](docs/technical-guide/ADR-004-Cola-y-Limite-de-Concurrencia.md).
 - [ADR-006: Recuperación](docs/technical-guide/ADR-006-Recuperacion.md).
 - [ADR-007: Cancelación](docs/technical-guide/ADR-007-Cancelacion.md).
@@ -126,6 +142,6 @@ La verificación independiente y la evidencia de QA corresponden a Alexia Gomez 
 
 ## 📌 Estado del proyecto
 
-Jobsy incorpora ejecución concurrente, cola acotada, persistencia SQLite, recuperación conservadora y socket Unix configurable. La verificación independiente y la certificación formal de QA siguen pendientes según el estado documentado del proyecto.
+Jobsy incorpora ejecución concurrente, cola acotada, persistencia SQLite, recuperación conservadora y socket Unix configurable. La evidencia de Avance 2 está registrada en el reporte de QA. Los cambios de IDs cortos requieren revisión independiente, y el contrato de Avance 3.2 continúa como propuesta sin transporte remoto implementado.
 
 Proximo hito: Avance Final

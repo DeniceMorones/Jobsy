@@ -44,14 +44,18 @@ proceso. No hay resurrección del trabajo cancelado.
 La reserva no depende de contar RUNNING: permanece durante limpieza y se
 libera exactamente una vez. Una reserva sin proceso se puede liberar al
 cancelar antes del lanzamiento. Si no se confirma la limpieza de un proceso,
-permanece ocupada y se registra el diagnóstico en stderr del daemon; no se
-fuerza FAILED ni finished_at. También un fallo de persistencia bloquea nuevas
-ejecuciones y mantiene la última vista durable, incluso QUEUED si no se confirmó
+permanece ocupada y el Scheduler registra el diagnóstico en la bitácora y
+aísla ese trabajo mientras espera su terminación; las otras reservas continúan.
+Al confirmar wait, finaliza con diagnóstico de fallo y conserva CANCELED si ya
+estaba cancelado. Si el servicio cierra sin confirmación, no libera esa reserva.
+También un fallo de persistencia bloquea nuevas ejecuciones y mantiene la última vista durable, incluso QUEUED si no se confirmó
 RUNNING. La limpieza de procesos propios continúa sin publicar commits fallidos.
 Por ello una cancelación aceptada no significa que el slot esté libre todavía.
 
 En el daemon, cada transición se confirma en SQLite antes de publicarse en RAM.
 Los registros recuperados conservan UUID, timestamps conocidos y salidas.
+Los IDs cortos de la CLI son prefijos de esos UUID; no crean estados, nuevas
+identidades ni transiciones. Un prefijo ambiguo se rechaza antes de cancelar.
 FAILED por interrupción tiene exit_code desconocido y puede no tener finished_at;
 recovered_at y recovery_reason describen la reconciliación, no la muerte exacta.
 Los terminales con limpieza pendiente no autorizan liberar capacidad al arrancar.

@@ -76,7 +76,7 @@ jobsy health
 jobsy cancel ID_DEVUELTO
 ```
 
-> Reemplaza `ID_DEVUELTO` por el UUID que devuelve `execute`. Consulta y cancela únicamente el trabajo que acabas de crear.
+> Reemplaza `ID_DEVUELTO` por el ID corto que devuelve `execute`; el UUID completo también funciona. Consulta y cancela únicamente el trabajo que acabas de crear.
 
 ### Alternativas de arranque
 Puedes comparar con la CLI original:
@@ -99,16 +99,42 @@ Además de `execute`, `jobsy` y `jobsy-daemon`, la instalación ofrece los sigui
 | `list` | `jobsy list` |
 | `list --status RUNNING` | `jobsy list --status RUNNING` |
 | `status ID_DEVUELTO` | `jobsy status ID_DEVUELTO` |
-| `output ID_DEVUELTO` | `jobsy output ID_DEVUELTO` |
-| `health` | `jobsy health` |
 | `cancel ID_DEVUELTO` | `jobsy cancel ID_DEVUELTO` |
 
 > **Advertencia de colisión:** Estos comandos pueden coincidir con herramientas del sistema, especialmente `cancel` de servicios de impresión. Comprueba `type -a list status cancel`: `.venv/bin` se antepone al `PATH` al activar el entorno, pero los alias y funciones de shell pueden prevalecer. Usa las formas `jobsy ...` si existe una colisión. No elimines comandos del sistema. Reinstala con `python -m pip install -e .` para incorporar los nuevos ejecutables.
+
+Los seis ejecutables son execute, jobsy, jobsy-daemon, list, status y cancel.
+Las operaciones output y health se utilizan como `jobsy output` y `jobsy health`;
+no están registradas como ejecutables independientes.
 
 ### Detalles de comandos
 - `list --help`, `status --help` y `cancel --help` muestran la ayuda de sus subcomandos. `status` y `cancel` requieren un ID; `list` no requiere argumentos.
 - `jobsy output ID_DEVUELTO`: Muestra el `stdout` y `stderr` del proceso.
 - `jobsy health`: Despliega un resumen en tiempo real del estado de salud del daemon, indicando si el servicio está activo, si existen errores de almacenamiento y detallando los trabajos en ejecución (`RUNNING`), en cola (`QUEUED`) y los errores recientes (`FAILED`).
+
+### IDs cortos
+
+execute, list, status, cancel y jobsy health muestran ocho caracteres del UUID.
+status, cancel y jobsy output admiten el UUID completo o un prefijo único de
+8 a 32 caracteres hexadecimales sin guiones, sin distinguir mayúsculas.
+
+```bash
+jobsy list
+jobsy list --full-id
+list --status RUNNING --full-id
+```
+
+Conserva el ID del trabajo propio al enviarlo. Si aparece un error de ambigüedad,
+consulta el listado completo y utiliza el UUID o un prefijo más largo. La
+resolución incluye trabajos terminales y recuperados, incluso si filtras list.
+No se ejecuta una cancelación cuando hay varios candidatos. Un prefijo puede
+volverse ambiguo al crear otros trabajos; los scripts deben guardar UUID completos.
+La base, las respuestas IPC y las bitácoras conservan la identidad original.
+La opción --full-id solo afecta al listado; no se pasa como opción de execute.
+
+La funcionalidad requiere el daemon actualizado. Una instalación editable no
+recarga procesos activos: coordina el reinicio normal con su operador, sin
+interrumpir trabajos ajenos. Un daemon anterior acepta los UUID completos.
 
 ### Uso de `execute`
 `execute` envía sus argumentos a la operación `run`, conservando sus límites:
@@ -165,6 +191,13 @@ python3 -m src.daemon.server --max-running 3 --queue-capacity 100
    - Un cancelado en espera no arranca.
    - Una cancelación activa se confirma inmediatamente, pero el slot queda ocupado hasta terminar y recolectar el proceso; `finished_at` puede aparecer como `-`.
 
+### Gracia de cancelación
+
+`jobsy-daemon --cancel-grace 2` configura la espera entre SIGTERM y SIGKILL;
+se admite un número mayor que 0 y hasta 60 segundos. Executor señala el grupo
+propio del trabajo cuando lo ha identificado, incluyendo descendientes que
+permanezcan en él. Este plazo no limita la duración total del apagado.
+
 ### Cierre del Daemon (Ctrl+C)
 `Ctrl+C` en tu daemon cierra admisión, cancela la espera, concede hasta cinco segundos a los activos y cancela los restantes. No uses esta prueba con trabajos ajenos. No borres sockets como parte de pruebas automáticas.
 
@@ -203,7 +236,7 @@ python3 -m src.daemon.server --data-dir "$HOME/.local/state/jobsy-prueba"
 1. Envía `execute printf 'persistente'`, conserva el ID y espera a que `jobsy status ID_DEVUELTO` indique `SUCCEEDED`.
 2. Detén solo tu daemon con `Ctrl+C` y vuelve a iniciarlo con el mismo `--data-dir`.
 3. `jobsy list` y `jobsy status ID_DEVUELTO` deben conservar el historial.
-4. `stdout`/`stderr` se guardan en SQLite y se pueden consultar en cualquier momento desde la terminal ejecutando `jobsy output ID_DEVUELTO` o `output ID_DEVUELTO`.
+4. `stdout`/`stderr` se guardan en SQLite y se pueden consultar en cualquier momento desde la terminal ejecutando `jobsy output ID_DEVUELTO`.
 
 ### Reglas de recuperación
 - No hay reejecución automática.
@@ -258,7 +291,7 @@ status ID_DEVUELTO
 cancel ID_DEVUELTO
 ```
 
-*(Sustituye `ID_DEVUELTO` por el UUID propio)*
+*(Sustituye `ID_DEVUELTO` por el ID corto único o el UUID completo de tu trabajo)*
 
 - La variable `JOBSY_SOCKET_PATH` se lee en cada solicitud y afecta también a los subcomandos `jobsy` y al módulo heredado del cliente.
 - El daemon solo usa `--socket-path` o el predeterminado, no la variable.
@@ -318,6 +351,12 @@ tail -f ~/.local/state/jobsy/jobsy.log
 > Para consultar la salida o errores producidos por un trabajo ejecutado, utilice `jobsy output ID_DEVUELTO`.
 
 ---
+
+## Protocolo del siguiente avance
+
+El [contrato de red v1](../technical-guide/protocolo-red-v1.md) describe la
+propuesta del Avance 3.2. Todavía no habilita TCP, interfaz IP, puerto ni cliente
+remoto. Los comandos de esta guía continúan utilizando el socket Unix local.
 
 ## Pruebas Seguras de los Adaptadores
 

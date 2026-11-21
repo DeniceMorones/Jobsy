@@ -9,6 +9,7 @@ import socket
 import argparse
 
 from src.protocol.endpoint import client_socket_path
+from src.protocol.job_ids import short_job_id
 
 def build_parser():
     parser = argparse.ArgumentParser(
@@ -26,17 +27,20 @@ def build_parser():
     list_parser = subparsers.add_parser("list", help="Lista los trabajos")
     list_parser.add_argument("--status", choices=["QUEUED", "RUNNING", "SUCCEEDED", "FAILED", "CANCELED"])
 
+    list_parser.add_argument("--full-id", action="store_true",
+                             help="Muestra los UUID completos en lugar de IDs cortos")
+
     # comando status
     status_parser = subparsers.add_parser("status", help="Muestra el estado de un trabajo")
-    status_parser.add_argument("job_id", help="ID del trabajo")
+    status_parser.add_argument("job_id", help="UUID completo o prefijo hexadecimal único de al menos 8 caracteres")
 
     # comando cancel
     cancel_parser = subparsers.add_parser("cancel", help="Cancela un trabajo")
-    cancel_parser.add_argument("job_id", help="ID del trabajo")
+    cancel_parser.add_argument("job_id", help="UUID completo o prefijo hexadecimal único de al menos 8 caracteres")
     
     # comando output
     output_parser = subparsers.add_parser("output", help="Muestra stdout y stderr de un trabajo")
-    output_parser.add_argument("job_id", help="ID del trabajo")
+    output_parser.add_argument("job_id", help="UUID completo o prefijo hexadecimal único de al menos 8 caracteres")
 
     # comando health
     health_parser = subparsers.add_parser("health", help="Muestra el resumen de salud del servicio y estado de los trabajos")
@@ -101,7 +105,7 @@ def main(argv=None, *, split_command_string=True):
 
             res = send_ipc_request({"action": "run", "command": command_list})
             if res["status"] == "ok":
-                print(f"Trabajo creado y enviado a ejecución con ID: {res['job_id']}")
+                print(f"Trabajo creado y enviado a ejecución con ID: {short_job_id(res['job_id'])}")
                 sys.exit(0)
             else:
                 handle_error_response(res)
@@ -114,7 +118,8 @@ def main(argv=None, *, split_command_string=True):
                     print("No se encontraron trabajos.")
                 else:
                     for j in jobs:
-                        print(f"ID: {j['id']} | Estado: {j['status']} | Comando: {' '.join(j['command'])}")
+                        display_id = j['id'] if args.full_id else short_job_id(j['id'])
+                        print(f"ID: {display_id} | Estado: {j['status']} | Comando: {' '.join(j['command'])}")
                 sys.exit(0)
             else:
                 handle_error_response(res)
@@ -133,21 +138,21 @@ def main(argv=None, *, split_command_string=True):
                         print("  Ninguno")
                     else:
                         for j in h['running_jobs']:
-                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Inicio: {j['started_at']}")
+                            print(f"  ID: {short_job_id(j['id'])} | Comando: {' '.join(j['command'])} | Inicio: {j['started_at']}")
 
                     print(f"\n--- Trabajos en Cola ({h['queued_count']}) ---")
                     if not h['queued_jobs']:
                         print("  Ninguno")
                     else:
                         for j in h['queued_jobs']:
-                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Recibido: {j['received_at']}")
+                            print(f"  ID: {short_job_id(j['id'])} | Comando: {' '.join(j['command'])} | Recibido: {j['received_at']}")
 
                     print(f"\n--- Errores Recientes ({h['recent_errors_count']}) ---")
                     if not h['recent_errors']:
                         print("  Ninguno")
                     else:
                         for j in h['recent_errors']:
-                            print(f"  ID: {j['id']} | Comando: {' '.join(j['command'])} | Código: {j['exit_code']} | Fin: {j['finished_at']}")
+                            print(f"  ID: {short_job_id(j['id'])} | Comando: {' '.join(j['command'])} | Código: {j['exit_code']} | Fin: {j['finished_at']}")
                     sys.exit(0)
                 else:
                     handle_error_response(res)
@@ -156,7 +161,7 @@ def main(argv=None, *, split_command_string=True):
             res = send_ipc_request({"action": "status", "job_id": args.job_id})
             if res["status"] == "ok":
                 j = res["job"]
-                print(f"ID: {j['id']}")
+                print(f"ID: {short_job_id(j['id'])}")
                 print(f"Estado: {j['status']}")
                 print(f"Comando: {' '.join(j['command'])}")
                 print(f"Recibido: {j['received_at']}")
@@ -172,7 +177,7 @@ def main(argv=None, *, split_command_string=True):
         elif args.subcommand == "cancel":
             res = send_ipc_request({"action": "cancel", "job_id": args.job_id})
             if res["status"] == "ok":
-                print(f"Cancelando trabajo con ID: {res['job_id']}")
+                print(f"Cancelando trabajo con ID: {short_job_id(res['job_id'])}")
                 print(f"Estado actual: {res['job_status']}")
                 sys.exit(0)
             else:
