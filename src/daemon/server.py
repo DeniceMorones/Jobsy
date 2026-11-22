@@ -17,7 +17,7 @@ from src.daemon.config import parse_config
 from src.daemon.persistence import PersistenceRuntime
 from src.daemon.scheduler import QueueFullError
 from src.protocol.endpoint import resolve_socket_path
-from src.daemon.logger import logger
+from src.daemon.logger import logger, describe_command
 
 # Función auxiliar para generar respuestas de error consistentes
 def make_error_response(operation, cause, suggestion):
@@ -73,6 +73,8 @@ class DaemonServer:
         # Never unlink a socket that this server does not own.
         if os.path.lexists(self.socket_path):
             raise FileExistsError("El socket ya existe; compruebe si hay un daemon activo.")
+        
+        logger.setup(self.manager.config.data_directory())
 
         self.persistence = PersistenceRuntime(self.manager.config.data_directory()).open()
         try:
@@ -125,7 +127,7 @@ class DaemonServer:
                     job = self.manager.submit_job(command)
                     job_id = job.id
                     operation_status = "aceptada"
-                    logger.log("INFO", f"Solicitud 'run' procesada con éxito para comando: {' '.join(command)} [ReqID: {request_id}]", job_id=job.id)
+                    logger.log("INFO", f"Solicitud 'run' procesada con éxito para comando: {describe_command(command)} [ReqID: {request_id}]", job_id=job.id)
                     response = {"status": "ok", "job_id": job.id}
 
                 elif action == "list":

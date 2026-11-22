@@ -11,7 +11,7 @@ from .scheduler import QueueFullError, Scheduler
 from .process_identity import process_identity
 from ..protocol.validation import validate_command
 from ..protocol.job_ids import resolve_job_id
-from .logger import logger
+from .logger import logger, describe_command
 
 TERMINAL_STATES = {"SUCCEEDED", "FAILED", "CANCELED"}
 VALID_STATES = TERMINAL_STATES | {"QUEUED", "RUNNING"}
@@ -142,7 +142,7 @@ class JobManager:
             raise RuntimeError(self.storage_error or "El JobManager no esta aceptando nuevos trabajos.")
         job = Job(id=str(uuid.uuid4()), command=list(command))
         self.jobs[job.id] = job
-        logger.log("INFO", f"Trabajo creado en memoria con comando: {' '.join(command)}", job_id=job.id)
+        logger.log("INFO", f"Trabajo creado en memoria con comando: {describe_command(command)}", job_id=job.id)
         return job
 
     def create_job(self, command):
