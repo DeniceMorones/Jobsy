@@ -10,12 +10,24 @@ import argparse
 
 from src.protocol.endpoint import client_socket_path
 from src.protocol.job_ids import short_job_id
+from src.protocol.messages import (
+    IdleTimeout, MessageReader, ProtocolError, build_request, decode_body,
+    new_request_id, send_message, validate_response, RESPONSE_TIMEOUT)
+
+DEFAULT_REMOTE_PORT = 8765
+CONNECT_TIMEOUT = 5.0
 
 def build_parser():
     parser = argparse.ArgumentParser(
         prog='jobsy',
         description="Jobsy: CLI para gestión de trabajos",
     )
+
+    # RF-18: acceso remoto opcional. Sin --host se usa el socket Unix local, igual que siempre.
+    parser.add_argument("--host", default=os.environ.get("JOBSY_HOST"),
+                        help="IP del daemon remoto en la red privada (o variable JOBSY_HOST)")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("JOBSY_PORT", DEFAULT_REMOTE_PORT)),
+                        help=f"Puerto del daemon remoto (predeterminado: {DEFAULT_REMOTE_PORT}, o JOBSY_PORT)")
 
     subparsers = parser.add_subparsers(dest="subcommand", help="Comandos disponibles")
 
@@ -61,6 +73,38 @@ def send_ipc_request(payload: dict) -> dict:
         response_data = _recv_all(client_socket)
         return json.loads(response_data.decode("utf-8"))
     
+def send_remote_request(host, port, payload: dict) -> dict:
+    """Envía la petición por TCP con el protocolo v1 y valida la respuesta (RF-18, RF-19)."""
+    action = payload["action"]
+    fields = {k: v for k, v in payload.items() if k != "action" and v is not None}
+    request_id = new_request_id()
+    try:
+        with socket.create_connection((host, port), timeout=CONNECT_TIMEOUT) as sock:
+            send_message(sock, build_request(action, request_id, **fields))
+            body = MessageReader(sock, idle_timeout=RESPONSE_TIMEOUT).read()
+            if body is None:
+                raise ProtocolError("INVALID_RESPONSE", "El servidor cerró la conexión sin responder.",
+                                    "Verifique que el daemon siga activo e intente de nuevo.", operation=action)
+            return validate_response(decode_body(body), request_id)
+    except ProtocolError as error:
+        return {"status": "error", "operation": action, "cause": error.cause, "suggestion": error.suggestion}
+    except IdleTimeout:
+        return {"status": "error", "operation": action,
+                "cause": "El servidor no respondió a tiempo.", "suggestion": "Verifique el daemon y la red."}
+    except (OSError, TimeoutError):
+        return {"status": "error", "operation": action,
+                "cause": f"No se pudo comunicar con {host}:{port}.",
+                "suggestion": "Verifique que el daemon tenga --listen-host, que la IP esté permitida (--allow-cidr) "
+                              "y que ambos equipos estén en la misma red privada."}
+
+
+def send_request(args, payload: dict) -> dict:
+    """Transporte único para todos los comandos: remoto si hay --host, local en caso contrario."""
+    if getattr(args, "host", None):
+        return send_remote_request(args.host, args.port, payload)
+    return send_ipc_request(payload)
+
+
 def _recv_all(sock):
     chunks = []
     while True:
@@ -94,6 +138,8 @@ def main(argv=None, *, split_command_string=True):
         sys.exit(2)  # código de salida 2 indica error de sintaxis
 
     args = parser.parse_args(argv)
+    if args.host and not 1 <= args.port <= 65535:
+        parser.error("--port debe estar entre 1 y 65535.")
 
     try:
         if args.subcommand == "run":
@@ -103,7 +149,7 @@ def main(argv=None, *, split_command_string=True):
             else:
                 command_list = raw_command
 
-            res = send_ipc_request({"action": "run", "command": command_list})
+            res = send_request(args, {"action": "run", "command": command_list})
             if res["status"] == "ok":
                 print(f"Trabajo creado y enviado a ejecución con ID: {short_job_id(res['job_id'])}")
                 sys.exit(0)
@@ -111,7 +157,7 @@ def main(argv=None, *, split_command_string=True):
                 handle_error_response(res)
 
         elif args.subcommand == "list":
-            res = send_ipc_request({"action": "list", "status": args.status})
+            res = send_request(args, {"action": "list", "status": args.status})
             if res["status"] == "ok":
                 jobs = res["jobs"]
                 if not jobs:
@@ -126,7 +172,7 @@ def main(argv=None, *, split_command_string=True):
 
         #rf-24: Resumen de salud del servicio y estado de los trabajos
         elif args.subcommand == "health":
-                res = send_ipc_request({"action": "health"})
+                res = send_request(args, {"action": "health"})
                 if res["status"] == "ok":
                     h = res["health"]
                     print(f"=== Resumen de Salud de Jobsy ===")
@@ -158,7 +204,7 @@ def main(argv=None, *, split_command_string=True):
                     handle_error_response(res)
 
         elif args.subcommand == "status":
-            res = send_ipc_request({"action": "status", "job_id": args.job_id})
+            res = send_request(args, {"action": "status", "job_id": args.job_id})
             if res["status"] == "ok":
                 j = res["job"]
                 print(f"ID: {short_job_id(j['id'])}")
@@ -175,7 +221,7 @@ def main(argv=None, *, split_command_string=True):
                 handle_error_response(res)
 
         elif args.subcommand == "cancel":
-            res = send_ipc_request({"action": "cancel", "job_id": args.job_id})
+            res = send_request(args, {"action": "cancel", "job_id": args.job_id})
             if res["status"] == "ok":
                 print(f"Cancelando trabajo con ID: {short_job_id(res['job_id'])}")
                 print(f"Estado actual: {res['job_status']}")
@@ -184,7 +230,7 @@ def main(argv=None, *, split_command_string=True):
                 handle_error_response(res)
         
         elif args.subcommand == "output":
-            res = send_ipc_request({"action": "output", "job_id": args.job_id})
+            res = send_request(args, {"action": "output", "job_id": args.job_id})
             if res["status"] == "ok":
                 sys.stdout.write(res["stdout"])
                 sys.stderr.write(res["stderr"])
