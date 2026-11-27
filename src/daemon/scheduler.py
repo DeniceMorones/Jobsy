@@ -6,7 +6,7 @@ import sys
 import threading
 
 from src.daemon import job
-from .logger import logger
+from .logger import logger, describe_command
 
 ISOLATION_POLL_SECONDS = 1.0
 
@@ -109,7 +109,7 @@ class Scheduler:
                 try:
                     # Serialize the final cancellation check, spawn and publication.
                     # No preexec_fn, communicate, wait, kill or joins in this section.
-                    logger.log("INFO", f"Iniciando ejecución de comando: {' '.join(job.command)}", job_id=job.id)
+                    logger.log("INFO", f"Iniciando ejecución de comando: {describe_command(job.command)}", job_id=job.id)
                     process = self.manager.executor.spawn(job.command)
                 except Exception as error:
                     logger.log("ERROR", f"Fallo al spawnear proceso: {error}", job_id=job.id)

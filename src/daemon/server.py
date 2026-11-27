@@ -17,7 +17,9 @@ from src.daemon.config import parse_config
 from src.daemon.persistence import PersistenceRuntime
 from src.daemon.scheduler import QueueFullError
 from src.protocol.endpoint import resolve_socket_path
-from src.daemon.logger import logger
+from src.daemon.logger import logger, describe_command
+from src.daemon.dispatcher import diagnose, format_dt
+from src.daemon.remote_server import RemoteListener
 
 # Función auxiliar para generar respuestas de error consistentes
 def make_error_response(operation, cause, suggestion):
@@ -28,21 +30,6 @@ def make_error_response(operation, cause, suggestion):
         "cause": cause,
         "suggestion": suggestion
     }
-
-def diagnose(job):
-    """Texto de diagnóstico derivado del estado y exit_code; None si no aplica """
-    code = job.exit_code
-    if job.status == "CANCELED":
-        return "cancelado por solicitud del usuario"
-    if code is None or code == 0:
-        return None
-    if code < 0:
-        try:
-            name = signal.Signals(-code).name
-        except ValueError:
-            name = f"señal {-code}"
-        return f"terminado inesperadamente por {name}"
-    return f"terminó con código de salida {code}"
 
 class DaemonServer:
     def __init__(self, manager: JobManager = None, executor: Executor = None,
@@ -60,6 +47,7 @@ class DaemonServer:
         self.server_socket = None
         self.persistence = None
         self._socket_identity = None
+        self.remote = None
 
         # Registra manejadores de señales para un cierre controlado
         signal.signal(signal.SIGINT, self._handle_shutdown_signal)
@@ -73,6 +61,8 @@ class DaemonServer:
         # Never unlink a socket that this server does not own.
         if os.path.lexists(self.socket_path):
             raise FileExistsError("El socket ya existe; compruebe si hay un daemon activo.")
+        
+        logger.setup(self.manager.config.data_directory())
 
         self.persistence = PersistenceRuntime(self.manager.config.data_directory()).open()
         try:
@@ -85,6 +75,10 @@ class DaemonServer:
             self.server_socket.listen(5)
             self.server_socket.settimeout(0.2)
             logger.log("INFO", f"Servidor Jobsy activo escuchando en {self.socket_path}")
+            # RF-18: acceso remoto opcional (apagado por defecto), mismo gestor que el socket Unix.
+            if self.manager.config.remote_enabled():
+                self.remote = RemoteListener(self.manager, self.manager.config)
+                self.remote.start()
             for record in self.persistence.records:
                 reason = record["execution"]["recovery_reason"]
                 if reason:
@@ -125,7 +119,7 @@ class DaemonServer:
                     job = self.manager.submit_job(command)
                     job_id = job.id
                     operation_status = "aceptada"
-                    logger.log("INFO", f"Solicitud 'run' procesada con éxito para comando: {' '.join(command)} [ReqID: {request_id}]", job_id=job.id)
+                    logger.log("INFO", f"Solicitud 'run' procesada con éxito para comando: {describe_command(command)} [ReqID: {request_id}]", job_id=job.id)
                     response = {"status": "ok", "job_id": job.id}
 
                 elif action == "list":
@@ -148,9 +142,6 @@ class DaemonServer:
                 elif action == "health":
                     health_data = self.manager.get_health_summary()
                     operation_status = "sin_efecto"
-                    # Función para formatear fechas y horas en UTC
-                    def format_dt(dt):
-                        return dt.strftime("%Y-%m-%d %H:%M:%S UTC") if dt else "-"
                     # Función para serializar trabajos en el resumen de salud
                     def serialize_job(j):
                         return {
@@ -183,9 +174,6 @@ class DaemonServer:
                     job = self.manager.snapshot(job_id)
                     operation_status = "sin_efecto"
                     
-                    def format_dt(dt):
-                        return dt.strftime("%Y-%m-%d %H:%M:%S UTC") if dt else "-"
-
                     response = {
                         "status": "ok",
                         "job": {
@@ -280,6 +268,13 @@ class DaemonServer:
         if self.server_socket:
             self.server_socket.close()
 
+        # RNF-25: cerrar listener y conexiones remotas antes de apagar el gestor.
+        if self.remote is not None:
+            try:
+                self.remote.stop()
+            finally:
+                self.remote = None
+
         clean = False
         try:
             self.manager.shutdown(timeout=5.0)
@@ -295,6 +290,7 @@ class DaemonServer:
                         info = os.lstat(self.socket_path)
                     except FileNotFoundError:
                         info = None
+                    logger.log("INFO", "Servicio detenido completamente.")
                     if info is not None and (info.st_dev, info.st_ino) == self._socket_identity:
                         os.remove(self.socket_path)
                     self._owns_socket = False
