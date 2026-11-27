@@ -98,6 +98,7 @@ class RemoteListener:
                 logger.log("WARNING", f"Conexión remota rechazada desde {ip}: {reason}.")
                 self._reject_busy(conn)
                 continue
+            logger.log("INFO", f"Conexión remota aceptada desde {ip}.")
             worker = threading.Thread(target=self._serve, args=(conn, ip), name=f"jobsy-remote-{ip}", daemon=True)
             with self._lock:
                 self._workers.add(worker)

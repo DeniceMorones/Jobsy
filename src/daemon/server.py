@@ -290,7 +290,7 @@ class DaemonServer:
                         info = os.lstat(self.socket_path)
                     except FileNotFoundError:
                         info = None
-                    logger.log("INFO")
+                    logger.log("INFO", "Servicio detenido completamente.")
                     if info is not None and (info.st_dev, info.st_ino) == self._socket_identity:
                         os.remove(self.socket_path)
                     self._owns_socket = False
