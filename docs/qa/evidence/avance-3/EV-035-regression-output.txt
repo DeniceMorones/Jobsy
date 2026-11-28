@@ -1,0 +1,473 @@
+
+========================================================================
+JOBSY - BATERIA UNIFICADA DE QA
+========================================================================
+Repositorio: /mnt/e/Alexia/Sistemas Avanzados/Jobsy
+Rama: alexia-test-pr135
+Commit: 32bd487
+Python: 3.14.4
+Sistema: Linux 6.18.33.2-microsoft-standard-WSL2
+Scripts descubiertos: 29
+
+Exclusiones explícitas:
+  - test_cancellation.py
+  - test_cli_behavior.py
+  - test_ipc_robustness.py
+  - test_process_behavior.py
+  - test_queue_ipc.py
+  - test_service_shutdown.py
+
+========================================================================
+TC-147 - BATERIA DISPONIBLE MEDIANTE UN SOLO COMANDO
+========================================================================
+Scripts incluidos:
+  - test_cancel_grace.py
+  - test_clean_installation.py
+  - test_cleanup_isolation.py
+  - test_duplicate_requests.py
+  - test_entry_points.py
+  - test_health_summary.py
+  - test_ipc_flow.py
+  - test_ipc_multiple_jobs.py
+  - test_job_manager.py
+  - test_network_protocol_v1.py
+  - test_output_behavior.py
+  - test_process_group_cancellation.py
+  - test_queue_observability.py
+  - test_queue_processes.py
+  - test_recovery_behavior.py
+  - test_remote_cli.py
+  - test_remote_concurrency.py
+  - test_remote_performance.py
+  - test_remote_security.py
+  - test_remote_server_config.py
+  - test_repeated_cancellation.py
+  - test_request_logging.py
+  - test_resource_stress.py
+  - test_scheduler.py
+  - test_short_job_ids.py
+  - test_socket_cli_contract.py
+  - test_socket_config.py
+  - test_socket_integration.py
+  - test_structured_errors.py
+
+PASS: La batería descubre automáticamente los scripts de prueba disponibles.
+PASS: La batería puede iniciarse mediante 'python test/run_qa_suite.py'.
+
+========================================================================
+EJECUCION DE LA BATERIA
+========================================================================
+[01/29] Ejecutando test_cancel_grace.py ...
+    PASS (2.85 s)
+[02/29] Ejecutando test_clean_installation.py ...
+    PASS (4.15 s)
+[03/29] Ejecutando test_cleanup_isolation.py ...
+    PASS (0.21 s)
+[04/29] Ejecutando test_duplicate_requests.py ...
+    PASS (0.68 s)
+[05/29] Ejecutando test_entry_points.py ...
+    PASS (0.25 s)
+[06/29] Ejecutando test_health_summary.py ...
+    PASS (1.65 s)
+[07/29] Ejecutando test_ipc_flow.py ...
+    PASS (1.34 s)
+[08/29] Ejecutando test_ipc_multiple_jobs.py ...
+    PASS (1.87 s)
+[09/29] Ejecutando test_job_manager.py ...
+    PASS (0.17 s)
+[10/29] Ejecutando test_network_protocol_v1.py ...
+    PASS (0.43 s)
+[11/29] Ejecutando test_output_behavior.py ...
+    PASS (1.59 s)
+[12/29] Ejecutando test_process_group_cancellation.py ...
+    PASS (1.19 s)
+[13/29] Ejecutando test_queue_observability.py ...
+    PASS (1.84 s)
+[14/29] Ejecutando test_queue_processes.py ...
+    PASS (0.67 s)
+[15/29] Ejecutando test_recovery_behavior.py ...
+    PASS (2.01 s)
+[16/29] Ejecutando test_remote_cli.py ...
+    FAIL (4.89 s)
+
+----- SALIDA DE test_remote_cli.py -----
+STDOUT:
+PR #135 — EV-030 — Cliente remoto
+
+========================================================================
+TC-196 - Health remoto y local equivalentes
+========================================================================
+CLI ['health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '43328', 'health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+PASS: Health remoto y local equivalentes
+
+========================================================================
+TC-197 - Run remoto genera ID corto y ejecuta trabajo
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'run', '--', 'bash', '-c', 'printf "hola remoto\\n"; printf "error de prueba\\n" >&2']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: 74c7fd1f'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '43328', 'status', '74c7fd1f']: rc=0; stdout='ID: 74c7fd1f\nEstado: SUCCEEDED\nComando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nRecibido: 2026-11-28 16:55:44 UTC\nInicio: 2026-11-28 16:55:44 UTC\nFin: 2026-11-28 16:55:44 UTC\nCódigo de salida: 0'; stderr=''
+PASS: Run remoto genera ID corto y ejecuta trabajo
+
+========================================================================
+TC-198 - List remoto comparte trabajos con UNIX
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'list']: rc=0; stdout='ID: 74c7fd1f | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2'; stderr=''
+CLI ['list']: rc=0; stdout='ID: 74c7fd1f | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2'; stderr=''
+PASS: List remoto comparte trabajos con UNIX
+
+========================================================================
+TC-199 - List remoto --full-id muestra UUID
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'list', '--full-id']: rc=0; stdout='ID: 74c7fd1f-d643-49dd-ba3d-6830b7ce70bd | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2'; stderr=''
+PASS: List remoto --full-id muestra UUID
+
+========================================================================
+TC-200 - Status remoto mediante ID corto y paridad local
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'status', '74c7fd1f']: rc=0; stdout='ID: 74c7fd1f\nEstado: SUCCEEDED\nComando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nRecibido: 2026-11-28 16:55:44 UTC\nInicio: 2026-11-28 16:55:44 UTC\nFin: 2026-11-28 16:55:44 UTC\nCódigo de salida: 0'; stderr=''
+CLI ['status', '74c7fd1f']: rc=0; stdout='ID: 74c7fd1f\nEstado: SUCCEEDED\nComando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nRecibido: 2026-11-28 16:55:44 UTC\nInicio: 2026-11-28 16:55:44 UTC\nFin: 2026-11-28 16:55:44 UTC\nCódigo de salida: 0'; stderr=''
+PASS: Status remoto mediante ID corto y paridad local
+
+========================================================================
+TC-201 - Status remoto mediante UUID completo
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'status', '74c7fd1f-d643-49dd-ba3d-6830b7ce70bd']: rc=0; stdout='ID: 74c7fd1f\nEstado: SUCCEEDED\nComando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nRecibido: 2026-11-28 16:55:44 UTC\nInicio: 2026-11-28 16:55:44 UTC\nFin: 2026-11-28 16:55:44 UTC\nCódigo de salida: 0'; stderr=''
+PASS: Status remoto mediante UUID completo
+
+========================================================================
+TC-202 - Output remoto conserva stdout y stderr
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'output', '74c7fd1f']: rc=0; stdout='hola remoto'; stderr='error de prueba'
+CLI ['output', '74c7fd1f']: rc=0; stdout='hola remoto'; stderr='error de prueba'
+PASS: Output remoto conserva stdout y stderr
+
+========================================================================
+TC-203 - List remoto aplica filtro por estado
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'list', '--status', 'SUCCEEDED']: rc=0; stdout='ID: 74c7fd1f | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '43328', 'list', '--status', 'FAILED']: rc=0; stdout='No se encontraron trabajos.'; stderr=''
+PASS: List remoto aplica filtro por estado
+
+========================================================================
+TC-204 - Trabajo remoto cancelado y consultado localmente
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'run', '--', 'sleep', '30']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: 91cc1f68'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '43328', 'status', '91cc1f68']: rc=0; stdout='ID: 91cc1f68\nEstado: RUNNING\nComando: sleep 30\nRecibido: 2026-11-28 16:55:45 UTC\nInicio: 2026-11-28 16:55:45 UTC\nFin: -\nCódigo de salida: -'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '43328', 'cancel', '91cc1f68']: rc=0; stdout='Cancelando trabajo con ID: 91cc1f68\nEstado actual: CANCELED'; stderr=''
+CLI ['status', '91cc1f68']: rc=0; stdout='ID: 91cc1f68\nEstado: CANCELED\nComando: sleep 30\nRecibido: 2026-11-28 16:55:45 UTC\nInicio: 2026-11-28 16:55:45 UTC\nFin: 2026-11-28 16:55:46 UTC\nCódigo de salida: -15\nDiagnóstico: cancelado por solicitud del usuario'; stderr=''
+PASS: Trabajo remoto cancelado y consultado localmente
+
+========================================================================
+TC-205 - Trabajo local consultado por TCP
+========================================================================
+CLI ['run', '--', 'true']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: 31527ca6'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '43328', 'status', '31527ca6']: rc=0; stdout='ID: 31527ca6\nEstado: SUCCEEDED\nComando: true\nRecibido: 2026-11-28 16:55:46 UTC\nInicio: 2026-11-28 16:55:46 UTC\nFin: 2026-11-28 16:55:46 UTC\nCódigo de salida: 0'; stderr=''
+PASS: Trabajo local consultado por TCP
+
+========================================================================
+TC-206 - Cancelación repetida controlada
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'cancel', '91cc1f68']: rc=1; stdout=''; stderr="Error en la operación 'cancel':\n  • Causa: La cancelación de este trabajo ya fue solicitada (estado CANCELED).\n  • Acción sugerida: Consulte el estado del trabajo con 'jobsy status'."
+CLI ['--host', '127.0.0.1', '--port', '43328', 'status', '91cc1f68']: rc=0; stdout='ID: 91cc1f68\nEstado: CANCELED\nComando: sleep 30\nRecibido: 2026-11-28 16:55:45 UTC\nInicio: 2026-11-28 16:55:45 UTC\nFin: 2026-11-28 16:55:46 UTC\nCódigo de salida: -15\nDiagnóstico: cancelado por solicitud del usuario'; stderr=''
+PASS: Cancelación repetida controlada
+
+========================================================================
+TC-207 - ID inexistente devuelve error controlado
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'status', '00000000-0000-0000-0000-000000000000']: rc=1; stdout=''; stderr="Error en la operación 'status':\n  • Causa: No existe un trabajo con ese identificador.\n  • Acción sugerida: Consulte los identificadores con 'jobsy list --full-id'."
+PASS: ID inexistente devuelve error controlado
+
+========================================================================
+TC-208 - ID inválido devuelve error controlado
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'status', 'zzzzzzzz']: rc=1; stdout=''; stderr="Error en la operación 'status':\n  • Causa: job_id debe ser un UUID o un prefijo hexadecimal de 8 a 32 caracteres.\n  • Acción sugerida: Consulte jobsy list --full-id."
+PASS: ID inválido devuelve error controlado
+
+========================================================================
+TC-209 - JOBSY_HOST y JOBSY_PORT seleccionan TCP
+========================================================================
+CLI ['list']: rc=0; stdout='ID: 74c7fd1f | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nID: 91cc1f68 | Estado: CANCELED | Comando: sleep 30\nID: 31527ca6 | Estado: SUCCEEDED | Comando: true'; stderr=''
+PASS: JOBSY_HOST y JOBSY_PORT seleccionan TCP
+
+========================================================================
+TC-210 - Opciones explícitas prevalecen sobre entorno
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+PASS: Opciones explícitas prevalecen sobre entorno
+
+========================================================================
+TC-211 - Servidor no disponible devuelve error controlado
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '41232', 'health']: rc=1; stdout=''; stderr="Error en la operación 'health':\n  • Causa: No se pudo comunicar con 127.0.0.1:41232.\n  • Acción sugerida: Verifique que el daemon tenga --listen-host, que la IP esté permitida (--allow-cidr) y que ambos equipos estén en la misma red privada."
+PASS: Servidor no disponible devuelve error controlado
+
+========================================================================
+TC-212 - Puerto explícito inválido devuelve error de sintaxis
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '0', 'health']: rc=2; stdout=''; stderr='usage: jobsy [-h] [--host HOST] [--port PORT]\n             {run,list,status,cancel,output,health} ...\njobsy: error: --port debe estar entre 1 y 65535.'
+CLI ['--host', '127.0.0.1', '--port', '65536', 'health']: rc=2; stdout=''; stderr='usage: jobsy [-h] [--host HOST] [--port PORT]\n             {run,list,status,cancel,output,health} ...\njobsy: error: --port debe estar entre 1 y 65535.'
+CLI ['--host', '127.0.0.1', '--port', 'abc', 'health']: rc=2; stdout=''; stderr="usage: jobsy [-h] [--host HOST] [--port PORT]\n             {run,list,status,cancel,output,health} ...\njobsy: error: argument --port: invalid int value: 'abc'"
+PASS: Puerto explícito inválido devuelve error de sintaxis
+
+========================================================================
+TC-213 - JOBSY_PORT no numérico sin traceback
+========================================================================
+CLI ['health']: rc=1; stdout=''; stderr='Traceback (most recent call last):\n  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/.venv/bin/jobsy", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 134, in main\n    parser = build_parser()\n  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 29, in build_parser\n    parser.add_argument("--port", type=int, default=int(os.environ.get("JOBSY_PORT", DEFAULT_REMOTE_PORT)),\n                                                    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: invalid literal for int() with base 10: \'abc\''
+FAIL: AssertionError: OBS-05: JOBSY_PORT inválido no manejado de forma controlada
+
+========================================================================
+TC-214 - Daemon permanece operativo tras errores
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '43328', 'health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+CLI ['health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+PASS: Daemon permanece operativo tras errores
+
+Consola daemon:
+[2026-11-28 16:55:43.995 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 5e197258-e9bd-4b59-989b-8d2c8ae7fe31
+[2026-11-28 16:55:43.996 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-qa135-cli-9ej3zobg/qa.sock
+[2026-11-28 16:55:44.006 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:43328 (redes permitidas: 127.0.0.1/32)
+[2026-11-28 16:55:44.026 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:44.140 UTC] [INFO] [Job: -] Recibida solicitud IPC 'health' [ReqID: 513a00ff]
+[2026-11-28 16:55:44.260 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:44.399 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:44.400 UTC] [INFO] [Job: 74c7fd1f-d643-49dd-ba3d-6830b7ce70bd] Trabajo creado en memoria con comando: bash (2 argumentos, no registrados)
+[2026-11-28 16:55:44.400 UTC] [INFO] [Job: 74c7fd1f-d643-49dd-ba3d-6830b7ce70bd] Solicitud v1 'run' procesada para comando: bash (2 argumentos, no registrados) [ReqID: cli-c6a583057ce0]
+[2026-11-28 16:55:44.400 UTC] [INFO] [Job: 74c7fd1f-d643-49dd-ba3d-6830b7ce70bd] Iniciando ejecución de comando: bash (2 argumentos, no registrados)
+[2026-11-28 16:55:44.405 UTC] [INFO] [Job: 74c7fd1f-d643-49dd-ba3d-6830b7ce70bd] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 16:55:44.519 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:44.658 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:44.778 UTC] [INFO] [Job: -] Recibida solicitud IPC 'list' [ReqID: 7ba27b07]
+[2026-11-28 16:55:44.911 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:45.029 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:45.149 UTC] [INFO] [Job: -] Recibida solicitud IPC 'status' [ReqID: f0797140]
+[2026-11-28 16:55:45.268 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:45.393 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:45.537 UTC] [INFO] [Job: -] Recibida solicitud IPC 'output' [ReqID: 1fd7f53b]
+[2026-11-28 16:55:45.660 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:45.778 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:45.897 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:45.897 UTC] [INFO] [Job: 91cc1f68-ef9d-4440-bf65-1deb0b9e5ff5] Trabajo creado en memoria con comando: sleep (1 argumento, no registrados)
+[2026-11-28 16:55:45.897 UTC] [INFO] [Job: 91cc1f68-ef9d-4440-bf65-1deb0b9e5ff5] Solicitud v1 'run' procesada para comando: sleep (1 argumento, no registrados) [ReqID: cli-be17c3410656]
+[2026-11-28 16:55:45.898 UTC] [INFO] [Job: 91cc1f68-ef9d-4440-bf65-1deb0b9e5ff5] Iniciando ejecución de comando: sleep (1 argumento, no registrados)
+[2026-11-28 16:55:46.023 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:46.142 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:46.143 UTC] [INFO] [Job: 91cc1f68-ef9d-4440-bf65-1deb0b9e5ff5] Trabajo cancelado por el usuario
+[2026-11-28 16:55:46.143 UTC] [INFO] [Job: 91cc1f68-ef9d-4440-bf65-1deb0b9e5ff5] Solicitud v1 'cancel' procesada [ReqID: cli-f69b0cb90839]
+[2026-11-28 16:55:46.201 UTC] [INFO] [Job: 91cc1f68-ef9d-4440-bf65-1deb0b9e5ff5] Trabajo finalizado con estado fallido (exit_code=-15)
+[2026-11-28 16:55:46.264 UTC] [INFO] [Job: -] Recibida solicitud IPC 'status' [ReqID: 2acd35a2]
+[2026-11-28 16:55:46.391 UTC] [INFO] [Job: -] Recibida solicitud IPC 'run' [ReqID: c9d8ac6d]
+[2026-11-28 16:55:46.391 UTC] [INFO] [Job: 31527ca6-a714-4229-86a0-39dd755e6d09] Trabajo creado en memoria con comando: true (0 argumentos, no registrados)
+[2026-11-28 16:55:46.391 UTC] [INFO] [Job: 31527ca6-a714-4229-86a0-39dd755e6d09] Solicitud 'run' procesada con éxito para comando: true (0 argumentos, no registrados) [ReqID: c9d8ac6d]
+[2026-11-28 16:55:46.391 UTC] [INFO] [Job: 31527ca6-a714-4229-86a0-39dd755e6d09] Iniciando ejecución de comando: true (0 argumentos, no registrados)
+[2026-11-28 16:55:46.393 UTC] [INFO] [Job: 31527ca6-a714-4229-86a0-39dd755e6d09] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 16:55:46.513 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:46.632 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:46.750 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:46.887 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:47.006 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:47.191 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:47.310 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:48.099 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 16:55:48.216 UTC] [INFO] [Job: -] Recibida solicitud IPC 'health' [ReqID: 5b4d3bb0]
+[2026-11-28 16:55:48.221 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 16:55:48.417 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 16:55:48.600 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 16:55:48.601 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 5e197258-e9bd-4b59-989b-8d2c8ae7fe31 (clean=True)
+[2026-11-28 16:55:48.602 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 16:55:48.602 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+
+========================================================================
+Comprobaciones contabilizadas: 19
+PASS: 18
+FAIL: 1
+RESULTADO GENERAL: FAIL
+========================================================================
+
+----- FIN SALIDA DE test_remote_cli.py -----
+
+[17/29] Ejecutando test_remote_concurrency.py ...
+    PASS (16.45 s)
+[18/29] Ejecutando test_remote_performance.py ...
+    PASS (6.35 s)
+[19/29] Ejecutando test_remote_security.py ...
+    FAIL (2.71 s)
+
+----- SALIDA DE test_remote_security.py -----
+STDOUT:
+PR #135 — EV-031 — Seguridad y RNF-15
+
+========================================================================
+TC-215 - No registrar argumentos locales
+========================================================================
+CLI ['run', '--', 'echo', 'QA_FAKE_LOCAL_5817']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: c1a1bdcb\n'; stderr=''
+CLI ['status', 'c1a1bdcb']: rc=0; stdout='ID: c1a1bdcb\nEstado: SUCCEEDED\nComando: echo QA_FAKE_LOCAL_5817\nRecibido: 2026-11-28 16:56:12 UTC\nInicio: 2026-11-28 16:56:12 UTC\nFin: 2026-11-28 16:56:12 UTC\nCódigo de salida: 0\n'; stderr=''
+CLI ['output', 'c1a1bdcb']: rc=0; stdout='QA_FAKE_LOCAL_5817\n'; stderr=''
+Argumento presente en output autorizado, ausente en bitácora
+PASS: No registrar argumentos locales
+
+========================================================================
+TC-216 - No registrar argumentos remotos
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '42448', 'run', '--', 'echo', 'QA_FAKE_REMOTE_5817']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: 3baa5e88\n'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '42448', 'status', '3baa5e88']: rc=0; stdout='ID: 3baa5e88\nEstado: SUCCEEDED\nComando: echo QA_FAKE_REMOTE_5817\nRecibido: 2026-11-28 16:56:12 UTC\nInicio: 2026-11-28 16:56:12 UTC\nFin: 2026-11-28 16:56:12 UTC\nCódigo de salida: 0\n'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '42448', 'output', '3baa5e88']: rc=0; stdout='QA_FAKE_REMOTE_5817\n'; stderr=''
+Argumento presente en output autorizado, ausente en bitácora
+PASS: No registrar argumentos remotos
+
+========================================================================
+TC-217 - Sanitizar secretos clave=valor
+========================================================================
+Resultado: DB_PASSWORD=[REDACTADO]
+PASS: Sanitizar secretos clave=valor
+
+========================================================================
+TC-218 - Sanitizar opciones con secretos
+========================================================================
+Resultado: --api-key [REDACTADO]
+PASS: Sanitizar opciones con secretos
+
+========================================================================
+TC-219 - Sanitizar autorización HTTP Bearer
+========================================================================
+Resultado: Authorization=[REDACTADO] QA_FAKE_219
+FAIL: AssertionError: Secreto ficticio no ocultado completamente
+
+========================================================================
+TC-220 - Crear jobsy.log con permisos 0600
+========================================================================
+Permisos: 0600
+PASS: Crear jobsy.log con permisos 0600
+
+========================================================================
+TC-221 - Corregir permisos de bitácora existente
+========================================================================
+[2026-11-28 16:56:12.749 UTC] [INFO] [Job: -] QA prueba de permisos
+Permisos: 0600
+PASS: Corregir permisos de bitácora existente
+
+========================================================================
+TC-222 - Usar bitácora de --data-dir
+========================================================================
+Bitácora configurada: /tmp/jobsy-qa135-security-rn1ptx31/allowed/data/jobsy.log
+PASS: Usar bitácora de --data-dir
+
+========================================================================
+TC-223 - Registrar IP autorizada
+========================================================================
+PASS: Registrar IP autorizada
+
+========================================================================
+TC-224 - Rechazar conexión fuera de allowlist
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '44342', 'health']: rc=1; stdout=''; stderr="Error en la operación 'health':\n  • Causa: No se pudo comunicar con 127.0.0.1:44342.\n  • Acción sugerida: Verifique que el daemon tenga --listen-host, que la IP esté permitida (--allow-cidr) y que ambos equipos estén en la misma red privada.\n"
+PASS: Rechazar conexión fuera de allowlist
+
+========================================================================
+TC-225 - Registrar IP rechazada
+========================================================================
+PASS: Registrar IP rechazada
+
+========================================================================
+TC-226 - Daemon operativo después de rechazo
+========================================================================
+CLI ['health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno\n'; stderr=''
+PASS: Daemon operativo después de rechazo
+
+========================================================================
+TC-227 - Sanitizar respuestas de errores internos
+========================================================================
+[2026-11-28 16:56:14.139 UTC] [ERROR] [Job: -] Excepción procesando solicitud v1 'status' [ReqID: qa-internal]: RuntimeError: Fallo simulado con dato sensible QA_FAKE_INTERNAL_5828
+Respuesta: {'version': 1, 'request_id': 'qa-internal', 'status': 'error', 'code': 'INTERNAL_ERROR', 'operation': 'status', 'cause': 'Ocurrió un error interno al procesar la solicitud.', 'suggestion': 'Consulte la bitácora del servicio.'} close= True
+PASS: Sanitizar respuestas de errores internos
+
+========================================================================
+TC-228 - Evitar secretos en logs de excepciones internas
+========================================================================
+[2026-11-28 16:56:14.139 UTC] [ERROR] [Job: -] Excepción procesando solicitud v1 'status' [ReqID: qa-internal]: RuntimeError: Fallo simulado con dato sensible QA_FAKE_INTERNAL_5828
+Marcador ficticio presente en bitácora: True
+FAIL: AssertionError: OBS-07: excepción interna registra dato sensible sin etiqueta
+
+========================================================================
+Comprobaciones contabilizadas: 14
+PASS: 12
+FAIL: 2
+RESULTADO GENERAL: FAIL
+========================================================================
+
+----- FIN SALIDA DE test_remote_security.py -----
+
+[20/29] Ejecutando test_remote_server_config.py ...
+    PASS (1.87 s)
+[21/29] Ejecutando test_repeated_cancellation.py ...
+    PASS (1.51 s)
+[22/29] Ejecutando test_request_logging.py ...
+    PASS (1.65 s)
+[23/29] Ejecutando test_resource_stress.py ...
+    PASS (4.17 s)
+[24/29] Ejecutando test_scheduler.py ...
+    PASS (1.14 s)
+[25/29] Ejecutando test_short_job_ids.py ...
+    PASS (4.46 s)
+[26/29] Ejecutando test_socket_cli_contract.py ...
+    PASS (2.52 s)
+[27/29] Ejecutando test_socket_config.py ...
+    PASS (0.60 s)
+[28/29] Ejecutando test_socket_integration.py ...
+    PASS (0.90 s)
+[29/29] Ejecutando test_structured_errors.py ...
+    PASS (0.65 s)
+
+========================================================================
+TC-148 - LOS SCRIPTS DE QA FINALIZAN CORRECTAMENTE
+========================================================================
+FAIL: 2 scripts fallaron y 0 excedieron el tiempo límite.
+
+========================================================================
+TC-149 - RESULTADO AGREGADO DE LA BATERIA
+========================================================================
+Scripts ejecutados: 29
+PASS: 27
+FAIL: 2
+TIMEOUT: 0
+Duración total: 70.76 s
+
+========================================================================
+RESUMEN POR SCRIPT
+========================================================================
+PASS        2.85 s  test_cancel_grace.py
+PASS        4.15 s  test_clean_installation.py
+PASS        0.21 s  test_cleanup_isolation.py
+PASS        0.68 s  test_duplicate_requests.py
+PASS        0.25 s  test_entry_points.py
+PASS        1.65 s  test_health_summary.py
+PASS        1.34 s  test_ipc_flow.py
+PASS        1.87 s  test_ipc_multiple_jobs.py
+PASS        0.17 s  test_job_manager.py
+PASS        0.43 s  test_network_protocol_v1.py
+PASS        1.59 s  test_output_behavior.py
+PASS        1.19 s  test_process_group_cancellation.py
+PASS        1.84 s  test_queue_observability.py
+PASS        0.67 s  test_queue_processes.py
+PASS        2.01 s  test_recovery_behavior.py
+FAIL        4.89 s  test_remote_cli.py
+PASS       16.45 s  test_remote_concurrency.py
+PASS        6.35 s  test_remote_performance.py
+FAIL        2.71 s  test_remote_security.py
+PASS        1.87 s  test_remote_server_config.py
+PASS        1.51 s  test_repeated_cancellation.py
+PASS        1.65 s  test_request_logging.py
+PASS        4.17 s  test_resource_stress.py
+PASS        1.14 s  test_scheduler.py
+PASS        4.46 s  test_short_job_ids.py
+PASS        2.52 s  test_socket_cli_contract.py
+PASS        0.60 s  test_socket_config.py
+PASS        0.90 s  test_socket_integration.py
+PASS        0.65 s  test_structured_errors.py
+
+========================================================================
+RESULTADO GENERAL
+========================================================================
+FAIL: La batería unificada contiene fallos o ejecuciones incompletas.
+RESULTADO GENERAL: FAIL
+Runner exit code: 1

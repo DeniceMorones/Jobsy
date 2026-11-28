@@ -1,0 +1,53 @@
+PR #135 — EV-033 — Rendimiento RNF-05
+
+========================================================================
+TC-240 - Crear exactamente 100 trabajos mediante TCP
+========================================================================
+Trabajos creados: 100
+PASS: Crear exactamente 100 trabajos mediante TCP
+
+========================================================================
+TC-241 - Verificar UUID únicos y listado completo
+========================================================================
+100 UUID únicos; 100 trabajos en listado
+PASS: Verificar UUID únicos y listado completo
+
+========================================================================
+TC-242 - Completar los 100 trabajos correctamente
+========================================================================
+100 trabajos SUCCEEDED
+PASS: Completar los 100 trabajos correctamente
+
+========================================================================
+TC-243 - Ejecutar 90 consultas status válidas
+========================================================================
+Consultas válidas: 90
+PASS: Ejecutar 90 consultas status válidas
+
+========================================================================
+TC-244 - Latencia máxima status <= 1000 ms
+========================================================================
+status: n=90 min=0.078 ms mediana=0.101 ms max=0.711 ms
+RNF-05: CUMPLE en loopback, con 100 trabajos registrados
+PASS: Latencia máxima status <= 1000 ms
+
+========================================================================
+TC-245 - Medir list y health con 100 trabajos
+========================================================================
+list: n=30 min=0.516 ms mediana=0.551 ms max=0.713 ms
+health: n=30 min=0.073 ms mediana=0.123 ms max=0.299 ms
+PASS: Medir list y health con 100 trabajos
+
+========================================================================
+TC-246 - Daemon operativo después de la carga
+========================================================================
+TCP e IPC local operativos
+PASS: Daemon operativo después de la carga
+
+========================================================================
+Casos ejecutados: 7
+PASS: 7
+FAIL: 0
+NO EJECUTADOS: 0
+RESULTADO GENERAL: PASS
+========================================================================

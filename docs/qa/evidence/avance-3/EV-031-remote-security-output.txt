@@ -1,0 +1,99 @@
+PR #135 — EV-031 — Seguridad y RNF-15
+
+========================================================================
+TC-215 - No registrar argumentos locales
+========================================================================
+CLI ['run', '--', 'echo', 'QA_FAKE_LOCAL_5817']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: 6c315d4d\n'; stderr=''
+CLI ['status', '6c315d4d']: rc=0; stdout='ID: 6c315d4d\nEstado: SUCCEEDED\nComando: echo QA_FAKE_LOCAL_5817\nRecibido: 2026-11-28 15:05:07 UTC\nInicio: 2026-11-28 15:05:07 UTC\nFin: 2026-11-28 15:05:07 UTC\nCódigo de salida: 0\n'; stderr=''
+CLI ['output', '6c315d4d']: rc=0; stdout='QA_FAKE_LOCAL_5817\n'; stderr=''
+Argumento presente en output autorizado, ausente en bitácora
+PASS: No registrar argumentos locales
+
+========================================================================
+TC-216 - No registrar argumentos remotos
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '59421', 'run', '--', 'echo', 'QA_FAKE_REMOTE_5817']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: 8a50a48b\n'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '59421', 'status', '8a50a48b']: rc=0; stdout='ID: 8a50a48b\nEstado: SUCCEEDED\nComando: echo QA_FAKE_REMOTE_5817\nRecibido: 2026-11-28 15:05:08 UTC\nInicio: 2026-11-28 15:05:08 UTC\nFin: 2026-11-28 15:05:08 UTC\nCódigo de salida: 0\n'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '59421', 'output', '8a50a48b']: rc=0; stdout='QA_FAKE_REMOTE_5817\n'; stderr=''
+Argumento presente en output autorizado, ausente en bitácora
+PASS: No registrar argumentos remotos
+
+========================================================================
+TC-217 - Sanitizar secretos clave=valor
+========================================================================
+Resultado: DB_PASSWORD=[REDACTADO]
+PASS: Sanitizar secretos clave=valor
+
+========================================================================
+TC-218 - Sanitizar opciones con secretos
+========================================================================
+Resultado: --api-key [REDACTADO]
+PASS: Sanitizar opciones con secretos
+
+========================================================================
+TC-219 - Sanitizar autorización HTTP Bearer
+========================================================================
+Resultado: Authorization=[REDACTADO] QA_FAKE_219
+FAIL: AssertionError: Secreto ficticio no ocultado completamente
+
+========================================================================
+TC-220 - Crear jobsy.log con permisos 0600
+========================================================================
+Permisos: 0600
+PASS: Crear jobsy.log con permisos 0600
+
+========================================================================
+TC-221 - Corregir permisos de bitácora existente
+========================================================================
+[2026-11-28 15:05:08.551 UTC] [INFO] [Job: -] QA prueba de permisos
+Permisos: 0600
+PASS: Corregir permisos de bitácora existente
+
+========================================================================
+TC-222 - Usar bitácora de --data-dir
+========================================================================
+Bitácora configurada: /tmp/jobsy-qa135-security-ok06rlfd/allowed/data/jobsy.log
+PASS: Usar bitácora de --data-dir
+
+========================================================================
+TC-223 - Registrar IP autorizada
+========================================================================
+PASS: Registrar IP autorizada
+
+========================================================================
+TC-224 - Rechazar conexión fuera de allowlist
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '60987', 'health']: rc=1; stdout=''; stderr="Error en la operación 'health':\n  • Causa: No se pudo comunicar con 127.0.0.1:60987.\n  • Acción sugerida: Verifique que el daemon tenga --listen-host, que la IP esté permitida (--allow-cidr) y que ambos equipos estén en la misma red privada.\n"
+PASS: Rechazar conexión fuera de allowlist
+
+========================================================================
+TC-225 - Registrar IP rechazada
+========================================================================
+PASS: Registrar IP rechazada
+
+========================================================================
+TC-226 - Daemon operativo después de rechazo
+========================================================================
+CLI ['health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno\n'; stderr=''
+PASS: Daemon operativo después de rechazo
+
+========================================================================
+TC-227 - Sanitizar respuestas de errores internos
+========================================================================
+[2026-11-28 15:05:09.933 UTC] [ERROR] [Job: -] Excepción procesando solicitud v1 'status' [ReqID: qa-internal]: RuntimeError: Fallo simulado con dato sensible QA_FAKE_INTERNAL_5828
+Respuesta: {'version': 1, 'request_id': 'qa-internal', 'status': 'error', 'code': 'INTERNAL_ERROR', 'operation': 'status', 'cause': 'Ocurrió un error interno al procesar la solicitud.', 'suggestion': 'Consulte la bitácora del servicio.'} close= True
+PASS: Sanitizar respuestas de errores internos
+
+========================================================================
+TC-228 - Evitar secretos en logs de excepciones internas
+========================================================================
+[2026-11-28 15:05:09.933 UTC] [ERROR] [Job: -] Excepción procesando solicitud v1 'status' [ReqID: qa-internal]: RuntimeError: Fallo simulado con dato sensible QA_FAKE_INTERNAL_5828
+Marcador ficticio presente en bitácora: True
+FAIL: AssertionError: OBS-07: excepción interna registra dato sensible sin etiqueta
+
+========================================================================
+Comprobaciones contabilizadas: 14
+PASS: 12
+FAIL: 2
+RESULTADO GENERAL: FAIL
+========================================================================

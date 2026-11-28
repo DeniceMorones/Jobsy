@@ -1,0 +1,143 @@
+PR #135 — EV-029 — Configuración y servidor TCP
+
+========================================================================
+TC-181 - Acceso remoto deshabilitado por defecto
+========================================================================
+TCP deshabilitado; puerto=8765; global=8; por IP=2
+PASS: Acceso remoto deshabilitado por defecto
+
+========================================================================
+TC-182 - Aceptar IP privada y allowlist múltiple
+========================================================================
+Configuración privada y allowlist múltiple aceptadas
+PASS: Aceptar IP privada y allowlist múltiple
+
+========================================================================
+TC-183 - Rechazar direcciones comodín IPv4 e IPv6
+========================================================================
+Error controlado: --listen-host no puede ser 0.0.0.0 ni :: (expondría todas las interfaces).
+Error controlado: --listen-host no puede ser 0.0.0.0 ni :: (expondría todas las interfaces).
+PASS: Rechazar direcciones comodín IPv4 e IPv6
+
+========================================================================
+TC-184 - Rechazar IP pública de escucha
+========================================================================
+Error controlado: --listen-host debe ser una dirección privada o de loopback (RNF-26).
+PASS: Rechazar IP pública de escucha
+
+========================================================================
+TC-185 - Rechazar hostname y dirección inválida
+========================================================================
+Error controlado: --listen-host debe ser una dirección IP concreta (no un nombre).
+Error controlado: --listen-host debe ser una dirección IP concreta (no un nombre).
+PASS: Rechazar hostname y dirección inválida
+
+========================================================================
+TC-186 - Exigir allowlist al habilitar TCP
+========================================================================
+Error controlado: Con --listen-host se requiere al menos un --allow-cidr (redes permitidas).
+PASS: Exigir allowlist al habilitar TCP
+
+========================================================================
+TC-187 - Rechazar redes públicas y rutas universales
+========================================================================
+Error controlado: --allow-cidr 8.8.8.0/24 no es una red privada (RNF-26: sin exposición a Internet).
+Error controlado: --allow-cidr 0.0.0.0/0 no es una red privada (RNF-26: sin exposición a Internet).
+Error controlado: --allow-cidr ::/0 no es una red privada (RNF-26: sin exposición a Internet).
+PASS: Rechazar redes públicas y rutas universales
+
+========================================================================
+TC-188 - Rechazar CIDR inválido
+========================================================================
+Error controlado: --allow-cidr inválido: '127.0.0.0/99'.
+PASS: Rechazar CIDR inválido
+
+========================================================================
+TC-189 - Rechazar puertos fuera de rango
+========================================================================
+Error controlado: --listen-port debe estar entre 1 y 65535.
+Error controlado: --listen-port debe estar entre 1 y 65535.
+Error controlado: --listen-port debe estar entre 1 y 65535.
+PASS: Rechazar puertos fuera de rango
+
+========================================================================
+TC-190 - Rechazar límites globales inválidos
+========================================================================
+Error controlado: max_remote_connections debe ser un entero entre 1 y 64.
+Error controlado: max_remote_connections debe ser un entero entre 1 y 64.
+Error controlado: max_remote_connections debe ser un entero entre 1 y 64.
+PASS: Rechazar límites globales inválidos
+
+========================================================================
+TC-191 - Rechazar límites por IP inválidos
+========================================================================
+Error controlado: max_connections_per_ip debe ser un entero entre 1 y 64.
+Error controlado: max_connections_per_ip debe ser un entero entre 1 y 64.
+Error controlado: max_connections_per_ip debe ser un entero entre 1 y 64.
+PASS: Rechazar límites por IP inválidos
+
+========================================================================
+TC-192 - Aceptar límites exactos de configuración
+========================================================================
+PASS: Aceptar límites exactos de configuración
+
+========================================================================
+TC-193 - Configuración inválida rechazada por entry point
+========================================================================
+Código: 2 STDERR: usage: jobsy-daemon [-h] [--max-running MAX_RUNNING]
+                    [--queue-capacity QUEUE_CAPACITY] [--data-dir DATA_DIR]
+                    [--socket-path SOCKET_PATH] [--cancel-grace CANCEL_GRACE]
+                    [--listen-host LISTEN_HOST] [--listen-port LISTEN_PORT]
+                    [--allow-cidr CIDR]
+                    [--max-remote-connections MAX_REMOTE_CONNECTIONS]
+                    [--max-connections-per-ip MAX_CONNECTIONS_PER_IP]
+jobsy-daemon: error: --listen-host no puede ser 0.0.0.0 ni :: (expondría todas las interfaces).
+PASS: Configuración inválida rechazada por entry point
+
+========================================================================
+TC-194 - Daemon local operativo sin listener TCP y limpieza al apagar
+========================================================================
+CLI ['health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+Puerto TCP libre con acceso remoto deshabilitado
+Consola daemon:
+[2026-11-28 14:52:39.435 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 0a2b17dd-490f-4fdf-8ed9-b24b0c63af0e
+[2026-11-28 14:52:39.435 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-qa135-r260jhzf/qa.sock
+[2026-11-28 14:52:39.576 UTC] [INFO] [Job: -] Recibida solicitud IPC 'health' [ReqID: 80337f53]
+[2026-11-28 14:52:39.579 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 14:52:39.777 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 14:52:39.778 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 0a2b17dd-490f-4fdf-8ed9-b24b0c63af0e (clean=True)
+[2026-11-28 14:52:39.778 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 14:52:39.778 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+Socket UNIX eliminado y puerto TCP cerrado
+PASS: Daemon local operativo sin listener TCP y limpieza al apagar
+
+========================================================================
+TC-195 - Daemon TCP en IP concreta, IPC local y limpieza al apagar
+========================================================================
+CLI ['health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '33427', 'health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+Listeners: ['LISTEN 0      16          127.0.0.1:33427 0.0.0.0:*']
+Consola daemon:
+[2026-11-28 14:52:39.987 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 08019a1a-187e-4792-bfb5-ad08e0214d8b
+[2026-11-28 14:52:39.987 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-qa135-y9bsj69i/qa.sock
+[2026-11-28 14:52:39.987 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:33427 (redes permitidas: 127.0.0.1/32)
+[2026-11-28 14:52:40.117 UTC] [INFO] [Job: -] Recibida solicitud IPC 'health' [ReqID: d12a3e3d]
+[2026-11-28 14:52:40.123 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:52:40.252 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:52:40.260 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 14:52:40.318 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 14:52:40.753 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 14:52:40.753 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 08019a1a-187e-4792-bfb5-ad08e0214d8b (clean=True)
+[2026-11-28 14:52:40.754 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 14:52:40.754 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+Socket UNIX eliminado y puerto TCP cerrado
+PASS: Daemon TCP en IP concreta, IPC local y limpieza al apagar
+
+========================================================================
+Casos ejecutados: 15
+PASS: 15
+FAIL: 0
+RESULTADO GENERAL: PASS
+========================================================================

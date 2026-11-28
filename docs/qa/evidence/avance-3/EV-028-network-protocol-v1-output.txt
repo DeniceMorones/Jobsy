@@ -1,0 +1,125 @@
+
+========================================================================
+TC-165 - Cabecera de cuatro bytes y JSON UTF-8
+========================================================================
+PASS: Cabecera de cuatro bytes y JSON UTF-8
+
+========================================================================
+TC-166 - Fragmentación byte a byte con Unicode
+========================================================================
+PASS: Fragmentación byte a byte con Unicode
+
+========================================================================
+TC-167 - Tramas agrupadas y EOF limpio
+========================================================================
+PASS: Tramas agrupadas y EOF limpio
+
+========================================================================
+TC-168 - Envío parcial sin pérdida de datos
+========================================================================
+PASS: Envío parcial sin pérdida de datos
+
+========================================================================
+TC-169 - Rechazo de longitudes fuera del límite
+========================================================================
+Error controlado: INVALID_LENGTH; close=True
+Error controlado: INVALID_LENGTH; close=True
+PASS: Rechazo de longitudes fuera del límite
+
+========================================================================
+TC-170 - Aceptación de los límites exactos de framing
+========================================================================
+PASS: Aceptación de los límites exactos de framing
+
+========================================================================
+TC-171 - Detección de cabecera o cuerpo incompleto
+========================================================================
+Error controlado: INCOMPLETE_MESSAGE; close=True
+Error controlado: INCOMPLETE_MESSAGE; close=True
+PASS: Detección de cabecera o cuerpo incompleto
+
+========================================================================
+TC-172 - Timeout de lectura e inactividad
+========================================================================
+Error controlado: READ_TIMEOUT; close=True
+Inactividad detectada correctamente
+PASS: Timeout de lectura e inactividad
+
+========================================================================
+TC-173 - Plazo absoluto ante tráfico fragmentado lento
+========================================================================
+Error controlado: READ_TIMEOUT; close=True
+Tiempo observado: 0.301 s; plazo configurado: 0.3 s
+PASS: Plazo absoluto ante tráfico fragmentado lento
+
+========================================================================
+TC-174 - Rechazo de codificación inválida
+========================================================================
+Error controlado: INVALID_ENCODING; close=True
+Error controlado: INVALID_ENCODING; close=True
+Error controlado: INVALID_ENCODING; close=True
+PASS: Rechazo de codificación inválida
+
+========================================================================
+TC-175 - JSON inválido y límite de profundidad
+========================================================================
+Error controlado: INVALID_JSON; close=True
+Error controlado: INVALID_JSON; close=True
+Error controlado: INVALID_JSON; close=True
+Error controlado: INVALID_JSON; close=True
+Error controlado: INVALID_JSON; close=True
+PASS: JSON inválido y límite de profundidad
+
+========================================================================
+TC-176 - Validación de versión del protocolo
+========================================================================
+Error controlado: UNSUPPORTED_VERSION; close=True
+Error controlado: UNSUPPORTED_VERSION; close=True
+Error controlado: UNSUPPORTED_VERSION; close=True
+Error controlado: UNSUPPORTED_VERSION; close=True
+Error controlado: UNSUPPORTED_VERSION; close=True
+Error controlado: INVALID_REQUEST; close=True
+PASS: Validación de versión del protocolo
+
+========================================================================
+TC-177 - Validación de request_id
+========================================================================
+Error controlado: INVALID_REQUEST; close=True
+Error controlado: INVALID_REQUEST; close=True
+Error controlado: INVALID_REQUEST; close=True
+Error controlado: INVALID_REQUEST; close=True
+PASS: Validación de request_id
+
+========================================================================
+TC-178 - Validación de acciones y parámetros
+========================================================================
+Error controlado: UNKNOWN_ACTION; close=False
+Error controlado: INVALID_REQUEST; close=False
+Error controlado: INVALID_REQUEST; close=False
+Error controlado: INVALID_REQUEST; close=False
+Error controlado: INVALID_REQUEST; close=False
+Error controlado: INVALID_REQUEST; close=False
+Error controlado: INVALID_REQUEST; close=False
+Error controlado: INVALID_REQUEST; close=False
+PASS: Validación de acciones y parámetros
+
+========================================================================
+TC-179 - Validación de sobres de respuesta y correlación
+========================================================================
+Error controlado: INVALID_RESPONSE; close=True
+Error controlado: UNSUPPORTED_VERSION; close=True
+Error controlado: INVALID_RESPONSE; close=True
+PASS: Validación de sobres de respuesta y correlación
+
+========================================================================
+TC-180 - Rechazo de respuesta superior a 1 MiB
+========================================================================
+Error controlado: RESPONSE_TOO_LARGE; close=False
+PASS: Rechazo de respuesta superior a 1 MiB
+
+========================================================================
+Casos ejecutados: 16
+PASS: 16
+FAIL: 0
+RESULTADO GENERAL: PASS
+========================================================================

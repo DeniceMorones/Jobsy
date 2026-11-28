@@ -1,0 +1,293 @@
+PR #135 — EV-032 — Concurrencia y robustez
+
+========================================================================
+TC-229 - Solicitudes consecutivas en una conexión
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'jobs': 0}
+Respuesta: {'version': 1, 'request_id': 'qa-3', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Consola daemon:
+[2026-11-28 15:07:48.890 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 683678bd-ee4d-490d-9ccb-bf20011fc741
+[2026-11-28 15:07:48.890 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-urkjnkb8/qa.sock
+[2026-11-28 15:07:48.891 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:47569 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:07:48.912 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:49.063 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:49.066 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:07:49.091 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:07:49.565 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:07:49.565 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 683678bd-ee4d-490d-9ccb-bf20011fc741 (clean=True)
+[2026-11-28 15:07:49.565 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:07:49.565 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Solicitudes consecutivas en una conexión
+
+========================================================================
+TC-230 - Tres clientes concurrentes crean trabajos independientes
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'job_id': '0a80484e-f34e-4e6a-8e5a-8615e0b9f285'}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'job_id': '25cc9e1d-9ec9-40a5-8b82-fa9079485cc1'}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'job_id': 'cb53b44f-c6dd-4b41-96f0-2cb743d1b9e8'}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'jobs': 3}
+Consola daemon:
+[2026-11-28 15:07:49.847 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 59fc7b95-89ea-4462-99d2-ea5ac3926f6a
+[2026-11-28 15:07:49.847 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-l7_oz3ln/qa.sock
+[2026-11-28 15:07:49.847 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:51565 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:07:49.883 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:50.034 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:50.035 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:50.035 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:50.036 UTC] [INFO] [Job: 0a80484e-f34e-4e6a-8e5a-8615e0b9f285] Trabajo creado en memoria con comando: echo (1 argumento, no registrados)
+[2026-11-28 15:07:50.036 UTC] [INFO] [Job: 0a80484e-f34e-4e6a-8e5a-8615e0b9f285] Solicitud v1 'run' procesada para comando: echo (1 argumento, no registrados) [ReqID: qa-2]
+[2026-11-28 15:07:50.036 UTC] [INFO] [Job: 25cc9e1d-9ec9-40a5-8b82-fa9079485cc1] Trabajo creado en memoria con comando: echo (1 argumento, no registrados)
+[2026-11-28 15:07:50.037 UTC] [INFO] [Job: 25cc9e1d-9ec9-40a5-8b82-fa9079485cc1] Solicitud v1 'run' procesada para comando: echo (1 argumento, no registrados) [ReqID: qa-2]
+[2026-11-28 15:07:50.037 UTC] [INFO] [Job: cb53b44f-c6dd-4b41-96f0-2cb743d1b9e8] Trabajo creado en memoria con comando: echo (1 argumento, no registrados)
+[2026-11-28 15:07:50.037 UTC] [INFO] [Job: cb53b44f-c6dd-4b41-96f0-2cb743d1b9e8] Solicitud v1 'run' procesada para comando: echo (1 argumento, no registrados) [ReqID: qa-2]
+[2026-11-28 15:07:50.038 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:50.038 UTC] [INFO] [Job: 0a80484e-f34e-4e6a-8e5a-8615e0b9f285] Iniciando ejecución de comando: echo (1 argumento, no registrados)
+[2026-11-28 15:07:50.040 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:07:50.040 UTC] [INFO] [Job: 25cc9e1d-9ec9-40a5-8b82-fa9079485cc1] Iniciando ejecución de comando: echo (1 argumento, no registrados)
+[2026-11-28 15:07:50.041 UTC] [INFO] [Job: 0a80484e-f34e-4e6a-8e5a-8615e0b9f285] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 15:07:50.041 UTC] [INFO] [Job: cb53b44f-c6dd-4b41-96f0-2cb743d1b9e8] Iniciando ejecución de comando: echo (1 argumento, no registrados)
+[2026-11-28 15:07:50.043 UTC] [INFO] [Job: 25cc9e1d-9ec9-40a5-8b82-fa9079485cc1] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 15:07:50.043 UTC] [INFO] [Job: cb53b44f-c6dd-4b41-96f0-2cb743d1b9e8] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 15:07:50.048 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:07:50.539 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:07:50.540 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 59fc7b95-89ea-4462-99d2-ea5ac3926f6a (clean=True)
+[2026-11-28 15:07:50.540 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:07:50.540 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Tres clientes concurrentes crean trabajos independientes
+
+========================================================================
+TC-231 - Errores recuperables conservan conexión
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'error', 'code': 'JOB_NOT_FOUND', 'operation': 'status', 'cause': 'No existe un trabajo con ese identificador.', 'suggestion': "Consulte los identificadores con 'jobsy list --full-id'."}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-3', 'status': 'error', 'code': 'UNKNOWN_ACTION', 'operation': 'desconocida', 'cause': 'La acción solicitada no existe.', 'suggestion': 'Use: run, list, status, cancel, output, health.'}
+Respuesta: {'version': 1, 'request_id': 'qa-4', 'status': 'ok', 'jobs': 0}
+Consola daemon:
+[2026-11-28 15:07:50.757 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: eb2b5d39-2181-4a70-91ad-fa0d6c94e0c6
+[2026-11-28 15:07:50.757 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-i8km9fr8/qa.sock
+[2026-11-28 15:07:50.757 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:32901 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:07:50.764 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:50.914 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:50.915 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:07:50.958 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:07:51.416 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:07:51.416 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: eb2b5d39-2181-4a70-91ad-fa0d6c94e0c6 (clean=True)
+[2026-11-28 15:07:51.416 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:07:51.416 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Errores recuperables conservan conexión
+
+========================================================================
+TC-232 - JSON inválido cierra solo al cliente afectado
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': None, 'status': 'error', 'code': 'INVALID_JSON', 'operation': 'desconocida', 'cause': 'El mensaje no es un JSON válido o supera los límites.', 'suggestion': 'Envíe un único objeto JSON sin claves duplicadas, NaN ni más de 16 niveles.'}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Consola daemon:
+[2026-11-28 15:07:51.603 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 1942cb46-6498-4f93-8d0d-44ff65f45e3b
+[2026-11-28 15:07:51.604 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-bhbj48jm/qa.sock
+[2026-11-28 15:07:51.604 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:42885 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:07:51.633 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:51.784 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:51.786 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:51.788 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:07:51.805 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:07:52.288 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:07:52.288 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 1942cb46-6498-4f93-8d0d-44ff65f45e3b (clean=True)
+[2026-11-28 15:07:52.288 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:07:52.288 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: JSON inválido cierra solo al cliente afectado
+
+========================================================================
+TC-233 - Desconexiones abruptas no interrumpen trabajos
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'job_id': '6894bd91-9837-407d-9687-66bd85c6146b'}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-3', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-4', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-5', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-6', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-7', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-8', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-9', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-10', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-11', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'RUNNING', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '-', 'exit_code': None, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-12', 'status': 'ok', 'job': {'id': '6894bd91-9837-407d-9687-66bd85c6146b', 'command': ['sleep', '1'], 'status': 'SUCCEEDED', 'received_at': '2026-11-28 15:07:52 UTC', 'started_at': '2026-11-28 15:07:52 UTC', 'finished_at': '2026-11-28 15:07:53 UTC', 'exit_code': 0, 'diagnostic': None}}
+Respuesta: {'version': 1, 'request_id': 'qa-13', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Consola daemon:
+[2026-11-28 15:07:52.483 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: a8b47249-39bb-479d-8f47-8a3fd2ecbd72
+[2026-11-28 15:07:52.483 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-tcbho5tf/qa.sock
+[2026-11-28 15:07:52.484 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:52395 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:07:52.505 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:52.657 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:52.658 UTC] [INFO] [Job: 6894bd91-9837-407d-9687-66bd85c6146b] Trabajo creado en memoria con comando: sleep (1 argumento, no registrados)
+[2026-11-28 15:07:52.660 UTC] [INFO] [Job: 6894bd91-9837-407d-9687-66bd85c6146b] Solicitud v1 'run' procesada para comando: sleep (1 argumento, no registrados) [ReqID: qa-1]
+[2026-11-28 15:07:52.662 UTC] [INFO] [Job: 6894bd91-9837-407d-9687-66bd85c6146b] Iniciando ejecución de comando: sleep (1 argumento, no registrados)
+[2026-11-28 15:07:52.663 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:52.664 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:52.665 UTC] [INFO] [Job: -] Conexión remota de 127.0.0.1 terminó de forma abrupta.
+[2026-11-28 15:07:53.670 UTC] [INFO] [Job: 6894bd91-9837-407d-9687-66bd85c6146b] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 15:07:53.675 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:07:53.686 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:07:54.168 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:07:54.169 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: a8b47249-39bb-479d-8f47-8a3fd2ecbd72 (clean=True)
+[2026-11-28 15:07:54.170 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:07:54.170 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Desconexiones abruptas no interrumpen trabajos
+
+========================================================================
+TC-234 - Límite por IP y recuperación de cupo
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': None, 'status': 'error', 'code': 'SERVICE_UNAVAILABLE', 'operation': 'conexion', 'cause': 'El servicio alcanzó su límite de conexiones remotas.', 'suggestion': 'Intente de nuevo en unos instantes.'}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Consola daemon:
+[2026-11-28 15:07:54.378 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: cb6e51a3-4003-4874-b48f-4ac6904a26a6
+[2026-11-28 15:07:54.378 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-atf14w0q/qa.sock
+[2026-11-28 15:07:54.378 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:46849 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:07:54.392 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:54.543 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:54.543 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:54.544 UTC] [WARNING] [Job: -] Conexión remota rechazada desde 127.0.0.1: límite de conexiones por IP.
+[2026-11-28 15:07:54.945 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:54.946 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:07:54.980 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:07:55.446 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:07:55.447 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: cb6e51a3-4003-4874-b48f-4ac6904a26a6 (clean=True)
+[2026-11-28 15:07:55.447 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:07:55.447 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Límite por IP y recuperación de cupo
+
+========================================================================
+TC-235 - Límite global con distintas IP loopback
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': None, 'status': 'error', 'code': 'SERVICE_UNAVAILABLE', 'operation': 'conexion', 'cause': 'El servicio alcanzó su límite de conexiones remotas.', 'suggestion': 'Intente de nuevo en unos instantes.'}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Consola daemon:
+[2026-11-28 15:07:55.669 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 418d5f59-f174-4e63-96de-a1d273a0b7f5
+[2026-11-28 15:07:55.669 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-mkh11i3e/qa.sock
+[2026-11-28 15:07:55.670 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:60593 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:07:55.715 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:55.867 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:55.867 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.2.
+[2026-11-28 15:07:55.868 UTC] [WARNING] [Job: -] Conexión remota rechazada desde 127.0.0.1: límite global de conexiones.
+[2026-11-28 15:07:56.269 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:56.271 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:07:56.472 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:07:56.772 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:07:56.772 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 418d5f59-f174-4e63-96de-a1d273a0b7f5 (clean=True)
+[2026-11-28 15:07:56.773 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:07:56.773 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Límite global con distintas IP loopback
+
+========================================================================
+TC-236 - Cliente lento no bloquea otro cliente
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Health con otro cliente incompleto: 0.00024582400010331185
+Respuesta: {'version': 1, 'request_id': None, 'status': 'error', 'code': 'READ_TIMEOUT', 'operation': 'desconocida', 'cause': 'Se agotó el plazo para recibir el mensaje.', 'suggestion': 'Reintente la operación.'}
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Consola daemon:
+[2026-11-28 15:07:57.008 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: d8930f7d-9a2e-46c1-ae7a-8ac016ca47d6
+[2026-11-28 15:07:57.008 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-vv2p0lxp/qa.sock
+[2026-11-28 15:07:57.008 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:49993 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:07:57.038 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:57.190 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:07:57.191 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:08:02.199 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:08:02.220 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:08:02.699 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:08:02.700 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: d8930f7d-9a2e-46c1-ae7a-8ac016ca47d6 (clean=True)
+[2026-11-28 15:08:02.700 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:08:02.701 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Cliente lento no bloquea otro cliente
+
+========================================================================
+TC-237 - Coexistencia de IPC UNIX y TCP
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'job_id': '8395b917-b92d-46cf-9184-2f308cf55c07'}
+ID: 8395b917-b92d-46cf-9184-2f308cf55c07 | Estado: SUCCEEDED | Comando: true
+ 
+Respuesta: {'version': 1, 'request_id': 'qa-2', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Consola daemon:
+[2026-11-28 15:08:02.887 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: fb764413-4652-4750-9000-833cd6c4908c
+[2026-11-28 15:08:02.887 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-9a6zel8u/qa.sock
+[2026-11-28 15:08:02.887 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:42317 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:08:02.918 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:08:03.069 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:08:03.069 UTC] [INFO] [Job: 8395b917-b92d-46cf-9184-2f308cf55c07] Trabajo creado en memoria con comando: true (0 argumentos, no registrados)
+[2026-11-28 15:08:03.070 UTC] [INFO] [Job: 8395b917-b92d-46cf-9184-2f308cf55c07] Solicitud v1 'run' procesada para comando: true (0 argumentos, no registrados) [ReqID: qa-1]
+[2026-11-28 15:08:03.070 UTC] [INFO] [Job: 8395b917-b92d-46cf-9184-2f308cf55c07] Iniciando ejecución de comando: true (0 argumentos, no registrados)
+[2026-11-28 15:08:03.073 UTC] [INFO] [Job: 8395b917-b92d-46cf-9184-2f308cf55c07] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 15:08:03.195 UTC] [INFO] [Job: -] Recibida solicitud IPC 'list' [ReqID: 566a57ba]
+[2026-11-28 15:08:03.199 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:08:03.395 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:08:03.571 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:08:03.572 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: fb764413-4652-4750-9000-833cd6c4908c (clean=True)
+[2026-11-28 15:08:03.572 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:08:03.572 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Coexistencia de IPC UNIX y TCP
+
+========================================================================
+TC-238 - Apagado con clientes activos
+========================================================================
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Respuesta: {'version': 1, 'request_id': 'qa-1', 'status': 'ok', 'health': {'service_active': True, 'storage_error': None, 'running_count': 0, 'running_jobs': [], 'queued_count': 0, 'queued_jobs': [], 'recent_errors_count': 0, 'recent_errors': []}}
+Tiempo de apagado: 0.5152037709999604 rc: 0
+Consola daemon:
+[2026-11-28 15:08:03.797 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: bef1a810-28b6-4d28-911f-ad0ff279b330
+[2026-11-28 15:08:03.797 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/qa135-conc-16l4wf8w/qa.sock
+[2026-11-28 15:08:03.798 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:43815 (redes permitidas: 127.0.0.0/8)
+[2026-11-28 15:08:03.819 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:08:03.970 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:08:03.971 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 15:08:03.972 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 15:08:03.999 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 15:08:04.473 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 15:08:04.474 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: bef1a810-28b6-4d28-911f-ad0ff279b330 (clean=True)
+[2026-11-28 15:08:04.475 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 15:08:04.475 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+PASS: Apagado con clientes activos
+
+========================================================================
+TC-239 - CLI maneja respuesta exitosa incompleta
+========================================================================
+CLI: 1 '' "Error: 'jobs'\n"
+PASS: CLI maneja respuesta exitosa incompleta
+
+========================================================================
+Casos ejecutados: 11
+PASS: 11
+FAIL: 0
+RESULTADO GENERAL: PASS
+========================================================================

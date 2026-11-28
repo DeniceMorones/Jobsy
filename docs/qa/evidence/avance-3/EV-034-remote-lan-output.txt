@@ -1,0 +1,93 @@
+JOBSY — QA — EV-034 | Comunicación LAN real
+Fecha: 2026-11-28 | PR #135 | Commit: 32bd487
+Tipo: evidencia consolidada de resultados manuales reportados por el operador.
+No es una transcripción íntegra de terminal ni una nueva ejecución automatizada.
+
+ENTORNO
+PC A: PCERDA, Windows/Ubuntu WSL2 mirrored, 192.168.100.64.
+Rama: alexia-test-pr135.
+PC B: jobsy-client, Mac/UTM Ubuntu ARM64 (aarch64), 192.168.100.151.
+Rama: qa-remote-client. Jobsy 0.1.0 instalado en entorno virtual.
+TCP: 8765. Socket: /tmp/jobsy-qa135-lan.sock.
+Directorio de datos: /tmp/jobsy-qa135-lan.
+Allowlist inicial: 192.168.100.151/32; restrictiva: 127.0.0.1/32.
+Preparación: ping sin respuesta (4 paquetes, 100% pérdida); TCP funcionó.
+
+TC-247 PASS — Conectividad TCP
+nc -vz -w 5 192.168.100.64 8765
+Connection to 192.168.100.64 8765 port [tcp/*] succeeded!
+Exit code: 0
+
+TC-248 PASS — Health remoto
+jobsy --host 192.168.100.64 --port 8765 health
+Servicio Activo: Sí; ejecución 0; cola 0; errores recientes 0.
+Código de salida de la primera consulta no capturado; nueva consulta tras restaurar allowlist: 0.
+
+TC-249 PASS — Ejecución remota
+run -- hostname; ID 1f92fc5e; output: PCERDA.
+
+TC-250 PASS — Listado
+ID corto: 1f92fc5e; UUID: 1f92fc5e-7c47-416f-b95c-410099284e2f.
+Estado SUCCEEDED; comando hostname; ambos formatos observados.
+
+TC-251 PASS — Estado
+status 1f92fc5e: SUCCEEDED; código de salida del trabajo 0.
+
+TC-252 PASS — stdout/stderr
+run -- bash -c 'echo QA_STDOUT_LAN; echo QA_STDERR_LAN >&2'
+ID b1e687b4; output redirigido a archivos separados.
+Exit code: 0; stdout QA_STDOUT_LAN; stderr QA_STDERR_LAN.
+
+TC-253 PASS — Cancelación
+run -- sleep 120; ID 1398370e; RUNNING -> CANCELED.
+Código de salida del trabajo: -15; diagnóstico: cancelado por solicitud del usuario.
+OBS-09: bitácora dice 'Trabajo finalizado con estado fallido (exit_code=-15)' pese a CANCELED. No afecta el resultado funcional.
+
+TC-254 PASS — Estado compartido UNIX/TCP
+PC A: cliente UNIX lista trabajos remotos y consulta 1f92fc5e y 1398370e.
+PC A crea echo QA_LOCAL_TO_REMOTE, ID 22ac66b1.
+PC B consulta SUCCEEDED, código 0, output QA_LOCAL_TO_REMOTE.
+
+TC-255 PASS — IP real
+Bitácora: Conexión remota aceptada desde 192.168.100.151.
+
+TC-256 PASS — Allowlist
+Daemon escucha en 192.168.100.64:8765 con allowlist 127.0.0.1/32.
+Health remoto: error controlado, código 1.
+Bitácora: Conexión remota rechazada: 192.168.100.151 fuera de las redes permitidas.
+Health local UNIX: activo, código 0. Al restaurar allowlist original, health remoto activo, código 0.
+
+TC-257 PASS — Variables de entorno
+JOBSY_HOST=192.168.100.64; JOBSY_PORT=8765.
+health, list --full-id, status 1f92fc5e y output 1f92fc5e funcionan sin flags.
+Variables eliminadas posteriormente.
+
+TC-258 PASS — Latencia LAN
+30 solicitudes status sobre conexión TCP persistente, 4 trabajos registrados.
+Valores ms, en orden:
+3.250, 2.768, 2.607, 2.952, 3.425, 2.304, 2.273, 3.187, 2.433, 2.262,
+2.362, 2.918, 1.847, 2.929, 2.283, 2.404, 2.381, 2.362, 2.494, 2.933,
+2.492, 2.898, 2.613, 2.267, 2.929, 2.842, 2.458, 2.408, 2.345, 2.571.
+Consultas válidas: 30; mínimo 1.847 ms; mediana 2.493 ms; máximo 3.425 ms.
+Criterio utilizado: 30 respuestas válidas y máximo <= 1000 ms.
+No equivale a RNF-05 con 100 trabajos ni incluye establecimiento TCP o inicio CLI.
+
+TC-259 PASS — Desconexión y recuperación
+ID 1879fda6-15b6-4b68-a326-754a90b08957; RUNNING antes de cerrar TCP.
+Conexión restablecida; SUCCEEDED; código 0.
+Cierre controlado de conexión; no se simuló caída física de red.
+
+TC-260 PASS — Apagado
+SIGINT; Acceso remoto detenido; clean=True; daemon exit code 0.
+ss: sin listener en 8765; socket UNIX eliminado.
+PC B nc: timeout, código 1; health: error controlado, código 1.
+OBS-10: mensaje 'Servicio detenido completamente.' duplicado en tres sesiones observadas.
+
+RESUMEN
+14 casos funcionales PASS, 0 FAIL. OBS-09 y OBS-10 pendientes de análisis de origen.
+No se atribuyen automáticamente al PR #135.
+Bitácora original complementaria: EV-034-remote-lan-daemon.log (o .txt si se renombra sin alterar bytes).
+78 líneas, 8.8 KB (tamaño mostrado por ls -lh).
+SHA256 verificado por operador: 7063bc401ed95de65c3718685723670232aa0916e11e19ec492d02abc118f73b
+No se verificó independientemente el archivo original en este entorno.
+Retiro de reglas temporales de firewall: pendiente de confirmación del operador.

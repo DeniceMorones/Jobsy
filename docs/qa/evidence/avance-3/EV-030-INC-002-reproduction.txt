@@ -1,0 +1,56 @@
+INC-002 - JOBSY_PORT invalido
+PR #135
+Commit: 32bd487
+Sat Nov 28 15:02:09 UTC 2026
+
+=== Prueba A - Cliente remoto ===
+Traceback (most recent call last):
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/.venv/bin/jobsy", line 10, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 134, in main
+    parser = build_parser()
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 29, in build_parser
+    parser.add_argument("--port", type=int, default=int(os.environ.get("JOBSY_PORT", DEFAULT_REMOTE_PORT)),
+                                                    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'abc'
+Exit code: 1
+
+=== Prueba B - Cliente local ===
+Traceback (most recent call last):
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/.venv/bin/jobsy", line 10, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 134, in main
+    parser = build_parser()
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 29, in build_parser
+    parser.add_argument("--port", type=int, default=int(os.environ.get("JOBSY_PORT", DEFAULT_REMOTE_PORT)),
+                                                    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'abc'
+Exit code: 1
+
+=== Prueba C - Puerto explicito ===
+Traceback (most recent call last):
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/.venv/bin/jobsy", line 10, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 134, in main
+    parser = build_parser()
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 29, in build_parser
+    parser.add_argument("--port", type=int, default=int(os.environ.get("JOBSY_PORT", DEFAULT_REMOTE_PORT)),
+                                                    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'abc'
+Exit code: 1
+
+=== Prueba D - Ayuda ===
+Traceback (most recent call last):
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/.venv/bin/jobsy", line 10, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 134, in main
+    parser = build_parser()
+  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 29, in build_parser
+    parser.add_argument("--port", type=int, default=int(os.environ.get("JOBSY_PORT", DEFAULT_REMOTE_PORT)),
+                                                    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'abc'
+Exit code: 1

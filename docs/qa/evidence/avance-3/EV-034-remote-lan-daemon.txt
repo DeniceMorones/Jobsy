@@ -1,0 +1,78 @@
+[2026-11-28 16:30:22.824 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: f4367f0d-b70b-47d8-b386-a0af6b9ade4b
+[2026-11-28 16:30:22.826 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-qa135-lan.sock
+[2026-11-28 16:30:22.837 UTC] [INFO] [Job: -] Acceso remoto habilitado en 192.168.100.64:8765 (redes permitidas: 192.168.100.151/32)
+[2026-11-28 16:31:11.337 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:31:32.928 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:32:57.456 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:32:57.456 UTC] [INFO] [Job: 1f92fc5e-7c47-416f-b95c-410099284e2f] Trabajo creado en memoria con comando: hostname (0 argumentos, no registrados)
+[2026-11-28 16:32:57.457 UTC] [INFO] [Job: 1f92fc5e-7c47-416f-b95c-410099284e2f] Solicitud v1 'run' procesada para comando: hostname (0 argumentos, no registrados) [ReqID: cli-bcfcaf0ff963]
+[2026-11-28 16:32:57.457 UTC] [INFO] [Job: 1f92fc5e-7c47-416f-b95c-410099284e2f] Iniciando ejecución de comando: hostname (0 argumentos, no registrados)
+[2026-11-28 16:32:57.459 UTC] [INFO] [Job: 1f92fc5e-7c47-416f-b95c-410099284e2f] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 16:33:19.553 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:33:31.856 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:33:38.742 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:33:46.093 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:33:53.469 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:33:53.470 UTC] [INFO] [Job: b1e687b4-92d9-4f8a-ae19-230131db9751] Trabajo creado en memoria con comando: bash (2 argumentos, no registrados)
+[2026-11-28 16:33:53.471 UTC] [INFO] [Job: b1e687b4-92d9-4f8a-ae19-230131db9751] Solicitud v1 'run' procesada para comando: bash (2 argumentos, no registrados) [ReqID: cli-7079e698bdce]
+[2026-11-28 16:33:53.473 UTC] [INFO] [Job: b1e687b4-92d9-4f8a-ae19-230131db9751] Iniciando ejecución de comando: bash (2 argumentos, no registrados)
+[2026-11-28 16:33:53.479 UTC] [INFO] [Job: b1e687b4-92d9-4f8a-ae19-230131db9751] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 16:34:07.115 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:34:16.617 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:34:16.618 UTC] [INFO] [Job: 1398370e-1837-4e31-b933-1f59531dbd7a] Trabajo creado en memoria con comando: sleep (1 argumento, no registrados)
+[2026-11-28 16:34:16.619 UTC] [INFO] [Job: 1398370e-1837-4e31-b933-1f59531dbd7a] Solicitud v1 'run' procesada para comando: sleep (1 argumento, no registrados) [ReqID: cli-0b5ddec07616]
+[2026-11-28 16:34:16.621 UTC] [INFO] [Job: 1398370e-1837-4e31-b933-1f59531dbd7a] Iniciando ejecución de comando: sleep (1 argumento, no registrados)
+[2026-11-28 16:34:40.623 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:34:45.179 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:34:45.179 UTC] [INFO] [Job: 1398370e-1837-4e31-b933-1f59531dbd7a] Trabajo cancelado por el usuario
+[2026-11-28 16:34:45.179 UTC] [INFO] [Job: 1398370e-1837-4e31-b933-1f59531dbd7a] Solicitud v1 'cancel' procesada [ReqID: cli-c8de38d08c8b]
+[2026-11-28 16:34:45.207 UTC] [INFO] [Job: 1398370e-1837-4e31-b933-1f59531dbd7a] Trabajo finalizado con estado fallido (exit_code=-15)
+[2026-11-28 16:34:55.418 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:36:53.279 UTC] [INFO] [Job: -] Recibida solicitud IPC 'list' [ReqID: 37a26c32]
+[2026-11-28 16:36:56.897 UTC] [INFO] [Job: -] Recibida solicitud IPC 'status' [ReqID: 88c84885]
+[2026-11-28 16:37:00.868 UTC] [INFO] [Job: -] Recibida solicitud IPC 'status' [ReqID: cbeea0e9]
+[2026-11-28 16:37:06.239 UTC] [INFO] [Job: -] Recibida solicitud IPC 'run' [ReqID: b5feab9b]
+[2026-11-28 16:37:06.239 UTC] [INFO] [Job: 22ac66b1-0e19-4452-9422-eb9f6f680d66] Trabajo creado en memoria con comando: echo (1 argumento, no registrados)
+[2026-11-28 16:37:06.239 UTC] [INFO] [Job: 22ac66b1-0e19-4452-9422-eb9f6f680d66] Solicitud 'run' procesada con éxito para comando: echo (1 argumento, no registrados) [ReqID: b5feab9b]
+[2026-11-28 16:37:06.240 UTC] [INFO] [Job: 22ac66b1-0e19-4452-9422-eb9f6f680d66] Iniciando ejecución de comando: echo (1 argumento, no registrados)
+[2026-11-28 16:37:06.248 UTC] [INFO] [Job: 22ac66b1-0e19-4452-9422-eb9f6f680d66] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 16:37:24.869 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:37:28.169 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:37:46.868 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:37:50.497 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:37:52.778 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:37:55.533 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:38:11.847 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:39:19.864 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:39:19.865 UTC] [INFO] [Job: 1879fda6-15b6-4b68-a326-754a90b08957] Trabajo creado en memoria con comando: sleep (1 argumento, no registrados)
+[2026-11-28 16:39:19.865 UTC] [INFO] [Job: 1879fda6-15b6-4b68-a326-754a90b08957] Solicitud v1 'run' procesada para comando: sleep (1 argumento, no registrados) [ReqID: qa-lan-f5f5fe55bda3]
+[2026-11-28 16:39:19.866 UTC] [INFO] [Job: 1879fda6-15b6-4b68-a326-754a90b08957] Iniciando ejecución de comando: sleep (1 argumento, no registrados)
+[2026-11-28 16:39:29.869 UTC] [INFO] [Job: 1879fda6-15b6-4b68-a326-754a90b08957] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 16:39:31.891 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:40:08.786 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 16:40:08.942 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 16:40:09.440 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 16:40:09.442 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: f4367f0d-b70b-47d8-b386-a0af6b9ade4b (clean=True)
+[2026-11-28 16:40:09.443 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 16:40:09.443 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 16:40:15.458 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 7fbccef5-19fd-4dd0-b0b0-42ffa30e20b1
+[2026-11-28 16:40:15.459 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-qa135-lan.sock
+[2026-11-28 16:40:15.470 UTC] [INFO] [Job: -] Acceso remoto habilitado en 192.168.100.64:8765 (redes permitidas: 127.0.0.1/32)
+[2026-11-28 16:40:19.911 UTC] [WARNING] [Job: -] Conexión remota rechazada: 192.168.100.151 fuera de las redes permitidas.
+[2026-11-28 16:40:41.355 UTC] [INFO] [Job: -] Recibida solicitud IPC 'health' [ReqID: 9f6f1dec]
+[2026-11-28 16:41:05.635 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 16:41:05.795 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 16:41:05.968 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 16:41:05.969 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 7fbccef5-19fd-4dd0-b0b0-42ffa30e20b1 (clean=True)
+[2026-11-28 16:41:05.969 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 16:41:05.969 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 16:41:10.489 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: 344bbf20-b18e-435e-9aa1-afbfefa31c7b
+[2026-11-28 16:41:10.492 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-qa135-lan.sock
+[2026-11-28 16:41:10.502 UTC] [INFO] [Job: -] Acceso remoto habilitado en 192.168.100.64:8765 (redes permitidas: 192.168.100.151/32)
+[2026-11-28 16:41:13.118 UTC] [INFO] [Job: -] Conexión remota aceptada desde 192.168.100.151.
+[2026-11-28 16:41:22.841 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 16:41:22.923 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 16:41:23.133 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 16:41:23.133 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: 344bbf20-b18e-435e-9aa1-afbfefa31c7b (clean=True)
+[2026-11-28 16:41:23.133 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 16:41:23.133 UTC] [INFO] [Job: -] Servicio detenido completamente.

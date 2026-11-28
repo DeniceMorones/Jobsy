@@ -1,0 +1,191 @@
+PR #135 — EV-030 — Cliente remoto
+
+========================================================================
+TC-196 - Health remoto y local equivalentes
+========================================================================
+CLI ['health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '49217', 'health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+PASS: Health remoto y local equivalentes
+
+========================================================================
+TC-197 - Run remoto genera ID corto y ejecuta trabajo
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'run', '--', 'bash', '-c', 'printf "hola remoto\\n"; printf "error de prueba\\n" >&2']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: 86f75335'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '49217', 'status', '86f75335']: rc=0; stdout='ID: 86f75335\nEstado: SUCCEEDED\nComando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nRecibido: 2026-11-28 14:57:57 UTC\nInicio: 2026-11-28 14:57:57 UTC\nFin: 2026-11-28 14:57:57 UTC\nCódigo de salida: 0'; stderr=''
+PASS: Run remoto genera ID corto y ejecuta trabajo
+
+========================================================================
+TC-198 - List remoto comparte trabajos con UNIX
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'list']: rc=0; stdout='ID: 86f75335 | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2'; stderr=''
+CLI ['list']: rc=0; stdout='ID: 86f75335 | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2'; stderr=''
+PASS: List remoto comparte trabajos con UNIX
+
+========================================================================
+TC-199 - List remoto --full-id muestra UUID
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'list', '--full-id']: rc=0; stdout='ID: 86f75335-e8ae-4f81-a533-1cb4b420efdd | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2'; stderr=''
+PASS: List remoto --full-id muestra UUID
+
+========================================================================
+TC-200 - Status remoto mediante ID corto y paridad local
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'status', '86f75335']: rc=0; stdout='ID: 86f75335\nEstado: SUCCEEDED\nComando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nRecibido: 2026-11-28 14:57:57 UTC\nInicio: 2026-11-28 14:57:57 UTC\nFin: 2026-11-28 14:57:57 UTC\nCódigo de salida: 0'; stderr=''
+CLI ['status', '86f75335']: rc=0; stdout='ID: 86f75335\nEstado: SUCCEEDED\nComando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nRecibido: 2026-11-28 14:57:57 UTC\nInicio: 2026-11-28 14:57:57 UTC\nFin: 2026-11-28 14:57:57 UTC\nCódigo de salida: 0'; stderr=''
+PASS: Status remoto mediante ID corto y paridad local
+
+========================================================================
+TC-201 - Status remoto mediante UUID completo
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'status', '86f75335-e8ae-4f81-a533-1cb4b420efdd']: rc=0; stdout='ID: 86f75335\nEstado: SUCCEEDED\nComando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nRecibido: 2026-11-28 14:57:57 UTC\nInicio: 2026-11-28 14:57:57 UTC\nFin: 2026-11-28 14:57:57 UTC\nCódigo de salida: 0'; stderr=''
+PASS: Status remoto mediante UUID completo
+
+========================================================================
+TC-202 - Output remoto conserva stdout y stderr
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'output', '86f75335']: rc=0; stdout='hola remoto'; stderr='error de prueba'
+CLI ['output', '86f75335']: rc=0; stdout='hola remoto'; stderr='error de prueba'
+PASS: Output remoto conserva stdout y stderr
+
+========================================================================
+TC-203 - List remoto aplica filtro por estado
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'list', '--status', 'SUCCEEDED']: rc=0; stdout='ID: 86f75335 | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '49217', 'list', '--status', 'FAILED']: rc=0; stdout='No se encontraron trabajos.'; stderr=''
+PASS: List remoto aplica filtro por estado
+
+========================================================================
+TC-204 - Trabajo remoto cancelado y consultado localmente
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'run', '--', 'sleep', '30']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: 84c4ad0e'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '49217', 'status', '84c4ad0e']: rc=0; stdout='ID: 84c4ad0e\nEstado: RUNNING\nComando: sleep 30\nRecibido: 2026-11-28 14:57:58 UTC\nInicio: 2026-11-28 14:57:59 UTC\nFin: -\nCódigo de salida: -'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '49217', 'cancel', '84c4ad0e']: rc=0; stdout='Cancelando trabajo con ID: 84c4ad0e\nEstado actual: CANCELED'; stderr=''
+CLI ['status', '84c4ad0e']: rc=0; stdout='ID: 84c4ad0e\nEstado: CANCELED\nComando: sleep 30\nRecibido: 2026-11-28 14:57:58 UTC\nInicio: 2026-11-28 14:57:59 UTC\nFin: 2026-11-28 14:57:59 UTC\nCódigo de salida: -15\nDiagnóstico: cancelado por solicitud del usuario'; stderr=''
+PASS: Trabajo remoto cancelado y consultado localmente
+
+========================================================================
+TC-205 - Trabajo local consultado por TCP
+========================================================================
+CLI ['run', '--', 'true']: rc=0; stdout='Trabajo creado y enviado a ejecución con ID: e8e81eaf'; stderr=''
+CLI ['--host', '127.0.0.1', '--port', '49217', 'status', 'e8e81eaf']: rc=0; stdout='ID: e8e81eaf\nEstado: SUCCEEDED\nComando: true\nRecibido: 2026-11-28 14:57:59 UTC\nInicio: 2026-11-28 14:57:59 UTC\nFin: 2026-11-28 14:57:59 UTC\nCódigo de salida: 0'; stderr=''
+PASS: Trabajo local consultado por TCP
+
+========================================================================
+TC-206 - Cancelación repetida controlada
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'cancel', '84c4ad0e']: rc=1; stdout=''; stderr="Error en la operación 'cancel':\n  • Causa: La cancelación de este trabajo ya fue solicitada (estado CANCELED).\n  • Acción sugerida: Consulte el estado del trabajo con 'jobsy status'."
+CLI ['--host', '127.0.0.1', '--port', '49217', 'status', '84c4ad0e']: rc=0; stdout='ID: 84c4ad0e\nEstado: CANCELED\nComando: sleep 30\nRecibido: 2026-11-28 14:57:58 UTC\nInicio: 2026-11-28 14:57:59 UTC\nFin: 2026-11-28 14:57:59 UTC\nCódigo de salida: -15\nDiagnóstico: cancelado por solicitud del usuario'; stderr=''
+PASS: Cancelación repetida controlada
+
+========================================================================
+TC-207 - ID inexistente devuelve error controlado
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'status', '00000000-0000-0000-0000-000000000000']: rc=1; stdout=''; stderr="Error en la operación 'status':\n  • Causa: No existe un trabajo con ese identificador.\n  • Acción sugerida: Consulte los identificadores con 'jobsy list --full-id'."
+PASS: ID inexistente devuelve error controlado
+
+========================================================================
+TC-208 - ID inválido devuelve error controlado
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'status', 'zzzzzzzz']: rc=1; stdout=''; stderr="Error en la operación 'status':\n  • Causa: job_id debe ser un UUID o un prefijo hexadecimal de 8 a 32 caracteres.\n  • Acción sugerida: Consulte jobsy list --full-id."
+PASS: ID inválido devuelve error controlado
+
+========================================================================
+TC-209 - JOBSY_HOST y JOBSY_PORT seleccionan TCP
+========================================================================
+CLI ['list']: rc=0; stdout='ID: 86f75335 | Estado: SUCCEEDED | Comando: bash -c printf "hola remoto\\n"; printf "error de prueba\\n" >&2\nID: 84c4ad0e | Estado: CANCELED | Comando: sleep 30\nID: e8e81eaf | Estado: SUCCEEDED | Comando: true'; stderr=''
+PASS: JOBSY_HOST y JOBSY_PORT seleccionan TCP
+
+========================================================================
+TC-210 - Opciones explícitas prevalecen sobre entorno
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+PASS: Opciones explícitas prevalecen sobre entorno
+
+========================================================================
+TC-211 - Servidor no disponible devuelve error controlado
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '57571', 'health']: rc=1; stdout=''; stderr="Error en la operación 'health':\n  • Causa: No se pudo comunicar con 127.0.0.1:57571.\n  • Acción sugerida: Verifique que el daemon tenga --listen-host, que la IP esté permitida (--allow-cidr) y que ambos equipos estén en la misma red privada."
+PASS: Servidor no disponible devuelve error controlado
+
+========================================================================
+TC-212 - Puerto explícito inválido devuelve error de sintaxis
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '0', 'health']: rc=2; stdout=''; stderr='usage: jobsy [-h] [--host HOST] [--port PORT]\n             {run,list,status,cancel,output,health} ...\njobsy: error: --port debe estar entre 1 y 65535.'
+CLI ['--host', '127.0.0.1', '--port', '65536', 'health']: rc=2; stdout=''; stderr='usage: jobsy [-h] [--host HOST] [--port PORT]\n             {run,list,status,cancel,output,health} ...\njobsy: error: --port debe estar entre 1 y 65535.'
+CLI ['--host', '127.0.0.1', '--port', 'abc', 'health']: rc=2; stdout=''; stderr="usage: jobsy [-h] [--host HOST] [--port PORT]\n             {run,list,status,cancel,output,health} ...\njobsy: error: argument --port: invalid int value: 'abc'"
+PASS: Puerto explícito inválido devuelve error de sintaxis
+
+========================================================================
+TC-213 - JOBSY_PORT no numérico sin traceback
+========================================================================
+CLI ['health']: rc=1; stdout=''; stderr='Traceback (most recent call last):\n  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/.venv/bin/jobsy", line 10, in <module>\n    sys.exit(main())\n             ~~~~^^\n  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 134, in main\n    parser = build_parser()\n  File "/mnt/e/Alexia/Sistemas Avanzados/Jobsy/src/client/cli.py", line 29, in build_parser\n    parser.add_argument("--port", type=int, default=int(os.environ.get("JOBSY_PORT", DEFAULT_REMOTE_PORT)),\n                                                    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nValueError: invalid literal for int() with base 10: \'abc\''
+FAIL: AssertionError: OBS-05: JOBSY_PORT inválido no manejado de forma controlada
+
+========================================================================
+TC-214 - Daemon permanece operativo tras errores
+========================================================================
+CLI ['--host', '127.0.0.1', '--port', '49217', 'health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+CLI ['health']: rc=0; stdout='=== Resumen de Salud de Jobsy ===\nServicio Activo: Sí\n\n--- Trabajos en Ejecución (0) ---\n  Ninguno\n\n--- Trabajos en Cola (0) ---\n  Ninguno\n\n--- Errores Recientes (0) ---\n  Ninguno'; stderr=''
+PASS: Daemon permanece operativo tras errores
+
+Consola daemon:
+[2026-11-28 14:57:56.789 UTC] [INFO] [Job: -] Iniciando sesión de daemon con ID: e03cebe9-93c0-4ac4-aed8-9f0413bb7ba5
+[2026-11-28 14:57:56.789 UTC] [INFO] [Job: -] Servidor Jobsy activo escuchando en /tmp/jobsy-qa135-cli-qie5kkxz/qa.sock
+[2026-11-28 14:57:56.789 UTC] [INFO] [Job: -] Acceso remoto habilitado en 127.0.0.1:49217 (redes permitidas: 127.0.0.1/32)
+[2026-11-28 14:57:56.818 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:56.969 UTC] [INFO] [Job: -] Recibida solicitud IPC 'health' [ReqID: 157fd4b9]
+[2026-11-28 14:57:57.092 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:57.243 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:57.243 UTC] [INFO] [Job: 86f75335-e8ae-4f81-a533-1cb4b420efdd] Trabajo creado en memoria con comando: bash (2 argumentos, no registrados)
+[2026-11-28 14:57:57.244 UTC] [INFO] [Job: 86f75335-e8ae-4f81-a533-1cb4b420efdd] Solicitud v1 'run' procesada para comando: bash (2 argumentos, no registrados) [ReqID: cli-477e932318a1]
+[2026-11-28 14:57:57.244 UTC] [INFO] [Job: 86f75335-e8ae-4f81-a533-1cb4b420efdd] Iniciando ejecución de comando: bash (2 argumentos, no registrados)
+[2026-11-28 14:57:57.248 UTC] [INFO] [Job: 86f75335-e8ae-4f81-a533-1cb4b420efdd] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 14:57:57.372 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:57.524 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:57.650 UTC] [INFO] [Job: -] Recibida solicitud IPC 'list' [ReqID: c191668e]
+[2026-11-28 14:57:57.804 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:57.948 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:58.091 UTC] [INFO] [Job: -] Recibida solicitud IPC 'status' [ReqID: 8a167f3e]
+[2026-11-28 14:57:58.220 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:58.362 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:58.483 UTC] [INFO] [Job: -] Recibida solicitud IPC 'output' [ReqID: e3eee6bb]
+[2026-11-28 14:57:58.657 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:58.823 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:58.999 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:58.999 UTC] [INFO] [Job: 84c4ad0e-9bbd-4291-abcd-54cc82b3487a] Trabajo creado en memoria con comando: sleep (1 argumento, no registrados)
+[2026-11-28 14:57:58.999 UTC] [INFO] [Job: 84c4ad0e-9bbd-4291-abcd-54cc82b3487a] Solicitud v1 'run' procesada para comando: sleep (1 argumento, no registrados) [ReqID: cli-02efa6bb53a0]
+[2026-11-28 14:57:58.999 UTC] [INFO] [Job: 84c4ad0e-9bbd-4291-abcd-54cc82b3487a] Iniciando ejecución de comando: sleep (1 argumento, no registrados)
+[2026-11-28 14:57:59.176 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:59.348 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:59.348 UTC] [INFO] [Job: 84c4ad0e-9bbd-4291-abcd-54cc82b3487a] Trabajo cancelado por el usuario
+[2026-11-28 14:57:59.348 UTC] [INFO] [Job: 84c4ad0e-9bbd-4291-abcd-54cc82b3487a] Solicitud v1 'cancel' procesada [ReqID: cli-07eb3aa8579a]
+[2026-11-28 14:57:59.407 UTC] [INFO] [Job: 84c4ad0e-9bbd-4291-abcd-54cc82b3487a] Trabajo finalizado con estado fallido (exit_code=-15)
+[2026-11-28 14:57:59.512 UTC] [INFO] [Job: -] Recibida solicitud IPC 'status' [ReqID: 4ba9387e]
+[2026-11-28 14:57:59.630 UTC] [INFO] [Job: -] Recibida solicitud IPC 'run' [ReqID: 52559cbf]
+[2026-11-28 14:57:59.630 UTC] [INFO] [Job: e8e81eaf-9ba0-4b11-95da-b6a539caf7ab] Trabajo creado en memoria con comando: true (0 argumentos, no registrados)
+[2026-11-28 14:57:59.630 UTC] [INFO] [Job: e8e81eaf-9ba0-4b11-95da-b6a539caf7ab] Solicitud 'run' procesada con éxito para comando: true (0 argumentos, no registrados) [ReqID: 52559cbf]
+[2026-11-28 14:57:59.630 UTC] [INFO] [Job: e8e81eaf-9ba0-4b11-95da-b6a539caf7ab] Iniciando ejecución de comando: true (0 argumentos, no registrados)
+[2026-11-28 14:57:59.633 UTC] [INFO] [Job: e8e81eaf-9ba0-4b11-95da-b6a539caf7ab] Trabajo finalizado con estado exitoso (exit_code=0)
+[2026-11-28 14:57:59.767 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:57:59.889 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:58:00.040 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:58:00.149 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:58:00.317 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:58:00.435 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:58:00.562 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:58:01.334 UTC] [INFO] [Job: -] Conexión remota aceptada desde 127.0.0.1.
+[2026-11-28 14:58:01.487 UTC] [INFO] [Job: -] Recibida solicitud IPC 'health' [ReqID: 1e1dd599]
+[2026-11-28 14:58:01.490 UTC] [WARNING] [Job: -] Señal de apagado recibida (SIGINT/SIGTERM).
+[2026-11-28 14:58:01.688 UTC] [INFO] [Job: -] Deteniendo recepción de trabajos y finalizando procesos activos...
+[2026-11-28 14:58:01.835 UTC] [INFO] [Job: -] Acceso remoto detenido.
+[2026-11-28 14:58:01.836 UTC] [INFO] [Job: -] Finalizando sesión de daemon con ID: e03cebe9-93c0-4ac4-aed8-9f0413bb7ba5 (clean=True)
+[2026-11-28 14:58:01.837 UTC] [INFO] [Job: -] Servicio detenido completamente.
+[2026-11-28 14:58:01.837 UTC] [INFO] [Job: -] Servicio detenido completamente.
+
+
+========================================================================
+Comprobaciones contabilizadas: 19
+PASS: 18
+FAIL: 1
+RESULTADO GENERAL: FAIL
+========================================================================
