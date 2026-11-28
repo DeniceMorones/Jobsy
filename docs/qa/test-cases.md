@@ -1,10 +1,10 @@
 # Casos de prueba — Jobsy
 
-Este documento registra los casos de prueba ejecutados por QA sobre los alcances funcionales revisados de Jobsy en los PR #101, #102, #104, #110, #114 y #116.
+Este documento registra los casos de prueba ejecutados por QA sobre los alcances funcionales revisados de Jobsy en los PR #101, #102, #104, #110, #114, #116, #133 y #135.
 
 La numeración de los casos se mantiene de forma acumulativa para conservar la trazabilidad entre pruebas, requisitos, scripts y evidencias.
 
-Hasta el momento se han documentado y ejecutado los casos **TC-001 a TC-149**.
+Hasta el momento se han documentado y ejecutado los casos **TC-001 a TC-260**.
 
 Las pruebas cubren validación de entradas, ejecución de trabajos, estados y metadatos, cancelación, apagado seguro, comportamiento de la CLI, comunicación IPC mediante sockets UNIX, robustez ante solicitudes inválidas, múltiples trabajos durante una misma sesión y configuración de sockets UNIX personalizados.
 
@@ -15,6 +15,15 @@ Los casos **TC-071 a TC-090** corresponden a la validación del **PR #114**, rel
 Los casos **TC-091 a TC-126** corresponden a la validación del **PR #116**, relacionado con solicitudes duplicadas, resumen de salud, errores estructurados, bitácora centralizada, correlación mediante `ReqID`, observabilidad de cola y robustez ante desconexiones del cliente.
 
 Los casos **TC-127 a TC-149** corresponden al cierre de QA para la **Technical Review 2**, cubriendo recuperación, estrés y liberación de recursos, instalación limpia, ejecución sin privilegios root, ausencia de warnings y batería de pruebas ejecutable mediante un único comando.
+
+Los casos **TC-150 a TC-164** corresponden al PR #133 (IDs cortos). Los casos **TC-165 a TC-260** corresponden al PR #135 (cliente remoto TCP).
+
+### Entorno de ejecución del PR #135
+
+- Fecha: 2026-11-28; commit `32bd487`; rama `alexia-test-pr135`.
+- PC A: Windows 11, Ubuntu WSL2 mirrored, Python 3.14.4, entorno `.venv`.
+- PC B: Mac/UTM, Ubuntu Server 26.04.1 ARM64, Python 3.14.4, IP 192.168.100.151; PC A: 192.168.100.64, TCP 8765.
+- Pruebas automatizadas en loopback y pruebas manuales LAN; sin credenciales reales.
 
 ### Entorno de ejecución del PR #110
 
@@ -91,6 +100,21 @@ Cada caso puede encontrarse en uno de los siguientes estados:
 - `EV-023-resource-stress-output.txt`: estrés y liberación de memoria, procesos, archivos y sockets.
 - `EV-024-clean-installation-output.txt`: clon limpio, instalación sin root, sin sudo y sin warnings.
 - `EV-025-single-command-suite-output.txt`: batería consolidada de QA ejecutable mediante un único comando.
+
+- EV-026 y EV-027: IDs cortos y regresión del PR #133.
+
+### Avance 3
+
+- `EV-028-network-protocol-v1-output.txt`: PR #135.
+- `EV-029-remote-server-config-output.txt`: PR #135.
+- `EV-030-remote-cli-output.txt`: PR #135.
+- `EV-031-remote-security-output.txt`: PR #135.
+- `EV-032-remote-concurrency-output.txt`: PR #135.
+- `EV-033-remote-performance-output.txt`: PR #135.
+- `EV-034-remote-lan-output.txt`: PR #135.
+- `EV-035-regression-output.txt`: PR #135.
+- `EV-030-INC-002-reproduction.txt`: reproducción complementaria.
+- `EV-034-remote-lan-daemon.txt`: bitácora original respaldada.
 
 ### Avance 1
 
@@ -4082,6 +4106,2342 @@ RESULTADO GENERAL: PASS
 
 ---
 
+# Casos de prueba — PR #135
+
+Resultados registrados sobre `32bd487`. Los resultados obtenidos son síntesis de las ejecuciones reportadas; no transcripciones nuevas.
+
+## TC-165 — Cabecera de cuatro bytes y JSON UTF-8
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Cabecera de cuatro bytes y JSON UTF-8.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-165 en la evidencia correspondiente.
+
+### Resultado esperado
+Longitud big-endian de 4 bytes coincide con el cuerpo JSON UTF-8.
+
+### Resultado obtenido
+Cabecera y objeto decodificado coinciden.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-166 — Fragmentación byte a byte con Unicode
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Fragmentación byte a byte con Unicode.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-166 en la evidencia correspondiente.
+
+### Resultado esperado
+Reconstruir una trama fragmentada byte a byte con México y emoji.
+
+### Resultado obtenido
+Se recuperó el comando Unicode íntegro.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-167 — Tramas agrupadas y EOF limpio
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Tramas agrupadas y EOF limpio.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-167 en la evidencia correspondiente.
+
+### Resultado esperado
+Leer health y list concatenados y detectar EOF limpio.
+
+### Resultado obtenido
+Ambas tramas fueron recuperadas; lectura final None.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-168 — Envío parcial sin pérdida de datos
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Envío parcial sin pérdida de datos.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-168 en la evidencia correspondiente.
+
+### Resultado esperado
+Completar envíos parciales de 3 bytes sin pérdida.
+
+### Resultado obtenido
+Bytes enviados iguales a la trama original.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-169 — Rechazo de longitudes fuera del límite
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazo de longitudes fuera del límite.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-169 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar longitud 0 y superior a 1048576 con INVALID_LENGTH y cierre.
+
+### Resultado obtenido
+Ambas entradas rechazadas.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-170 — Aceptación de los límites exactos de framing
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Aceptación de los límites exactos de framing.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-170 en la evidencia correspondiente.
+
+### Resultado esperado
+Aceptar cuerpos de 1 y 1048576 bytes.
+
+### Resultado obtenido
+Ambos límites aceptados por el lector.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-171 — Detección de cabecera o cuerpo incompleto
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Detección de cabecera o cuerpo incompleto.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-171 en la evidencia correspondiente.
+
+### Resultado esperado
+Detectar cabecera truncada y cuerpo incompleto con INCOMPLETE_MESSAGE.
+
+### Resultado obtenido
+Ambos errores controlados con cierre.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-172 — Timeout de lectura e inactividad
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Timeout de lectura e inactividad.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-172 en la evidencia correspondiente.
+
+### Resultado esperado
+Distinguir READ_TIMEOUT e IdleTimeout.
+
+### Resultado obtenido
+Ambas condiciones detectadas.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-173 — Plazo absoluto ante tráfico fragmentado lento
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Plazo absoluto ante tráfico fragmentado lento.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-173 en la evidencia correspondiente.
+
+### Resultado esperado
+Respetar plazo absoluto de 0.3 s ante envío lento; criterio del script < 1 s.
+
+### Resultado obtenido
+READ_TIMEOUT a 0.301 s.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-174 — Rechazo de codificación inválida
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazo de codificación inválida.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-174 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar BOM, UTF-8 inválido y surrogate aislado.
+
+### Resultado obtenido
+INVALID_ENCODING en los tres escenarios.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-175 — JSON inválido y límite de profundidad
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: JSON inválido y límite de profundidad.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-175 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar duplicados, NaN, Infinity, documentos concatenados y profundidad 17; aceptar 16.
+
+### Resultado obtenido
+INVALID_JSON en entradas inválidas; profundidad 16 aceptada.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-176 — Validación de versión del protocolo
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Validación de versión del protocolo.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-176 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar versiones distintas del entero 1 y versión ausente.
+
+### Resultado obtenido
+UNSUPPORTED_VERSION o INVALID_REQUEST según el escenario.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-177 — Validación de request_id
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Validación de request_id.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-177 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar ID vacío, espacios, longitud 65 y tipo numérico; aceptar 64 caracteres.
+
+### Resultado obtenido
+Validación de request_id correcta.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-178 — Validación de acciones y parámetros
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Validación de acciones y parámetros.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-178 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar acción desconocida y parámetros inválidos; aceptar prefijo hexadecimal válido.
+
+### Resultado obtenido
+UNKNOWN_ACTION e INVALID_REQUEST controlados; ABCDEF12 aceptado.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-179 — Validación de sobres de respuesta y correlación
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Validación de sobres de respuesta y correlación.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-179 en la evidencia correspondiente.
+
+### Resultado esperado
+Validar respuesta, versión, request_id y campos de error.
+
+### Resultado obtenido
+Respuesta válida aceptada y variantes inválidas rechazadas.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-180 — Rechazo de respuesta superior a 1 MiB
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Protocolo
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazo de respuesta superior a 1 MiB.
+
+### Procedimiento
+`python test/test_network_protocol_v1.py` Consultar el caso TC-180 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar respuesta codificada mayor a 1 MiB.
+
+### Resultado obtenido
+RESPONSE_TOO_LARGE.
+
+### Evidencia
+`EV-028-network-protocol-v1-output.txt`.
+
+---
+
+## TC-181 — Acceso remoto deshabilitado por defecto
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Acceso remoto deshabilitado por defecto.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-181 en la evidencia correspondiente.
+
+### Resultado esperado
+TCP deshabilitado por defecto; puerto 8765, global 8, por IP 2.
+
+### Resultado obtenido
+Valores predeterminados correctos.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-182 — Aceptar IP privada y allowlist múltiple
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Aceptar IP privada y allowlist múltiple.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-182 en la evidencia correspondiente.
+
+### Resultado esperado
+Aceptar IP 192.168.10.2 y CIDR 192.168.10.0/24, 10.0.0.5/32.
+
+### Resultado obtenido
+Configuración y redes aceptadas.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-183 — Rechazar direcciones comodín IPv4 e IPv6
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar direcciones comodín IPv4 e IPv6.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-183 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar 0.0.0.0 y ::.
+
+### Resultado obtenido
+Ambos comodines rechazados.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-184 — Rechazar IP pública de escucha
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar IP pública de escucha.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-184 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar escucha en 8.8.8.8.
+
+### Resultado obtenido
+IP pública rechazada.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-185 — Rechazar hostname y dirección inválida
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar hostname y dirección inválida.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-185 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar localhost y 999.1.1.1.
+
+### Resultado obtenido
+Ambos valores rechazados.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-186 — Exigir allowlist al habilitar TCP
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Exigir allowlist al habilitar TCP.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-186 en la evidencia correspondiente.
+
+### Resultado esperado
+Exigir allowlist no vacía al habilitar TCP.
+
+### Resultado obtenido
+Configuración rechazada.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-187 — Rechazar redes públicas y rutas universales
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar redes públicas y rutas universales.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-187 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar 8.8.8.0/24, 0.0.0.0/0 y ::/0.
+
+### Resultado obtenido
+Redes rechazadas.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-188 — Rechazar CIDR inválido
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar CIDR inválido.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-188 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar 127.0.0.0/99.
+
+### Resultado obtenido
+CIDR inválido rechazado.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-189 — Rechazar puertos fuera de rango
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar puertos fuera de rango.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-189 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar puertos 0, -1 y 65536.
+
+### Resultado obtenido
+Valores rechazados.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-190 — Rechazar límites globales inválidos
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar límites globales inválidos.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-190 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar límites globales 0, 65 y True.
+
+### Resultado obtenido
+Valores rechazados.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-191 — Rechazar límites por IP inválidos
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar límites por IP inválidos.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-191 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar límites por IP 0, 65 y True.
+
+### Resultado obtenido
+Valores rechazados.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-192 — Aceptar límites exactos de configuración
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Aceptar límites exactos de configuración.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-192 en la evidencia correspondiente.
+
+### Resultado esperado
+Aceptar límites de conexión 1 y 64; puertos 1 y 65535.
+
+### Resultado obtenido
+Valores límite aceptados.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-193 — Configuración inválida rechazada por entry point
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Configuración inválida rechazada por entry point.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-193 en la evidencia correspondiente.
+
+### Resultado esperado
+Entry point con escucha comodín devuelve 2 sin traceback ni socket.
+
+### Resultado obtenido
+Configuración inválida rechazada.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-194 — Daemon local operativo sin listener TCP y limpieza al apagar
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Daemon local operativo sin listener TCP y limpieza al apagar.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-194 en la evidencia correspondiente.
+
+### Resultado esperado
+Health UNIX operativo sin listener TCP; socket eliminado al apagar.
+
+### Resultado obtenido
+Puerto libre y limpieza correcta.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-195 — Daemon TCP en IP concreta, IPC local y limpieza al apagar
+
+**Requisito relacionado:** PR #135 / RF-16 (protocolo y configuración remota)
+**Tipo:** Automatizada / Configuración
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Daemon TCP en IP concreta, IPC local y limpieza al apagar.
+
+### Procedimiento
+`python test/test_remote_server_config.py` Consultar el caso TC-195 en la evidencia correspondiente.
+
+### Resultado esperado
+Health UNIX/TCP y listener exclusivo 127.0.0.1; cierre de ambos endpoints.
+
+### Resultado obtenido
+Ambos transportes operativos y limpieza correcta.
+
+### Evidencia
+`EV-029-remote-server-config-output.txt`.
+
+---
+
+## TC-196 — Health remoto y local equivalentes
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Health remoto y local equivalentes.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-196 en la evidencia correspondiente.
+
+### Resultado esperado
+Health local y remoto equivalentes con rc 0.
+
+### Resultado obtenido
+Ambas respuestas equivalentes.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-197 — Run remoto genera ID corto y ejecuta trabajo
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Run remoto genera ID corto y ejecuta trabajo.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-197 en la evidencia correspondiente.
+
+### Resultado esperado
+Run remoto devuelve ID corto y trabajo SUCCEEDED.
+
+### Resultado obtenido
+Trabajo bash exitoso con ID corto.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-198 — List remoto comparte trabajos con UNIX
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: List remoto comparte trabajos con UNIX.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-198 en la evidencia correspondiente.
+
+### Resultado esperado
+List UNIX y TCP muestran los mismos trabajos.
+
+### Resultado obtenido
+Listados coincidentes.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-199 — List remoto --full-id muestra UUID
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: List remoto --full-id muestra UUID.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-199 en la evidencia correspondiente.
+
+### Resultado esperado
+List --full-id muestra UUID completo.
+
+### Resultado obtenido
+UUID completo observado.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-200 — Status remoto mediante ID corto y paridad local
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Status remoto mediante ID corto y paridad local.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-200 en la evidencia correspondiente.
+
+### Resultado esperado
+Status con ID corto conserva paridad UNIX/TCP.
+
+### Resultado obtenido
+Metadatos coincidentes.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-201 — Status remoto mediante UUID completo
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Status remoto mediante UUID completo.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-201 en la evidencia correspondiente.
+
+### Resultado esperado
+Status acepta UUID completo.
+
+### Resultado obtenido
+Trabajo correcto recuperado.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-202 — Output remoto conserva stdout y stderr
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Output remoto conserva stdout y stderr.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-202 en la evidencia correspondiente.
+
+### Resultado esperado
+Output conserva stdout y stderr separados.
+
+### Resultado obtenido
+hola remoto / error de prueba, rc 0.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-203 — List remoto aplica filtro por estado
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: List remoto aplica filtro por estado.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-203 en la evidencia correspondiente.
+
+### Resultado esperado
+Filtrar SUCCEEDED y FAILED correctamente.
+
+### Resultado obtenido
+Filtro exitoso muestra trabajo; FAILED vacío.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-204 — Trabajo remoto cancelado y consultado localmente
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Trabajo remoto cancelado y consultado localmente.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-204 en la evidencia correspondiente.
+
+### Resultado esperado
+Cancelar por TCP y consultar CANCELED por UNIX.
+
+### Resultado obtenido
+CANCELED, código del trabajo -15.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-205 — Trabajo local consultado por TCP
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Trabajo local consultado por TCP.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-205 en la evidencia correspondiente.
+
+### Resultado esperado
+Crear true por UNIX y consultar por TCP.
+
+### Resultado obtenido
+SUCCEEDED, código 0.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-206 — Cancelación repetida controlada
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Cancelación repetida controlada.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-206 en la evidencia correspondiente.
+
+### Resultado esperado
+Segunda cancelación rechazada con rc 1 sin cambiar estado.
+
+### Resultado obtenido
+Error controlado; CANCELED conservado.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-207 — ID inexistente devuelve error controlado
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: ID inexistente devuelve error controlado.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-207 en la evidencia correspondiente.
+
+### Resultado esperado
+ID inexistente devuelve error controlado.
+
+### Resultado obtenido
+rc 1, causa y sugerencia.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-208 — ID inválido devuelve error controlado
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: ID inválido devuelve error controlado.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-208 en la evidencia correspondiente.
+
+### Resultado esperado
+ID zzzzzzzz rechazado de forma controlada.
+
+### Resultado obtenido
+rc 1, explicación de formato.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-209 — JOBSY_HOST y JOBSY_PORT seleccionan TCP
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: JOBSY_HOST y JOBSY_PORT seleccionan TCP.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-209 en la evidencia correspondiente.
+
+### Resultado esperado
+JOBSY_HOST y JOBSY_PORT seleccionan TCP sin flags.
+
+### Resultado obtenido
+List remoto correcto.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-210 — Opciones explícitas prevalecen sobre entorno
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Opciones explícitas prevalecen sobre entorno.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-210 en la evidencia correspondiente.
+
+### Resultado esperado
+Flags explícitos prevalecen sobre entorno con valores válidos.
+
+### Resultado obtenido
+Health correcto.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-211 — Servidor no disponible devuelve error controlado
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Servidor no disponible devuelve error controlado.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-211 en la evidencia correspondiente.
+
+### Resultado esperado
+Puerto sin servidor produce error controlado.
+
+### Resultado obtenido
+rc 1, causa y sugerencia.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-212 — Puerto explícito inválido devuelve error de sintaxis
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Puerto explícito inválido devuelve error de sintaxis.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-212 en la evidencia correspondiente.
+
+### Resultado esperado
+Puertos explícitos 0, 65536 y abc devuelven 2.
+
+### Resultado obtenido
+Los tres rechazados sin traceback.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-213 — JOBSY_PORT no numérico sin traceback
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `FAIL`
+
+### Objetivo
+Verificar: JOBSY_PORT no numérico sin traceback.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-213 en la evidencia correspondiente.
+
+### Resultado esperado
+JOBSY_PORT=abc debe producir error controlado sin traceback.
+
+### Resultado obtenido
+rc 1 y traceback ValueError en cli.py:29; INC-002 (OBS-05).
+
+### Evidencia
+`EV-030-remote-cli-output.txt` y `EV-035-regression-output.txt` (fallo reproducido).
+
+---
+
+## TC-214 — Daemon permanece operativo tras errores
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / CLI
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Daemon permanece operativo tras errores.
+
+### Procedimiento
+`python test/test_remote_cli.py` Consultar el caso TC-214 en la evidencia correspondiente.
+
+### Resultado esperado
+Health local y remoto siguen operativos tras errores.
+
+### Resultado obtenido
+Ambos responden rc 0.
+
+### Evidencia
+`EV-030-remote-cli-output.txt`.
+
+---
+
+## TC-215 — No registrar argumentos locales
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: No registrar argumentos locales.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-215 en la evidencia correspondiente.
+
+### Resultado esperado
+Argumento ficticio local ausente del log, disponible en salida.
+
+### Resultado obtenido
+Marcador ausente en bitácora y presente en output.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-216 — No registrar argumentos remotos
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: No registrar argumentos remotos.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-216 en la evidencia correspondiente.
+
+### Resultado esperado
+Argumento ficticio remoto ausente del log, disponible en salida.
+
+### Resultado obtenido
+Marcador ausente en bitácora y presente en output.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-217 — Sanitizar secretos clave=valor
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Sanitizar secretos clave=valor.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-217 en la evidencia correspondiente.
+
+### Resultado esperado
+Ocultar DB_PASSWORD=QA_FAKE_217.
+
+### Resultado obtenido
+DB_PASSWORD=[REDACTADO].
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-218 — Sanitizar opciones con secretos
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Sanitizar opciones con secretos.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-218 en la evidencia correspondiente.
+
+### Resultado esperado
+Ocultar --api-key QA_FAKE_218.
+
+### Resultado obtenido
+--api-key [REDACTADO].
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-219 — Sanitizar autorización HTTP Bearer
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `FAIL`
+
+### Objetivo
+Verificar: Sanitizar autorización HTTP Bearer.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-219 en la evidencia correspondiente.
+
+### Resultado esperado
+Ocultar por completo Authorization: Bearer QA_FAKE_219.
+
+### Resultado obtenido
+Authorization=[REDACTADO] QA_FAKE_219; INC-003.
+
+### Evidencia
+`EV-031-remote-security-output.txt` y `EV-035-regression-output.txt` (fallo reproducido).
+
+---
+
+## TC-220 — Crear jobsy.log con permisos 0600
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Crear jobsy.log con permisos 0600.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-220 en la evidencia correspondiente.
+
+### Resultado esperado
+Crear jobsy.log con modo 0600.
+
+### Resultado obtenido
+0600 observado.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-221 — Corregir permisos de bitácora existente
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Corregir permisos de bitácora existente.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-221 en la evidencia correspondiente.
+
+### Resultado esperado
+Corregir permisos de bitácora existente a 0600.
+
+### Resultado obtenido
+0600 observado.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-222 — Usar bitácora de --data-dir
+
+**Requisito relacionado:** RF-14 / RF-16
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Usar bitácora de --data-dir.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-222 en la evidencia correspondiente.
+
+### Resultado esperado
+Crear jobsy.log en --data-dir.
+
+### Resultado obtenido
+Ruta configurada utilizada.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-223 — Registrar IP autorizada
+
+**Requisito relacionado:** RF-14 / RF-16
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Registrar IP autorizada.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-223 en la evidencia correspondiente.
+
+### Resultado esperado
+Registrar IP autorizada 127.0.0.1.
+
+### Resultado obtenido
+Evento de aceptación observado.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-224 — Rechazar conexión fuera de allowlist
+
+**Requisito relacionado:** RF-14 / RF-16
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Rechazar conexión fuera de allowlist.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-224 en la evidencia correspondiente.
+
+### Resultado esperado
+Rechazar cliente fuera de allowlist.
+
+### Resultado obtenido
+Health remoto rc 1, error controlado.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-225 — Registrar IP rechazada
+
+**Requisito relacionado:** RF-14 / RF-16
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Registrar IP rechazada.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-225 en la evidencia correspondiente.
+
+### Resultado esperado
+Registrar IP rechazada.
+
+### Resultado obtenido
+Evento de rechazo observado.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-226 — Daemon operativo después de rechazo
+
+**Requisito relacionado:** RF-14 / RF-16
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Daemon operativo después de rechazo.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-226 en la evidencia correspondiente.
+
+### Resultado esperado
+Health UNIX sigue activo tras rechazo.
+
+### Resultado obtenido
+rc 0, servicio activo.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-227 — Sanitizar respuestas de errores internos
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Sanitizar respuestas de errores internos.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-227 en la evidencia correspondiente.
+
+### Resultado esperado
+No exponer marcador de excepción simulada en respuesta.
+
+### Resultado obtenido
+INTERNAL_ERROR genérico sin marcador.
+
+### Evidencia
+`EV-031-remote-security-output.txt`.
+
+---
+
+## TC-228 — Evitar secretos en logs de excepciones internas
+
+**Requisito relacionado:** RNF-15
+**Tipo:** Automatizada / Seguridad
+**Prioridad:** Alta
+**Estado:** `FAIL`
+
+### Objetivo
+Verificar: Evitar secretos en logs de excepciones internas.
+
+### Procedimiento
+`python test/test_remote_security.py` Consultar el caso TC-228 en la evidencia correspondiente.
+
+### Resultado esperado
+No persistir marcador sensible ficticio de excepción en log.
+
+### Resultado obtenido
+QA_FAKE_INTERNAL_5828 presente; INC-004 (OBS-07).
+
+### Evidencia
+`EV-031-remote-security-output.txt` y `EV-035-regression-output.txt` (fallo reproducido).
+
+---
+
+## TC-229 — Solicitudes consecutivas en una conexión
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Solicitudes consecutivas en una conexión.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-229 en la evidencia correspondiente.
+
+### Resultado esperado
+Procesar solicitudes consecutivas en una conexión.
+
+### Resultado obtenido
+Respuestas válidas consecutivas.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-230 — Tres clientes concurrentes crean trabajos independientes
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Tres clientes concurrentes crean trabajos independientes.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-230 en la evidencia correspondiente.
+
+### Resultado esperado
+Tres clientes concurrentes crean trabajos independientes con IDs únicos.
+
+### Resultado obtenido
+Tres trabajos independientes y IDs únicos.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-231 — Errores recuperables conservan conexión
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Errores recuperables conservan conexión.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-231 en la evidencia correspondiente.
+
+### Resultado esperado
+Error recuperable no cierra conexión.
+
+### Resultado obtenido
+Solicitud posterior válida procesada.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-232 — JSON inválido cierra solo al cliente afectado
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: JSON inválido cierra solo al cliente afectado.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-232 en la evidencia correspondiente.
+
+### Resultado esperado
+JSON inválido afecta solo la conexión que lo envía.
+
+### Resultado obtenido
+Otro cliente continúa operativo.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-233 — Desconexiones abruptas no interrumpen trabajos
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Desconexiones abruptas no interrumpen trabajos.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-233 en la evidencia correspondiente.
+
+### Resultado esperado
+Trabajo continúa tras desconexión abrupta.
+
+### Resultado obtenido
+Trabajo finaliza correctamente.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-234 — Límite por IP y recuperación de cupo
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Límite por IP y recuperación de cupo.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-234 en la evidencia correspondiente.
+
+### Resultado esperado
+Aplicar límite por IP y recuperar cupo al cerrar conexión.
+
+### Resultado obtenido
+Límite y recuperación comprobados.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-235 — Límite global con distintas IP loopback
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Límite global con distintas IP loopback.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-235 en la evidencia correspondiente.
+
+### Resultado esperado
+Aplicar límite global con distintas IP loopback y recuperar cupo.
+
+### Resultado obtenido
+Límite y recuperación comprobados.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-236 — Cliente lento no bloquea otro cliente
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Cliente lento no bloquea otro cliente.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-236 en la evidencia correspondiente.
+
+### Resultado esperado
+Cliente lento no bloquea health de otro cliente.
+
+### Resultado obtenido
+Health de otro cliente: 0.246 ms.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-237 — Coexistencia de IPC UNIX y TCP
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Coexistencia de IPC UNIX y TCP.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-237 en la evidencia correspondiente.
+
+### Resultado esperado
+UNIX y TCP comparten servicio.
+
+### Resultado obtenido
+Ambos transportes operativos.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-238 — Apagado con clientes activos
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Apagado con clientes activos.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-238 en la evidencia correspondiente.
+
+### Resultado esperado
+Apagar con clientes activos y cerrar endpoints.
+
+### Resultado obtenido
+Apagado 0.515 s, rc 0; OBS-08 no reproducida.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-239 — CLI maneja respuesta exitosa incompleta
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Automatizada / Robustez
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: CLI maneja respuesta exitosa incompleta.
+
+### Procedimiento
+`python test/test_remote_concurrency.py` Consultar el caso TC-239 en la evidencia correspondiente.
+
+### Resultado esperado
+Respuesta exitosa incompleta genera rc distinto de 0 sin traceback.
+
+### Resultado obtenido
+rc 1, Error: 'jobs'; PASS según criterio, OBS-06 por mensaje poco informativo.
+
+### Evidencia
+`EV-032-remote-concurrency-output.txt`.
+
+---
+
+## TC-240 — Crear exactamente 100 trabajos mediante TCP
+
+**Requisito relacionado:** RNF-05 (rendimiento; alcance loopback)
+**Tipo:** Automatizada / Rendimiento
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Crear exactamente 100 trabajos mediante TCP.
+
+### Procedimiento
+`python test/test_remote_performance.py` Consultar el caso TC-240 en la evidencia correspondiente.
+
+### Resultado esperado
+Crear exactamente 100 trabajos por TCP.
+
+### Resultado obtenido
+100 trabajos creados.
+
+### Evidencia
+`EV-033-remote-performance-output.txt`.
+
+---
+
+## TC-241 — Verificar UUID únicos y listado completo
+
+**Requisito relacionado:** RNF-05 (rendimiento; alcance loopback)
+**Tipo:** Automatizada / Rendimiento
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Verificar UUID únicos y listado completo.
+
+### Procedimiento
+`python test/test_remote_performance.py` Consultar el caso TC-241 en la evidencia correspondiente.
+
+### Resultado esperado
+Verificar UUID únicos y listado de 100 trabajos.
+
+### Resultado obtenido
+100 UUID únicos y listado completo.
+
+### Evidencia
+`EV-033-remote-performance-output.txt`.
+
+---
+
+## TC-242 — Completar los 100 trabajos correctamente
+
+**Requisito relacionado:** RNF-05 (rendimiento; alcance loopback)
+**Tipo:** Automatizada / Rendimiento
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Completar los 100 trabajos correctamente.
+
+### Procedimiento
+`python test/test_remote_performance.py` Consultar el caso TC-242 en la evidencia correspondiente.
+
+### Resultado esperado
+Los 100 trabajos finalizan SUCCEEDED.
+
+### Resultado obtenido
+100 SUCCEEDED.
+
+### Evidencia
+`EV-033-remote-performance-output.txt`.
+
+---
+
+## TC-243 — Ejecutar 90 consultas status válidas
+
+**Requisito relacionado:** RNF-05 (rendimiento; alcance loopback)
+**Tipo:** Automatizada / Rendimiento
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Ejecutar 90 consultas status válidas.
+
+### Procedimiento
+`python test/test_remote_performance.py` Consultar el caso TC-243 en la evidencia correspondiente.
+
+### Resultado esperado
+Validar 90 respuestas status.
+
+### Resultado obtenido
+90 respuestas válidas.
+
+### Evidencia
+`EV-033-remote-performance-output.txt`.
+
+---
+
+## TC-244 — Latencia máxima status <= 1000 ms
+
+**Requisito relacionado:** RNF-05 (rendimiento; alcance loopback)
+**Tipo:** Automatizada / Rendimiento
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Latencia máxima status <= 1000 ms.
+
+### Procedimiento
+`python test/test_remote_performance.py` Consultar el caso TC-244 en la evidencia correspondiente.
+
+### Resultado esperado
+Latencia máxima status <= 1000 ms con 100 trabajos registrados.
+
+### Resultado obtenido
+Mínimo 0.078, mediana 0.101, máximo 0.711 ms.
+
+### Evidencia
+`EV-033-remote-performance-output.txt`.
+
+---
+
+## TC-245 — Medir list y health con 100 trabajos
+
+**Requisito relacionado:** RNF-05 (rendimiento; alcance loopback)
+**Tipo:** Automatizada / Rendimiento
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Medir list y health con 100 trabajos.
+
+### Procedimiento
+`python test/test_remote_performance.py` Consultar el caso TC-245 en la evidencia correspondiente.
+
+### Resultado esperado
+Medir 30 list y 30 health válidos con 100 trabajos.
+
+### Resultado obtenido
+List min/med/max 0.516/0.551/0.713 ms; health 0.073/0.123/0.299 ms.
+
+### Evidencia
+`EV-033-remote-performance-output.txt`.
+
+---
+
+## TC-246 — Daemon operativo después de la carga
+
+**Requisito relacionado:** RNF-05 (rendimiento; alcance loopback)
+**Tipo:** Automatizada / Rendimiento
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Daemon operativo después de la carga.
+
+### Procedimiento
+`python test/test_remote_performance.py` Consultar el caso TC-246 en la evidencia correspondiente.
+
+### Resultado esperado
+Daemon operativo por UNIX y TCP tras carga.
+
+### Resultado obtenido
+Ambos transportes operativos.
+
+### Evidencia
+`EV-033-remote-performance-output.txt`.
+
+---
+
+## TC-247 — Conectividad TCP
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Conectividad TCP.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-247 en la evidencia correspondiente.
+
+### Resultado esperado
+TCP accesible, nc rc 0.
+
+### Resultado obtenido
+nc -vz -w 5 192.168.100.64 8765
+Connection to 192.168.100.64 8765 port [tcp/*] succeeded!
+Exit code: 0
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-248 — Health remoto
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Health remoto.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-248 en la evidencia correspondiente.
+
+### Resultado esperado
+Health indica servicio activo y rc 0.
+
+### Resultado obtenido
+jobsy --host 192.168.100.64 --port 8765 health
+Servicio Activo: Sí; ejecución 0; cola 0; errores recientes 0.
+Código de salida de la primera consulta no capturado; nueva consulta tras restaurar allowlist: 0.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-249 — Ejecución remota
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Ejecución remota.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-249 en la evidencia correspondiente.
+
+### Resultado esperado
+hostname ejecutado en PC A devuelve PCERDA.
+
+### Resultado obtenido
+run -- hostname; ID 1f92fc5e; output: PCERDA.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-250 — Listado
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Listado.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-250 en la evidencia correspondiente.
+
+### Resultado esperado
+Mostrar ID corto y UUID completo.
+
+### Resultado obtenido
+ID corto: 1f92fc5e; UUID: 1f92fc5e-7c47-416f-b95c-410099284e2f.
+Estado SUCCEEDED; comando hostname; ambos formatos observados.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-251 — Estado
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Estado.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-251 en la evidencia correspondiente.
+
+### Resultado esperado
+Estado SUCCEEDED y código del trabajo 0.
+
+### Resultado obtenido
+status 1f92fc5e: SUCCEEDED; código de salida del trabajo 0.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-252 — stdout/stderr
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: stdout/stderr.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-252 en la evidencia correspondiente.
+
+### Resultado esperado
+Recuperar stdout y stderr separados.
+
+### Resultado obtenido
+run -- bash -c 'echo QA_STDOUT_LAN; echo QA_STDERR_LAN >&2'
+ID b1e687b4; output redirigido a archivos separados.
+Exit code: 0; stdout QA_STDOUT_LAN; stderr QA_STDERR_LAN.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-253 — Cancelación
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Cancelación.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-253 en la evidencia correspondiente.
+
+### Resultado esperado
+RUNNING cambia a CANCELED sin perder estado.
+
+### Resultado obtenido
+run -- sleep 120; ID 1398370e; RUNNING -> CANCELED.
+Código de salida del trabajo: -15; diagnóstico: cancelado por solicitud del usuario.
+OBS-09: bitácora dice 'Trabajo finalizado con estado fallido (exit_code=-15)' pese a CANCELED. No afecta el resultado funcional.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-254 — Estado compartido UNIX/TCP
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Estado compartido UNIX/TCP.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-254 en la evidencia correspondiente.
+
+### Resultado esperado
+Trabajos visibles y consultables desde ambos transportes.
+
+### Resultado obtenido
+PC A: cliente UNIX lista trabajos remotos y consulta 1f92fc5e y 1398370e.
+PC A crea echo QA_LOCAL_TO_REMOTE, ID 22ac66b1.
+PC B consulta SUCCEEDED, código 0, output QA_LOCAL_TO_REMOTE.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-255 — IP real
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: IP real.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-255 en la evidencia correspondiente.
+
+### Resultado esperado
+Log registra 192.168.100.151.
+
+### Resultado obtenido
+Bitácora: Conexión remota aceptada desde 192.168.100.151.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-256 — Allowlist
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Allowlist.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-256 en la evidencia correspondiente.
+
+### Resultado esperado
+Excluir PC B, registrar rechazo y mantener UNIX; restaurar acceso.
+
+### Resultado obtenido
+Daemon escucha en 192.168.100.64:8765 con allowlist 127.0.0.1/32.
+Health remoto: error controlado, código 1.
+Bitácora: Conexión remota rechazada: 192.168.100.151 fuera de las redes permitidas.
+Health local UNIX: activo, código 0. Al restaurar allowlist original, health remoto activo, código 0.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-257 — Variables de entorno
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Variables de entorno.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-257 en la evidencia correspondiente.
+
+### Resultado esperado
+Operaciones sin flags usan host y puerto del entorno.
+
+### Resultado obtenido
+JOBSY_HOST=192.168.100.64; JOBSY_PORT=8765.
+health, list --full-id, status 1f92fc5e y output 1f92fc5e funcionan sin flags.
+Variables eliminadas posteriormente.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-258 — Latencia LAN
+
+**Requisito relacionado:** PR #135 / rendimiento LAN complementario (no RNF-05 completo)
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Latencia LAN.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-258 en la evidencia correspondiente.
+
+### Resultado esperado
+30 respuestas status válidas y máximo <= 1000 ms.
+
+### Resultado obtenido
+30 solicitudes status sobre conexión TCP persistente, 4 trabajos registrados.
+Valores ms, en orden:
+3.250, 2.768, 2.607, 2.952, 3.425, 2.304, 2.273, 3.187, 2.433, 2.262,
+2.362, 2.918, 1.847, 2.929, 2.283, 2.404, 2.381, 2.362, 2.494, 2.933,
+2.492, 2.898, 2.613, 2.267, 2.929, 2.842, 2.458, 2.408, 2.345, 2.571.
+Consultas válidas: 30; mínimo 1.847 ms; mediana 2.493 ms; máximo 3.425 ms.
+Criterio utilizado: 30 respuestas válidas y máximo <= 1000 ms.
+No equivale a RNF-05 con 100 trabajos ni incluye establecimiento TCP o inicio CLI.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-259 — Desconexión y recuperación
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Desconexión y recuperación.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-259 en la evidencia correspondiente.
+
+### Resultado esperado
+Cerrar conexión con trabajo RUNNING y verificar SUCCEEDED tras reconexión.
+
+### Resultado obtenido
+ID 1879fda6-15b6-4b68-a326-754a90b08957; RUNNING antes de cerrar TCP.
+Conexión restablecida; SUCCEEDED; código 0.
+Cierre controlado de conexión; no se simuló caída física de red.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
+## TC-260 — Apagado
+
+**Requisito relacionado:** PR #135 / RF-16
+**Tipo:** Integración / LAN
+**Prioridad:** Alta
+**Estado:** `PASS`
+
+### Objetivo
+Verificar: Apagado.
+
+### Procedimiento
+Ejecución manual LAN según EV-034. Consultar el caso TC-260 en la evidencia correspondiente.
+
+### Resultado esperado
+Apagado rc 0, clean=True, sin listener ni socket; cliente falla controladamente.
+
+### Resultado obtenido
+SIGINT; Acceso remoto detenido; clean=True; daemon exit code 0.
+ss: sin listener en 8765; socket UNIX eliminado.
+PC B nc: timeout, código 1; health: error controlado, código 1.
+OBS-10: mensaje 'Servicio detenido completamente.' duplicado en tres sesiones observadas.
+
+### Evidencia
+`EV-034-remote-lan-output.txt`.
+
+---
+
 # Resumen de ejecución
 
 | Caso | Descripción | Estado | Evidencia |
@@ -4250,13 +6610,108 @@ RESULTADO GENERAL: PASS
 | TC-162 | Rechazar prefijo ambiguo sin elegir arbitrariamente | PASS | EV-026 |
 | TC-163 | Resolver ID corto de un trabajo terminal | PASS | EV-026 |
 | TC-164 | Health muestra IDs cortos | PASS | EV-026 |
-
+| TC-165 | Cabecera de cuatro bytes y JSON UTF-8 | PASS | EV-028 |
+| TC-166 | Fragmentación byte a byte con Unicode | PASS | EV-028 |
+| TC-167 | Tramas agrupadas y EOF limpio | PASS | EV-028 |
+| TC-168 | Envío parcial sin pérdida de datos | PASS | EV-028 |
+| TC-169 | Rechazo de longitudes fuera del límite | PASS | EV-028 |
+| TC-170 | Aceptación de los límites exactos de framing | PASS | EV-028 |
+| TC-171 | Detección de cabecera o cuerpo incompleto | PASS | EV-028 |
+| TC-172 | Timeout de lectura e inactividad | PASS | EV-028 |
+| TC-173 | Plazo absoluto ante tráfico fragmentado lento | PASS | EV-028 |
+| TC-174 | Rechazo de codificación inválida | PASS | EV-028 |
+| TC-175 | JSON inválido y límite de profundidad | PASS | EV-028 |
+| TC-176 | Validación de versión del protocolo | PASS | EV-028 |
+| TC-177 | Validación de request_id | PASS | EV-028 |
+| TC-178 | Validación de acciones y parámetros | PASS | EV-028 |
+| TC-179 | Validación de sobres de respuesta y correlación | PASS | EV-028 |
+| TC-180 | Rechazo de respuesta superior a 1 MiB | PASS | EV-028 |
+| TC-181 | Acceso remoto deshabilitado por defecto | PASS | EV-029 |
+| TC-182 | Aceptar IP privada y allowlist múltiple | PASS | EV-029 |
+| TC-183 | Rechazar direcciones comodín IPv4 e IPv6 | PASS | EV-029 |
+| TC-184 | Rechazar IP pública de escucha | PASS | EV-029 |
+| TC-185 | Rechazar hostname y dirección inválida | PASS | EV-029 |
+| TC-186 | Exigir allowlist al habilitar TCP | PASS | EV-029 |
+| TC-187 | Rechazar redes públicas y rutas universales | PASS | EV-029 |
+| TC-188 | Rechazar CIDR inválido | PASS | EV-029 |
+| TC-189 | Rechazar puertos fuera de rango | PASS | EV-029 |
+| TC-190 | Rechazar límites globales inválidos | PASS | EV-029 |
+| TC-191 | Rechazar límites por IP inválidos | PASS | EV-029 |
+| TC-192 | Aceptar límites exactos de configuración | PASS | EV-029 |
+| TC-193 | Configuración inválida rechazada por entry point | PASS | EV-029 |
+| TC-194 | Daemon local operativo sin listener TCP y limpieza al apagar | PASS | EV-029 |
+| TC-195 | Daemon TCP en IP concreta, IPC local y limpieza al apagar | PASS | EV-029 |
+| TC-196 | Health remoto y local equivalentes | PASS | EV-030 |
+| TC-197 | Run remoto genera ID corto y ejecuta trabajo | PASS | EV-030 |
+| TC-198 | List remoto comparte trabajos con UNIX | PASS | EV-030 |
+| TC-199 | List remoto --full-id muestra UUID | PASS | EV-030 |
+| TC-200 | Status remoto mediante ID corto y paridad local | PASS | EV-030 |
+| TC-201 | Status remoto mediante UUID completo | PASS | EV-030 |
+| TC-202 | Output remoto conserva stdout y stderr | PASS | EV-030 |
+| TC-203 | List remoto aplica filtro por estado | PASS | EV-030 |
+| TC-204 | Trabajo remoto cancelado y consultado localmente | PASS | EV-030 |
+| TC-205 | Trabajo local consultado por TCP | PASS | EV-030 |
+| TC-206 | Cancelación repetida controlada | PASS | EV-030 |
+| TC-207 | ID inexistente devuelve error controlado | PASS | EV-030 |
+| TC-208 | ID inválido devuelve error controlado | PASS | EV-030 |
+| TC-209 | JOBSY_HOST y JOBSY_PORT seleccionan TCP | PASS | EV-030 |
+| TC-210 | Opciones explícitas prevalecen sobre entorno | PASS | EV-030 |
+| TC-211 | Servidor no disponible devuelve error controlado | PASS | EV-030 |
+| TC-212 | Puerto explícito inválido devuelve error de sintaxis | PASS | EV-030 |
+| TC-213 | JOBSY_PORT no numérico sin traceback | FAIL | EV-030 |
+| TC-214 | Daemon permanece operativo tras errores | PASS | EV-030 |
+| TC-215 | No registrar argumentos locales | PASS | EV-031 |
+| TC-216 | No registrar argumentos remotos | PASS | EV-031 |
+| TC-217 | Sanitizar secretos clave=valor | PASS | EV-031 |
+| TC-218 | Sanitizar opciones con secretos | PASS | EV-031 |
+| TC-219 | Sanitizar autorización HTTP Bearer | FAIL | EV-031 |
+| TC-220 | Crear jobsy.log con permisos 0600 | PASS | EV-031 |
+| TC-221 | Corregir permisos de bitácora existente | PASS | EV-031 |
+| TC-222 | Usar bitácora de --data-dir | PASS | EV-031 |
+| TC-223 | Registrar IP autorizada | PASS | EV-031 |
+| TC-224 | Rechazar conexión fuera de allowlist | PASS | EV-031 |
+| TC-225 | Registrar IP rechazada | PASS | EV-031 |
+| TC-226 | Daemon operativo después de rechazo | PASS | EV-031 |
+| TC-227 | Sanitizar respuestas de errores internos | PASS | EV-031 |
+| TC-228 | Evitar secretos en logs de excepciones internas | FAIL | EV-031 |
+| TC-229 | Solicitudes consecutivas en una conexión | PASS | EV-032 |
+| TC-230 | Tres clientes concurrentes crean trabajos independientes | PASS | EV-032 |
+| TC-231 | Errores recuperables conservan conexión | PASS | EV-032 |
+| TC-232 | JSON inválido cierra solo al cliente afectado | PASS | EV-032 |
+| TC-233 | Desconexiones abruptas no interrumpen trabajos | PASS | EV-032 |
+| TC-234 | Límite por IP y recuperación de cupo | PASS | EV-032 |
+| TC-235 | Límite global con distintas IP loopback | PASS | EV-032 |
+| TC-236 | Cliente lento no bloquea otro cliente | PASS | EV-032 |
+| TC-237 | Coexistencia de IPC UNIX y TCP | PASS | EV-032 |
+| TC-238 | Apagado con clientes activos | PASS | EV-032 |
+| TC-239 | CLI maneja respuesta exitosa incompleta | PASS | EV-032 |
+| TC-240 | Crear exactamente 100 trabajos mediante TCP | PASS | EV-033 |
+| TC-241 | Verificar UUID únicos y listado completo | PASS | EV-033 |
+| TC-242 | Completar los 100 trabajos correctamente | PASS | EV-033 |
+| TC-243 | Ejecutar 90 consultas status válidas | PASS | EV-033 |
+| TC-244 | Latencia máxima status <= 1000 ms | PASS | EV-033 |
+| TC-245 | Medir list y health con 100 trabajos | PASS | EV-033 |
+| TC-246 | Daemon operativo después de la carga | PASS | EV-033 |
+| TC-247 | Conectividad TCP | PASS | EV-034 |
+| TC-248 | Health remoto | PASS | EV-034 |
+| TC-249 | Ejecución remota | PASS | EV-034 |
+| TC-250 | Listado | PASS | EV-034 |
+| TC-251 | Estado | PASS | EV-034 |
+| TC-252 | stdout/stderr | PASS | EV-034 |
+| TC-253 | Cancelación | PASS | EV-034 |
+| TC-254 | Estado compartido UNIX/TCP | PASS | EV-034 |
+| TC-255 | IP real | PASS | EV-034 |
+| TC-256 | Allowlist | PASS | EV-034 |
+| TC-257 | Variables de entorno | PASS | EV-034 |
+| TC-258 | Latencia LAN | PASS | EV-034 |
+| TC-259 | Desconexión y recuperación | PASS | EV-034 |
+| TC-260 | Apagado | PASS | EV-034 |
 
 ## Resultado general
 
-Se han ejecutado un total acumulado de **164 casos de prueba** sobre los alcances revisados de Jobsy.
+Se han ejecutado **260 casos únicos acumulados** sobre los alcances revisados de Jobsy: 257 PASS y 3 FAIL según los resultados originales por caso. Los resultados de regresión se registran por separado.
 
-Los **164 casos cuentan con resultado final `PASS`**.
+Los 164 casos históricos tenían resultado PASS al cierre del PR #133; el PR #135 añade 93 PASS y 3 FAIL. EV-035 reevalúa la batería vigente sin crear nuevos IDs.
 
 Para el PR #116 se añadieron **36 casos de prueba**, del `TC-091` al `TC-126`, con resultado:
 
@@ -4312,7 +6767,7 @@ Durante la primera validación de RNF-22 se detectó un defecto real mediante `T
 
 También se documentó la evidencia de versión demostrada y batería ejecutada en `docs/qa/technical-review-2.md`.
 
-### Observaciones QA — cierre Technical Review 2
+### Observaciones QA — cierre histórico Technical Review 2 y PR #133
 
 - La cobertura acumulada comprende `TC-001` a `TC-164`.
 - Las evidencias acumuladas comprenden `EV-001` a `EV-027`.
@@ -4326,3 +6781,14 @@ También se documentó la evidencia de versión demostrada y batería ejecutada 
 - La prueba de estrés procesó `120` trabajos, liberó todos los procesos hijos, conservó `6` descriptores de archivo antes y después de la carga y eliminó correctamente el socket al finalizar.
 - La batería consolidada excluye pruebas históricas cuyas expectativas pertenecen a contratos anteriores del sistema; las funcionalidades actuales correspondientes cuentan con cobertura posterior vigente.
 - No se identifican defectos bloqueantes abiertos dentro del alcance final validado.
+
+
+## Cierre QA — PR #135
+
+- TC-165 a TC-260: 96 casos, 93 PASS, 3 FAIL (TC-213, TC-219, TC-228).
+- EV-035: 29 scripts, 27 PASS, 2 FAIL, 0 TIMEOUT, 70.76 s, rc 1; 23 scripts históricos PASS. TC-147 PASS; TC-148 y TC-149 FAIL en esta reejecución, sin cambiar el resultado histórico original.
+- INC-002, INC-003 e INC-004 abiertos y reproducidos. OBS-09 y OBS-10 reproducidas en LAN y loopback.
+- RNF-05: 100 trabajos registrados y completados en loopback, no 100 activos simultáneos. LAN: 4 trabajos, conexión persistente, sin incluir establecimiento TCP ni arranque CLI.
+- EV-034 es consolidación manual más bitácora original; EV-035 registra detalle únicamente de scripts fallidos.
+- Dictamen: NO APROBADO, pendiente de correcciones y revalidación.
+- Los casos TC-150 a TC-164 se conservan en la tabla histórica tal como aparecen en el documento recibido; no se inventan fichas detalladas ausentes.
